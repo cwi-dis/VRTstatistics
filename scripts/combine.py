@@ -21,8 +21,8 @@ def combine_files(senderfile, receiverfile, outputfile):
     Session timestamps (relative to start of session), sender/receiver role are added to each record.
     Records are sorted by timstamp.
     """
-    senderdata = json.load(open(senderfile, 'r'))
-    receiverdata = json.load(open(receiverfile, 'r'))
+    senderdata = [] if senderfile == '-' else json.load(open(senderfile, 'r'))
+    receiverdata = [] if receiverfile == ' ' else json.load(open(receiverfile, 'r'))
     outputdata = combine_data(senderdata, receiverdata)
     json.dump(outputdata, open(outputfile, 'w'), indent='\t')
     return True
@@ -36,18 +36,28 @@ def combine_data(senderdata, receiverdata):
     #
     # Find session ID and start time.
     #
-    session_sender = find_session_id(senderdata)
-    session_receiver = find_session_id(receiverdata)
-    if session_sender != session_receiver:
-        raise RuntimeError(f"sender has session {session_sender} and receiver has {session_receiver}")
-    session_start_time_sender = find_session_start_time(senderdata)
-    session_start_time_receiver = find_session_start_time(receiverdata)
-    session_start_time = min(session_start_time_sender, session_start_time_receiver)
-    #
-    # Adjust data lists with session timestamps and roles
-    #
-    senderdata = adjust_time_and_role(senderdata, session_start_time, 'sender')
-    receiverdata = adjust_time_and_role(receiverdata, session_start_time, 'receiver')
+    session_start_time = None
+    if senderdata:
+        session_sender = find_session_id(senderdata)
+        session_start_time_sender = find_session_start_time(senderdata)
+        session_start_time = session_start_time_sender
+        #
+        # Adjust data lists with session timestamps and roles
+        #
+        senderdata = adjust_time_and_role(senderdata, session_start_time, 'sender')
+    if receiverdata:
+        session_receiver = find_session_id(receiverdata)
+        if senderdata and session_sender != session_receiver:
+            raise RuntimeError(f"sender has session {session_sender} and receiver has {session_receiver}")
+        session_start_time_receiver = find_session_start_time(receiverdata)
+        if senderdata:
+            session_start_time = min(session_start_time_sender, session_start_time_receiver)
+        else:
+            session_start_time = session_start_time_receiver
+        #
+        # Adjust data lists with session timestamps and roles
+        #
+        receiverdata = adjust_time_and_role(receiverdata, session_start_time, 'receiver')
     #
     # Combine and sort
     #

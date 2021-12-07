@@ -16,6 +16,12 @@ pip install -r requirements.txt
 
 ## Getting the data
 
+### Two-machine runs
+
+Edit `getlogs.sh` and fix the hostnames and log file paths.
+
+Create a directory to store the data.
+
 Get the statistics logfiles from the machines and give them a logical name:
 
 ```
@@ -28,6 +34,10 @@ cd todays-measurements
 This will get the logfiles, turn them into json and combine them. It will also show an initial plot, to give you some confidence you've gotten the correct data (plotting the pointcounts of the renderers over time).
 
 The file `combined.json` contains all the combined data from the run.
+
+### One-machine run
+
+If you're only interested in statistics of a single machine, inspect the `getlogs.sh` script and simply execute the corresponding (python) commands.
 
 ## Analysing the data
 
