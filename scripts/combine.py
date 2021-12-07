@@ -37,10 +37,13 @@ def combine_data(senderdata, receiverdata):
     # Find session ID and start time.
     #
     session_start_time = None
+    sender_desync = None
+    receiver_desync = None
     if senderdata:
         session_sender = find_session_id(senderdata)
         session_start_time_sender = find_session_start_time(senderdata)
         session_start_time = session_start_time_sender
+        sender_desync = find_session_desync(senderdata)
         #
         # Adjust data lists with session timestamps and roles
         #
@@ -50,6 +53,7 @@ def combine_data(senderdata, receiverdata):
         if senderdata and session_sender != session_receiver:
             raise RuntimeError(f"sender has session {session_sender} and receiver has {session_receiver}")
         session_start_time_receiver = find_session_start_time(receiverdata)
+        receiver_desync = find_session_desync(receiverdata)
         if senderdata:
             session_start_time = min(session_start_time_sender, session_start_time_receiver)
         else:
@@ -58,6 +62,10 @@ def combine_data(senderdata, receiverdata):
         # Adjust data lists with session timestamps and roles
         #
         receiverdata = adjust_time_and_role(receiverdata, session_start_time, 'receiver')
+    if sender_desync != None and receiver_desync != None:
+        if abs(sender_desync) > 30 or abs(receiver_desync > 30):
+            print(f'Warning: synchronization: sender {sender_desync}ms behind orchestrator', file=sys.stderr)
+            print(f'Warning: synchronization: receiver {receiver_desync}ms behind orchestrator', file=sys.stderr)
     #
     # Combine and sort
     #
@@ -71,6 +79,12 @@ def find_session_id(data):
         return r['sessionId']
     raise RuntimeError('missing session start')
     
+def find_session_desync(data):
+    for r in data:
+        if r['component'] == 'OrchestratorController' and 'localtime_behind_ms' in r:
+            return r['localtime_behind_ms']
+    raise RuntimeError("Missing OrchestratorController time synchronization record")
+        
 def find_session_start_time(data):
     if False:
         # This would return session creation time. Start time is better.
