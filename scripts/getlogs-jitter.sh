@@ -1,16 +1,5 @@
 #!/bin/bash
 set -e
-#
-# These settings work for Jack at home, with VPN to Pampus.
-# Expects a .venv python virtualenv in the scripts directory
-#
-# CWI
-#SENDER_SSH_ID=vrtogether@vrbig.local
-#SENDER_SSH_ID=vr-together@vrsmall.local
-#RECEIVER_SSH_ID=vrtogether@scallion.local
-# Jack home
-SENDER_SSH_ID=vrtogether@vrtiny.local
-RECEIVER_SSH_ID=localhost
 
 # Find script directory and python
 scriptdir=`dirname $0`
@@ -20,12 +9,17 @@ if [ -f $scriptdir/.venv/bin/activate ]; then
 else
 	. $scriptdir/.venv/Scripts/activate
 fi
+# Where the logfiles should be copied from
 winPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log"
 macPath="Library/Application\ Support/i2Cat/VRTogether/statistics.log"
+
+senderlog="vrtogether@vrbig.local:$winPath"
+receiverlog="vrtogether@scallion.local:$winPath"
+
 set -x
 # Get datafiles
-scp "${SENDER_SSH_ID}:$winPath" sender.log
-scp "${RECEIVER_SSH_ID}:$macPath" receiver.log
+scp "$senderlog" sender.log
+scp "$receiverlog" receiver.log
 # convert to json
 python $scriptdir/stats2json.py sender.log sender.json
 python $scriptdir/stats2json.py receiver.log receiver.json
