@@ -37,3 +37,8 @@ python $scriptdir/plot.py pointcloud_latencies.csv
 # Graph timestamps
 python $scriptdir/filter.py combined.json pointcloud_timestamps.csv '"timestamp" in record and timestamp > 0' sessiontime role.component=timestamp
 python $scriptdir/plot.py pointcloud_timestamps.csv
+#
+# Save graphs
+python $scriptdir/plot.py -o pointcloud_sizes.png pointcloud_sizes.csv
+python $scriptdir/plot.py -o pointcloud_latencies.png pointcloud_latencies.csv
+python $scriptdir/plot.py -o pointcloud_timestamps.png pointcloud_timestamps.csv
