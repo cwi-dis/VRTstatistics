@@ -34,6 +34,14 @@ python $scriptdir/plot.py pointcloud_sizes.csv
 python $scriptdir/filter.py combined.json pointcloud_latencies.csv '("renderer_queue_ms" in record and role == "receiver") or "decoder_queue_ms" in record or "encoder_queue_ms" in record or "transmitter_queue_ms" in record' sessiontime latency_ms renderer_queue_ms decoder_queue_ms transmitter_queue_ms encoder_queue_ms
 python $scriptdir/plot.py pointcloud_latencies.csv
 #
+# Graph framerates
+python $scriptdir/filter.py combined.json pointcloud_framerates.csv '"fps" in record' sessiontime role.component=fps
+python $scriptdir/plot.py pointcloud_framerates.csv
+#
+# Graph dropped framerates
+python $scriptdir/filter.py combined.json pointcloud_droprates.csv '"fps_dropped" in record' sessiontime role.component=fps_dropped
+python $scriptdir/plot.py pointcloud_droprates.csv
+#
 # Graph timestamps
 python $scriptdir/filter.py combined.json pointcloud_timestamps.csv '"timestamp" in record and timestamp > 0' sessiontime role.component=timestamp
 python $scriptdir/plot.py pointcloud_timestamps.csv
@@ -42,3 +50,5 @@ python $scriptdir/plot.py pointcloud_timestamps.csv
 python $scriptdir/plot.py -o pointcloud_sizes.png pointcloud_sizes.csv
 python $scriptdir/plot.py -o pointcloud_latencies.png pointcloud_latencies.csv
 python $scriptdir/plot.py -o pointcloud_timestamps.png pointcloud_timestamps.csv
+python $scriptdir/plot.py -o pointcloud_framerates.png pointcloud_framerates.csv
+python $scriptdir/plot.py -o pointcloud_droprates.png pointcloud_droprates.csv
