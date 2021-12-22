@@ -63,3 +63,17 @@ python $scriptdir/plot.py sessionname-latency.csv
 ```
 
 The plotter has options to save to file, select the X axis, more. Use `--help` to see the options.
+
+## Performance testing guidelines
+
+Writing this down here because I keep forgetting.
+
+The `getlogs-jitter.sh` script shows some graphs after getting the data and processing it that help you judge whether the data makes sense.
+
+1. First graph is points per cloud. Ensure that this has the shape you expect, given the prerecorded stream you think you've selected, or however the subject moved in front of the camera.
+2. Second graph is latencies, end-to-end and from different components. Eyeball and apply common sense.
+3. Framerates per component. You may have to zoom in because of outliers. Check these confirm to what you think you've selected. 
+4. Dropped frames per second, per component. If they're not all zeroes you should be able to come up with a good reason why not. 
+   
+   **Note** if you get serious frame dropping somewhere on the sender side your sender hardware is not powerful enough. Lowering framerate or pointcount is the only option.
+5. Timestamp progression in source capturer and destination receiver. Should be linear upsloping lines with sender ahead of receiver.
