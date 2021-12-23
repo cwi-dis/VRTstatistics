@@ -13,8 +13,10 @@ fi
 winPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log"
 macPath="Library/Application\ Support/i2Cat/VRTogether/statistics.log"
 
-senderlog="vrtogether@vrtiny.local:$winPath"
-receiverlog="localhost:$macPath"
+#senderlog="vrtogether@vrtiny.local:$winPath"
+#receiverlog="localhost:$macPath"
+senderlog="vrtogether@scallion.local:$winPath"
+receiverlog="localhost:$winPath"
 
 set -x
 # Get datafiles
