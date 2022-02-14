@@ -6,11 +6,11 @@ import types
 import csv
 from typing import Optional, Callable
 
-StatisticsRecord = dict
+DataStoreRecord = dict
 
-class StatisticsDataStore:
+class DataStore:
     filename : str
-    data : list[StatisticsRecord]
+    data : list[DataStoreRecord]
     session_id : Optional[str]
     session_start_time : Optional[float]
     session_desync : Optional[float]
@@ -103,16 +103,16 @@ def main():
     if len(sys.argv) != 4:
         print(f'Usage: {sys.argv[0]} senderjson receiverjson outputjson')
         sys.exit(1)
-    senderdata = StatisticsDataStore(sys.argv[1])
+    senderdata = DataStore(sys.argv[1])
     senderdata.load()
-    receiverdata = StatisticsDataStore(sys.argv[2])
+    receiverdata = DataStore(sys.argv[2])
     receiverdata.load()
-    outputdata = StatisticsDataStore(sys.argv[3])
-    ok = combine_files(senderdata, receiverdata, outputdata)
+    outputdata = DataStore(sys.argv[3])
+    ok = combine(senderdata, receiverdata, outputdata)
     outputdata.save()
     sys.exit(0 if ok else 1)
     
-def combine_files(senderdata : StatisticsDataStore, receiverdata : StatisticsDataStore, outputdata : StatisticsDataStore) -> bool:
+def combine(senderdata : DataStore, receiverdata : DataStore, outputdata : DataStore) -> bool:
     """
     Senderdata and receiverdata are lists of dictionaries, they are combined and sorted and the result is returned.
     Session timestamps (relative to start of session), sender/receiver role are added to each record.
