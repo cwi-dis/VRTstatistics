@@ -3,7 +3,7 @@ set -e
 
 # Find script directory and python
 scriptdir=`dirname $0`
-scriptdir=`(cd $scriptdir ; pwd)`
+scriptdir=`(cd $scriptdir/.. ; pwd)`
 if [ -f $scriptdir/.venv/bin/activate ]; then
 	. $scriptdir/.venv/bin/activate
 else
@@ -24,34 +24,34 @@ scp "$senderlog" sender.log
 scp "$receiverlog" receiver.log
 # convert to json
 export PYTHONPATH="$scriptdir:$PYTHONPATH"
-python -m VRTstatistics.scripts.stats2json sender.log sender.json
-python -m VRTstatistics.scripts.stats2json receiver.log receiver.json
+VRTstatistics-stats2json sender.log sender.json
+VRTstatistics-stats2json receiver.log receiver.json
 # There's nothing to conbine, but we do want to fix timestamps and all that
-python -m VRTstatistics.scripts.combine sender.json receiver.json combined.json
+VRTstatistics-combine sender.json receiver.json combined.json
 # Show a graph with rendered pointcloud sizes
 # This is expected to be "good enough" to judge whether we're doing the right thing.
-python -m VRTstatistics.scripts.filter combined.json pointcloud_sizes.csv 'role == "receiver" and "PointCloudRenderer" in component' sessiontime points_per_cloud
-python -m VRTstatistics.scripts.plot pointcloud_sizes.csv
+VRTstatistics-filter combined.json pointcloud_sizes.csv 'role == "receiver" and "PointCloudRenderer" in component' sessiontime points_per_cloud
+VRTstatistics-plot pointcloud_sizes.csv
 #
 # Graph latencies
-python -m VRTstatistics.scripts.filter combined.json pointcloud_latencies.csv '("renderer_queue_ms" in record and role == "receiver") or "decoder_queue_ms" in record or "encoder_queue_ms" in record or "transmitter_queue_ms" in record or "receive_ms" in record' sessiontime downsample_ms encoder_queue_ms encoder_ms transmitter_queue_ms decoder_queue_ms decoder_ms decoded_queue_ms renderer_queue_ms latency_ms receive_ms   
-python -m VRTstatistics.scripts.plot pointcloud_latencies.csv
+VRTstatistics-filter combined.json pointcloud_latencies.csv '("renderer_queue_ms" in record and role == "receiver") or "decoder_queue_ms" in record or "encoder_queue_ms" in record or "transmitter_queue_ms" in record or "receive_ms" in record' sessiontime downsample_ms encoder_queue_ms encoder_ms transmitter_queue_ms decoder_queue_ms decoder_ms decoded_queue_ms renderer_queue_ms latency_ms receive_ms   
+VRTstatistics-plot pointcloud_latencies.csv
 #
 # Graph framerates
-python -m VRTstatistics.scripts.filter combined.json pointcloud_framerates.csv '"fps" in record' sessiontime role.component=fps
-python -m VRTstatistics.scripts.plot pointcloud_framerates.csv
+VRTstatistics-filter combined.json pointcloud_framerates.csv '"fps" in record' sessiontime role.component=fps
+VRTstatistics-plot pointcloud_framerates.csv
 #
 # Graph dropped framerates
-python -m VRTstatistics.scripts.filter combined.json pointcloud_droprates.csv '"fps_dropped" in record' sessiontime role.component=fps_dropped
-python -m VRTstatistics.scripts.plot pointcloud_droprates.csv
+VRTstatistics-filter combined.json pointcloud_droprates.csv '"fps_dropped" in record' sessiontime role.component=fps_dropped
+VRTstatistics-plot pointcloud_droprates.csv
 #
 # Graph timestamps
-python -m VRTstatistics.scripts.filter combined.json pointcloud_timestamps.csv '"timestamp" in record and timestamp > 0' sessiontime role.component=timestamp
-python -m VRTstatistics.scripts.plot pointcloud_timestamps.csv
+VRTstatistics-filter combined.json pointcloud_timestamps.csv '"timestamp" in record and timestamp > 0' sessiontime role.component=timestamp
+VRTstatistics-plot pointcloud_timestamps.csv
 #
 # Save graphs
-python -m VRTstatistics.scripts.plot -o pointcloud_sizes.png pointcloud_sizes.csv
-python -m VRTstatistics.scripts.plot -o pointcloud_latencies.png pointcloud_latencies.csv
-python -m VRTstatistics.scripts.plot -o pointcloud_timestamps.png pointcloud_timestamps.csv
-python -m VRTstatistics.scripts.plot -o pointcloud_framerates.png pointcloud_framerates.csv
-python -m VRTstatistics.scripts.plot -o pointcloud_droprates.png pointcloud_droprates.csv
+VRTstatistics-plot -o pointcloud_sizes.png pointcloud_sizes.csv
+VRTstatistics-plot -o pointcloud_latencies.png pointcloud_latencies.csv
+VRTstatistics-plot -o pointcloud_timestamps.png pointcloud_timestamps.csv
+VRTstatistics-plot -o pointcloud_framerates.png pointcloud_framerates.csv
+VRTstatistics-plot -o pointcloud_droprates.png pointcloud_droprates.csv
