@@ -9,25 +9,14 @@ if [ -f $scriptdir/.venv/bin/activate ]; then
 else
 	. $scriptdir/.venv/Scripts/activate
 fi
-# Where the logfiles should be copied from
-winPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log"
-macPath="Library/Application\ Support/i2Cat/VRTogether/statistics.log"
 
-senderlog="vrtogether@vrtiny.local:$winPath"
-receiverlog="localhost:$macPath"
-#senderlog="vrtogether@scallion.local:$winPath"
-#receiverlog="localhost:$winPath"
+sender="vrtiny.local"
+receiver="sap.local"
 
 set -x
-# Get datafiles
-scp "$senderlog" sender.log
-scp "$receiverlog" receiver.log
-# convert to json
-export PYTHONPATH="$scriptdir:$PYTHONPATH"
-VRTstatistics-stats2json sender.log sender.json
-VRTstatistics-stats2json receiver.log receiver.json
-# There's nothing to conbine, but we do want to fix timestamps and all that
-VRTstatistics-combine sender.json receiver.json combined.json
+
+VRTstatistics-ingest $sender $receiver
+
 # Show a graph with rendered pointcloud sizes
 # This is expected to be "good enough" to judge whether we're doing the right thing.
 VRTstatistics-filter combined.json pointcloud_sizes.csv 'role == "receiver" and "PointCloudRenderer" in component' sessiontime points_per_cloud
