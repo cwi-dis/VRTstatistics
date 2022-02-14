@@ -13,10 +13,10 @@ fi
 winPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log"
 macPath="Library/Application\ Support/i2Cat/VRTogether/statistics.log"
 
-#senderlog="vrtogether@vrtiny.local:$winPath"
-#receiverlog="localhost:$macPath"
-senderlog="vrtogether@scallion.local:$winPath"
-receiverlog="localhost:$winPath"
+senderlog="vrtogether@vrtiny.local:$winPath"
+receiverlog="localhost:$macPath"
+#senderlog="vrtogether@scallion.local:$winPath"
+#receiverlog="localhost:$winPath"
 
 set -x
 # Get datafiles
@@ -33,7 +33,7 @@ python $scriptdir/filter.py combined.json pointcloud_sizes.csv 'role == "receive
 python $scriptdir/plot.py pointcloud_sizes.csv
 #
 # Graph latencies
-python $scriptdir/filter.py combined.json pointcloud_latencies.csv '("renderer_queue_ms" in record and role == "receiver") or "decoder_queue_ms" in record or "encoder_queue_ms" in record or "transmitter_queue_ms" in record' sessiontime encoder_queue_ms encoder_ms transmitter_queue_ms decoder_queue_ms decoder_ms decoded_queue_ms renderer_queue_ms latency_ms     
+python $scriptdir/filter.py combined.json pointcloud_latencies.csv '("renderer_queue_ms" in record and role == "receiver") or "decoder_queue_ms" in record or "encoder_queue_ms" in record or "transmitter_queue_ms" in record or "receive_ms" in record' sessiontime encoder_queue_ms encoder_ms transmitter_queue_ms decoder_queue_ms decoder_ms decoded_queue_ms renderer_queue_ms latency_ms receive_ms   
 python $scriptdir/plot.py pointcloud_latencies.csv
 #
 # Graph framerates
