@@ -1,6 +1,7 @@
 import sys
 import json
 from typing import Optional, Callable
+from .parser import StatsFileParser
 
 __all__ = [
     "DataStoreRecord",
@@ -38,7 +39,9 @@ class DataStore:
         self.data = [] if self.filename == '-' else json.load(open(self.filename, 'r'))
         
     def load_log(self) -> None:
-        assert False
+        parser = StatsFileParser(self.filename)
+        self.data = parser.parse()
+        parser.check()
 
     def load_data(self, data) -> None:
         self.data = data

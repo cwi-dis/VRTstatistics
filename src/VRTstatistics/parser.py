@@ -4,6 +4,8 @@ import json
 import time
 from typing import TextIO
 
+__all__ = ["StatsFileParser"]
+
 class StatsFileParser:
     filename : str
     data : list
