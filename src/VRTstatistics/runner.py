@@ -17,30 +17,40 @@ defaultRunnerConfig = {
         user="jack",
         exePath="/Users/jack/src/VRTogether/VRTApp-built-mmsys.app/Contents/MacOS/VRTogether",
         useSsh=True,
-        exeArgs=[]
+        exeArgs=["-vrmode", "None", "-disableVR"]
     ),
     "flauwte.local": dict(
         statPath="Library/Application\\ Support/i2Cat/VRTogether/statistics.log",
         useSsh=True,
         user="jack",
+        exeArgs=["-vrmode", "None", "-disableVR"]
     ),
     "vrtiny.local": dict(
         statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log", 
         user="vrtogether",
         exePath="c:/Users/VRTogether/VRTogether/VRTapp-built-mmsys/VRTogether.exe",
         useSsh=False,
+        exeArgs=["-vrmode", "None", "-disableVR"]
     ),
     "vrsmall.local": dict(
-        statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log", user="vr-together"
-    ),
+        statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log",
+        user="vr-together",
+        exeArgs=["-vrmode", "None", "-disableVR"]
+   ),
     "vrbig.local": dict(
-        statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log", user="vrtogether"
+        statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log", 
+        user="vrtogether",
+        exeArgs=["-vrmode", "None", "-disableVR"]
     ),
     "scallion.local": dict(
-        statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log", user="vrtogether"
+        statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log",
+        user="vrtogether",
+        exeArgs=["-vrmode", "None", "-disableVR"]
     ),
     "valkenburg-win10.local": dict(
-        statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log", user="dis"
+        statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log", 
+        user="dis",
+        exeArgs=["-vrmode", "None", "-disableVR"]
     ),
 }
 
