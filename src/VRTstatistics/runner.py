@@ -137,6 +137,8 @@ class Runner:
             raise RuntimeError(f"No exePath for {self.host}")
         cmd = [self.exePath] + self.exeArgs
         url = f"http://{self.host}:{RunnerServerPort}/run"
+        if self.verbose:
+            print(f"+ POST {url} {cmd}", file=sys.stderr)
         response = requests.post(url, json=cmd)
         print(response.text)
         self.status_code = response.status_code if response.status_code != 200 else 0
