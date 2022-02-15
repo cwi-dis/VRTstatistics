@@ -5,9 +5,17 @@ import matplotlib.pyplot as pyplot
 from ..datastore import DataStore
 
 def main():
-    parser = argparse.ArgumentParser(description="Plot CSV file")
+    parser = argparse.ArgumentParser(description="Plot datastore or CSV file")
+    parser.add_argument("-d", "--datastore", required=True, help="datastore or CSV datafile to plot")
     parser.add_argument(
         "-o", "--output", metavar="FILE", help="Output plot image file (default: show)"
+    )
+    parser.add_argument(
+        "-p",
+        "--predicate",
+        metavar="EXPR",
+        default=None,
+        help="If specified plot only data that matches EXPR predicate"
     )
     parser.add_argument(
         "-x",
@@ -17,15 +25,7 @@ def main():
         help="FIELD is x-axis",
     )
     parser.add_argument(
-        "-p",
-        "--predicate",
-        metavar="EXPR",
-        default=None,
-        help="If specified plot only data that matches EXPR predicate"
-    )
-    parser.add_argument("-d", "--datastore", required=True, help="datastore or CSV datafile to plot")
-    parser.add_argument(
-        "fields", default=None, nargs="*", metavar="FIELD", help="Fields to plot (default: all)"
+        "fields", default=None, nargs="*", metavar="FIELD", help="Field mappings to plot (default: all)"
     )
     args = parser.parse_args()
     predicate = None
