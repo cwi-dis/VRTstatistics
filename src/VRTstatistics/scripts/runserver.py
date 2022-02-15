@@ -17,5 +17,9 @@ def run():
     process.wait()
     return Response(stdout_data, mimetype="text/plain")
 
-print("WARNING: this is a dangerous server that allows executing anything on this machine.")
-app.run(host='0.0.0.0', port=RunnerServerPort)
+def main():
+    print("WARNING: this is a dangerous server that allows executing anything on this machine.")
+    app.run(host='0.0.0.0', port=RunnerServerPort)
+
+if __name__ == '__main__':
+    main()
