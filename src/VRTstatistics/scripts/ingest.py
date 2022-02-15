@@ -1,21 +1,46 @@
 import sys
 import os
+import argparse
 
 from ..datastore import DataStore, DataStoreRecord, combine
 from ..runner import Runner
 
+verbose = True
 
 def main():
-    if len(sys.argv) != 3:
-        print(f"Usage: {sys.argv[0]} sender receiver")
-        sys.exit(1)
-    sender = Runner(sys.argv[1])
-    receiver = Runner(sys.argv[2])
-    destdir = os.getcwd()
+    parser = argparse.ArgumentParser(description="Run a test, or ingest results")
+    parser.add_argument("-d", "--destdir", help="directory to store results (default: current directory)")
+    parser.add_argument("-r", "--run", action="store_true", help="Run the test (default: only ingest data from an earlier run)")
+    parser.add_argument("-c", "--config", metavar="FILE", help="Use host configuration from FILE")
+    parser.add_argument("sender", help="Sender hostname")
+    parser.add_argument("receiver", help="Receiver hostname")
+    args = parser.parse_args()
+    if args.config:
+        Runner.load_config(args.config)
+    sender = Runner(args.sender)
+    receiver = Runner(args.receiver)
+    if args.destdir:
+        destdir = args.destdir
+    else:
+        destdir = os.getcwd()
 
     if not os.path.exists(destdir):
         os.mkdir(destdir)
-
+    
+    if args.run:
+        sender_proc = sender.run()
+        receiver_proc = receiver.run()
+        if verbose:
+            print("Waiting for processes to finish...", file=sys.stderr)
+        sender_sts = sender_proc.wait()
+        if sender_sts != 0:
+            print(f"Sender returned exit status {sender_sts}")
+        receiver_sts = receiver_proc.wait()
+        if receiver_sts != 0:
+            print(f"Receiver returned exit status {receiver_sts}")
+        if sender_sts != 0 or receiver_sts != 0:
+            sys.exit(1)
+       
     sender_log = os.path.join(destdir, "sender.log")
     receiver_log = os.path.join(destdir, "receiver.log")
     combined = os.path.join(destdir, "combined.json")
