@@ -2,9 +2,10 @@ import sys
 
 from ..datastore import DataStore, DataStoreRecord, combine
 
+
 def main():
     if len(sys.argv) != 4:
-        print(f'Usage: {sys.argv[0]} senderjson receiverjson outputjson')
+        print(f"Usage: {sys.argv[0]} senderjson receiverjson outputjson")
         sys.exit(1)
     senderdata = DataStore(sys.argv[1])
     senderdata.load()
@@ -14,8 +15,7 @@ def main():
     ok = combine(senderdata, receiverdata, outputdata)
     outputdata.save()
     sys.exit(0 if ok else 1)
-    
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     main()
-    
-        
