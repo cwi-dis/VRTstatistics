@@ -1,28 +1,34 @@
 import sys
 import urllib.parse
 import subprocess
+import requests
+import threading
 
 from typing import Optional
 
-__all__ = ["Runner"]
+__all__ = ["Runner", "RunnerServerPort"]
 
+RunnerServerPort = 5001
 RunnerArgs = dict
+
 defaultRunnerConfig = {
     "sap.local": dict(
         statPath="Library/Application\\ Support/i2Cat/VRTogether/statistics.log",
         user="jack",
         exePath="/Users/jack/src/VRTogether/VRTApp-built-mmsys.app/Contents/MacOS/VRTogether",
+        useSsh=True,
         exeArgs=[]
     ),
     "flauwte.local": dict(
         statPath="Library/Application\\ Support/i2Cat/VRTogether/statistics.log",
+        useSsh=True,
         user="jack",
     ),
     "vrtiny.local": dict(
         statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log", 
         user="vrtogether",
         exePath="c:/Users/VRTogether/VRTogether/VRTapp-built-mmsys/VRTogether.exe",
-        exeArgs=["-batchmode"]
+        useSsh=False,
     ),
     "vrsmall.local": dict(
         statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log", user="vr-together"
@@ -73,7 +79,9 @@ class Runner:
             self.user = config["user"]
         self.statPath = config["statPath"]
         self.exePath = config.get("exePath")
-        self.exeArgs = config.get("exeArgs")
+        self.exeArgs = config.get("exeArgs", [])
+        self.useSsh = config.get("useSsh", False)
+        self.running = None
 
     def get_stats(self, filename):
         if self.user:
@@ -85,7 +93,24 @@ class Runner:
             print("+", " ".join(cmd), file=sys.stderr)
         subprocess.run(cmd)
 
-    def run(self) -> subprocess.Popen:
+    def run(self) -> None:
+        assert not self.running
+        if self.useSsh:
+            self.running = self.run_ssh()
+        else:
+            self.running = threading.Thread(target=self.run_server_thread)
+            self.running.start()
+
+    def wait(self) -> int:
+        assert self.running
+        if self.useSsh:
+            rv = self.running.wait()
+        else:
+            self.running.join()
+            rv = self.status_code
+        return rv
+
+    def run_ssh(self) -> subprocess.Popen:
         if not self.exePath:
             raise RuntimeError(f"No exePath for {self.host}")
         if self.user:
@@ -96,4 +121,12 @@ class Runner:
         if self.verbose:
             print("+", " ".join(cmd), file=sys.stderr)
         return subprocess.Popen(cmd)
-        
+    
+    def run_server_thread(self):
+        if not self.exePath:
+            raise RuntimeError(f"No exePath for {self.host}")
+        cmd = [self.exePath] + self.exeArgs
+        url = f"http://{self.host}:{RunnerServerPort}/run"
+        response = requests.post(url, json=cmd)
+        print(response.text)
+        self.status_code = response.status_code if response.status_code != 200 else 0

@@ -28,14 +28,14 @@ def main():
         os.mkdir(destdir)
     
     if args.run:
-        sender_proc = sender.run()
-        receiver_proc = receiver.run()
+        sender.run()
+        receiver.run()
         if verbose:
             print("Waiting for processes to finish...", file=sys.stderr)
-        sender_sts = sender_proc.wait()
+        sender_sts = sender.wait()
         if sender_sts != 0:
             print(f"Sender returned exit status {sender_sts}")
-        receiver_sts = receiver_proc.wait()
+        receiver_sts = receiver.wait()
         if receiver_sts != 0:
             print(f"Receiver returned exit status {receiver_sts}")
         if sender_sts != 0 or receiver_sts != 0:
