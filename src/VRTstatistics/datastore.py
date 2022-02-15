@@ -32,6 +32,8 @@ class DataStore:
             self.load_json()
         elif self.filename.endswith(".log"):
             self.load_log()
+        elif self.filename.endswith(".csv"):
+            self.load_csv()
         else:
             raise RuntimeError(f"Don't know how to load {self.filename}")
 
@@ -43,17 +45,24 @@ class DataStore:
         self.data = parser.parse()
         parser.check()
 
-    def load_data(self, data) -> None:
+    def load_csv(self) -> None:
+        dataframe : pandas.DataFrame = pandas.read_csv(self.filename)
+        self.load_data(dataframe)
+        
+    def load_data(self, data : List[DataStoreRecord] | pandas.DataFrame) -> None:
+        if hasattr(data, 'to_dict'):
+            data = data.to_dict('records')
         self.data = data
 
     def get_dataframe(
         self, predicate: Any = None, columns: Optional[List[str]] = None
     ) -> pandas.DataFrame:
         if predicate or columns:
-            data = self._filter_data
+            data = self._filter_data(predicate, columns)
         else:
             data = self.data
-        return pandas.DataFrame(data, columns=columns)
+        rv = pandas.DataFrame(data, columns=columns)
+        return rv
 
     def filter(
         self, predicate: Any = None, columns: Optional[List[str]] = None
@@ -77,7 +86,7 @@ class DataStore:
         for record in self.data:
             nsrecord = dict(record)
             nsrecord["record"] = nsrecord
-            if eval(predicate, nsrecord):
+            if predicate == None or eval(predicate, nsrecord):
                 if fields:
                     entry = dict()
                     for k in fields:
