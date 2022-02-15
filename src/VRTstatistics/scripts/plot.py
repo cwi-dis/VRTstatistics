@@ -2,7 +2,7 @@ import argparse
 import sys
 import pandas as pd
 import matplotlib.pyplot as pyplot
-
+from ..datastore import DataStore
 
 def main():
     parser = argparse.ArgumentParser(description="Plot CSV file")
@@ -14,16 +14,32 @@ def main():
         "--x",
         metavar="FIELD",
         default="sessiontime",
-        help="FIELD is x-axis (default: sessiontime)",
+        help="FIELD is x-axis",
+    )
+    parser.add_argument(
+        "-p",
+        "--predicate",
+        metavar="EXPR",
+        default=None,
+        help="If specified plot only data that matches EXPR predicate"
     )
     parser.add_argument("csvfile", help="CSV datafile to plot")
     parser.add_argument(
-        "fields", nargs="*", metavar="FIELD", help="Fields to plot (default: all)"
+        "fields", default=None, nargs="*", metavar="FIELD", help="Fields to plot (default: all)"
     )
     args = parser.parse_args()
-    data = pd.read_csv(args.csvfile)
-    plot(data, output=args.output, x=args.x, fields=args.fields)
-
+    predicate = None
+    if args.predicate:
+        predicate = compile(args.predicate, "<string>", "eval")
+    fields = None
+    if args.fields:
+        fields = args.fields
+    if args.x and fields and not args.x in fields:
+        fields = fields + [args.x]
+    datastore = DataStore(args.csvfile)
+    datastore.load()
+    dataframe = datastore.get_dataframe(predicate=predicate, columns=fields)
+    plot(dataframe, output=args.output, x=args.x, fields=args.fields)
 
 def plot(data, output=None, x=None, fields=None):
     """
