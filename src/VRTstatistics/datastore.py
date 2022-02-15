@@ -1,7 +1,9 @@
+from __future__ import annotations
 import sys
 import json
-from typing import Optional, Callable
+from typing import Optional, List, Callable, Any
 from .parser import StatsFileParser
+import pandas
 
 __all__ = [
     "DataStoreRecord",
@@ -18,7 +20,7 @@ class DataStore:
     session_start_time : Optional[float]
     session_desync : Optional[float]
 
-    def __init__(self, filename : str) -> None:
+    def __init__(self, filename : Optional[str] = None) -> None:
         self.filename = filename
         self.data = []
         self.session_id = None
@@ -26,6 +28,7 @@ class DataStore:
         self.session_desync = None
         
     def load(self) -> None:
+        assert self.filename
         if self.filename == "-":
             pass
         elif self.filename.endswith(".json"):
@@ -46,15 +49,74 @@ class DataStore:
     def load_data(self, data) -> None:
         self.data = data
 
+    def get_dataframe(self, predicate : Any = None, columns : Optional[List[str]] = None) -> pandas.DataFrame:
+        if predicate or columns:
+            data = self._filter_data
+        else:
+            data = self.data
+        return pandas.DataFrame(data, columns=columns)
+
+    def filter(self, predicate : Any = None, columns : Optional[List[str]] = None) -> DataStore:
+        if predicate or columns:
+            data = self._filter_data(predicate, columns)
+        else:
+            data = self.data
+        rv = DataStore()
+        rv.load_data(data)
+        return rv
+
+    def _filter_data(self, predicate : Any, fields : List[str]) -> List[DataStoreRecord]:
+        """
+        Inputdata is a list of dictionaries, they are filtered and the resulting list of dictionaries is returned.
+        predicate is a Python expression returning True or False, if True the record is output.
+        fields is a list of fieldnames to include in the output, 
+        use namefield=field to obtain field name from namefield
+        """
+        rv = []
+        for record in self.data:
+            nsrecord = dict(record)
+            nsrecord['record'] = nsrecord
+            if eval(predicate, nsrecord):
+                if fields:
+                    entry = dict()
+                    for k in fields:
+                        if '=' in k:
+                            newk, oldk = k.split('=')
+                            if '.' in newk:
+                                # Use field1.field2=field notation
+                                newk1, newk2 = newk.split('.')
+                                if not newk1 in record or not newk2 in record:
+                                    continue
+                                newk = record[newk1] + '.' + record[newk2]
+                            else:
+                                if not newk in record:
+                                    continue
+                                newk = record[newk]
+                        else:
+                            newk = oldk = k
+                        
+                        if oldk in record:
+                            entry[newk] = record[oldk]
+                else:
+                    entry = record
+                rv.append(entry)
+        return rv
+
     def save(self) -> None:
+        assert self.filename
         if self.filename.endswith(".json"):
             self.save_json()
+        elif self.filename.endswith(".csv"):
+            self.save_csv()
         else:
             raise RuntimeError(f"Don't know how to save {self.filename}")
 
     def save_json(self) -> None:
         json.dump(self.data, open(self.filename, 'w'), indent='\t')
 
+    def save_csv(self) -> None:
+        pd = self.get_dataframe()
+        pd.to_csv(self.filename, index=False)
 
     def get_session_id(self) -> str:
         if self.session_id != None:
