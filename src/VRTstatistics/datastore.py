@@ -61,7 +61,7 @@ class DataStore:
             data = self._filter_data(predicate, columns)
         else:
             data = self.data
-        rv = pandas.DataFrame(data, columns=columns)
+        rv = pandas.DataFrame(data)
         return rv
 
     def filter(

@@ -23,7 +23,7 @@ def main():
         default=None,
         help="If specified plot only data that matches EXPR predicate"
     )
-    parser.add_argument("csvfile", help="CSV datafile to plot")
+    parser.add_argument("-d", "--datastore", required=True, help="datastore or CSV datafile to plot")
     parser.add_argument(
         "fields", default=None, nargs="*", metavar="FIELD", help="Fields to plot (default: all)"
     )
@@ -36,10 +36,10 @@ def main():
         fields = args.fields
     if args.x and fields and not args.x in fields:
         fields = fields + [args.x]
-    datastore = DataStore(args.csvfile)
+    datastore = DataStore(args.datastore)
     datastore.load()
     dataframe = datastore.get_dataframe(predicate=predicate, columns=fields)
-    plot(dataframe, output=args.output, x=args.x, fields=args.fields)
+    plot(dataframe, output=args.output, x=args.x)
 
 def plot(data, output=None, x=None, fields=None):
     """
