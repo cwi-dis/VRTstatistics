@@ -84,7 +84,7 @@ class DataStore:
         """
         rv = []
         for record in self.data:
-            nsrecord = dict(record)
+            nsrecord = dict(record) # shallow copy
             nsrecord["record"] = nsrecord
             if predicate == None or eval(predicate, nsrecord):
                 if fields:
@@ -128,46 +128,40 @@ class DataStore:
         pd = self.get_dataframe()
         pd.to_csv(self.filename, index=False)
 
+    def find_first_record(self, predicate : Any, descr : str) -> DataStoreRecord:
+        for record in self.data:
+            nsrecord = dict(record) # shallow copy
+            nsrecord["record"] = nsrecord
+            if predicate == None or eval(predicate, nsrecord):
+                return record
+        raise RuntimeError("missing {descr}")
+        
+    def find_all_records(self, predicate : Any, descr : str) -> List[DataStoreRecord]:
+        rv = []
+        for record in self.data:
+            nsrecord = dict(record) # shallow copy
+            nsrecord["record"] = nsrecord
+            if predicate == None or eval(predicate, nsrecord):
+                rv.append(record)
+        return rv
+        
     def get_session_id(self) -> str:
-        if self.session_id != None:
-            return self.session_id
-        for r in self.data:
-            if not "starting" in r or r["component"] != "OrchestratorController":
-                continue
+        if self.session_id == None:
+            r = self.find_first_record('"starting" in record and component == "OrchestratorController"', "session start")
             self.session_id = r["sessionId"]
-            return self.session_id
-        raise RuntimeError("missing session start")
+        return self.session_id
 
     def get_session_desync(self) -> int:
-        if self.session_desync != None:
-            return self.session_desync
-        for r in self.data:
-            if (
-                r["component"] == "OrchestratorController"
-                and "localtime_behind_ms" in r
-            ):
-                self.session_desync = r["localtime_behind_ms"]
-                return self.session_desync
-        raise RuntimeError("Missing OrchestratorController time synchronization record")
+        if self.session_desync == None:
+            r = self.find_first_record('"localtime_behind_ms" in record and component == "OrchestratorController"', "session time synchronization")
+            self.session_desync = r["localtime_behind_ms"]
+        return self.session_desync
 
     def get_session_start_time(self) -> float:
-        if self.session_start_time != None:
-            return self.session_start_time
-        if False:
-            # This would return session creation time. Start time is better.
-            for r in data:
-                if (
-                    r["component"] == "OrchestratorController"
-                    and r.get("starting") == 1
-                ):
-                    return r["orchtime"]
-        for r in self.data:
-            if r["component"] == "SessionPlayerManager":
-                self.session_start_time = r["orchtime"]
-                return self.session_start_time
-        raise RuntimeError(
-            "missing SessionPlayerManager record to indicate session start"
-        )
+        if self.session_start_time == None:
+            r = self.find_first_record('component == "SessionPlayerManager"', "session start time")
+            self.session_start_time = r["orchtime"]
+        return self.session_start_time
 
     def adjust_time_and_role(self, starttime: float, role: str) -> None:
         self.session_start_time = starttime
