@@ -80,7 +80,7 @@ class LatencySenderAnnotator(Annotator):
         send_voice_writer_umbrella = r['writer']
         r = self.datastore.find_first_record(f'component == "{send_voice_writer_umbrella}" and "pusher" in record', "sender voice writer")
         self.send_voice_writer = r['pusher']
-        
+
         self.send_voice_grabber = "VoiceReader" # xxxx cannot find voice reader
         self.send_voice_encoder = None # xxxx cannot find voice encoder
 
@@ -90,17 +90,19 @@ class LatencySenderAnnotator(Annotator):
             # sender pc
             if record["component"] == self.send_pc_grabber:
                 record["component_role"] = "sender.pc.grabber"
-            if record["component"] == self.send_pc_encoder:
+            elif record["component"] == self.send_pc_encoder:
                 record["component_role"] = "sender.pc.encoder"
-            if record["component"] in self.send_pc_writers:
+            elif record["component"] in self.send_pc_writers:
                 tile = self.send_pc_writers[record["component"]]
                 record["component_role"] = f"sender.pc.writer.{tile}"
-            if record["component"] == self.send_voice_grabber:
+            elif record["component"] == self.send_voice_grabber:
                 record["component_role"] = "sender.voice.grabber"
-            if record["component"] == self.send_voice_encoder:
+            elif record["component"] == self.send_voice_encoder:
                 record["component_role"] = "sender.voice.encoder"
-            if record["component"] == self.send_voice_writer:
+            elif record["component"] == self.send_voice_writer:
                 record["component_role"] = "sender.voice.writer"
+            else:
+                record["component_role"] = ""
           
 class LatencyReceiverAnnotator(Annotator):
     recv_synchronizer : str
@@ -167,27 +169,29 @@ class LatencyReceiverAnnotator(Annotator):
             if record["component"] == self.recv_synchronizer:
                 record["component_role"] = f"receiver.synchronizer"
             # receiver pc
-            if record["component"] in self.recv_pc_readers:
+            elif record["component"] in self.recv_pc_readers:
                 tile = self.recv_pc_readers[record["component"]]
                 record["component_role"] = f"receiver.pc.reader.{tile}"
-            if record["component"] in self.recv_pc_decoders:
+            elif record["component"] in self.recv_pc_decoders:
                 tile = self.recv_pc_decoders[record["component"]]
                 record["component_role"] = f"receiver.pc.decoder.{tile}"
-            if record["component"] in self.recv_pc_preparers:
+            elif record["component"] in self.recv_pc_preparers:
                 tile = self.recv_pc_preparers[record["component"]]
                 record["component_role"] = f"receiver.pc.preparer.{tile}"
-            if record["component"] in self.recv_pc_renderers:
+            elif record["component"] in self.recv_pc_renderers:
                 tile = self.recv_pc_renderers[record["component"]]
                 record["component_role"] = f"receiver.pc.renderer.{tile}"
             # receiver voice
-            if record["component"] == self.recv_voice_reader:
+            elif record["component"] == self.recv_voice_reader:
                 record["component_role"] = f"receiver.voice.reader"
-            if record["component"] == self.recv_voice_decoder:
+            elif record["component"] == self.recv_voice_decoder:
                 record["component_role"] = f"receiver.voice.decoder"
-            if record["component"] == self.recv_voice_preparer:
+            elif record["component"] == self.recv_voice_preparer:
                 record["component_role"] = f"receiver.voice.preparer"
-            if record["component"] == self.recv_voice_renderer:
+            elif record["component"] == self.recv_voice_renderer:
                 record["component_role"] = f"receiver.voice.renderer"
+            else:
+                record["component_role"] = ""
 
 _Annotators = {
     None: (Annotator, Annotator),

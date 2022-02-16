@@ -19,12 +19,12 @@ VRTstatistics-ingest --annotator latency $sender $receiver
 
 # Show a graph with rendered pointcloud sizes
 # This is expected to be "good enough" to judge whether we're doing the right thing.
-VRTstatistics-filter -d combined.json -o pointcloud_sizes.csv --predicate 'role == "receiver" and "PointCloudRenderer" in component' sessiontime component_role=points_per_cloud
-VRTstatistics-plot -d combined.json --predicate '"component_role" in component and "receiver.pc.renderer" in component_role' sessiontime component_role=points_per_cloud
+VRTstatistics-filter -d combined.json -o pointcloud_sizes.csv --predicate '"receiver.pc.renderer" in component_role' sessiontime component_role=points_per_cloud
+VRTstatistics-plot -d combined.json --predicate '"receiver.pc.renderer" in component_role' sessiontime component_role=points_per_cloud
 #
 # Graph latencies
-VRTstatistics-filter -d combined.json -o pointcloud_latencies.csv --predicate '("renderer_queue_ms" in record and role == "receiver") or "decoder_queue_ms" in record or "encoder_queue_ms" in record or "transmitter_queue_ms" in record or "receive_ms" in record' sessiontime downsample_ms encoder_queue_ms encoder_ms transmitter_queue_ms decoder_queue_ms decoder_ms decoded_queue_ms renderer_queue_ms latency_ms receive_ms   
-VRTstatistics-plot -d combined.json --predicate '("renderer_queue_ms" in record and role == "receiver") or "decoder_queue_ms" in record or "encoder_queue_ms" in record or "transmitter_queue_ms" in record or "receive_ms" in record' downsample_ms encoder_queue_ms encoder_ms transmitter_queue_ms decoder_queue_ms decoder_ms decoded_queue_ms renderer_queue_ms latency_ms receive_ms   
+VRTstatistics-filter -d combined.json -o pointcloud_latencies.csv --predicate '".pc" in component_role' sessiontime downsample_ms encoder_queue_ms encoder_ms transmitter_queue_ms decoder_queue_ms decoder_ms decoded_queue_ms renderer_queue_ms latency_ms receive_ms   
+VRTstatistics-plot -d combined.json --predicate '".pc." in component_role' downsample_ms encoder_queue_ms encoder_ms transmitter_queue_ms decoder_queue_ms decoder_ms decoded_queue_ms renderer_queue_ms latency_ms receive_ms   
 #
 # Graph framerates
 VRTstatistics-filter -d combined.json -o pointcloud_framerates.csv --predicate '"fps" in record' sessiontime role.component=fps
