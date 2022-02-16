@@ -15,7 +15,8 @@ receiver="sap.local"
 
 set -x
 
-VRTstatistics-ingest --annotator latency $sender $receiver
+# You can pass "--run" to run before getting the logs.
+VRTstatistics-ingest $@ --annotator latency $sender $receiver
 
 # Show a graph with rendered pointcloud sizes
 # This is expected to be "good enough" to judge whether we're doing the right thing.
