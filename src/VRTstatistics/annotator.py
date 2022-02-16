@@ -78,11 +78,11 @@ class LatencySenderAnnotator(Annotator):
         r = self.datastore.find_first_record('"VoiceSender" in component', "sender voice pipeline")
         self.send_voice_pipeline = r['component']
         send_voice_writer_umbrella = r['writer']
+        self.send_voice_grabber = r["reader"]
+        self.send_voice_encoder = r["encoder"]
         r = self.datastore.find_first_record(f'component == "{send_voice_writer_umbrella}" and "pusher" in record', "sender voice writer")
         self.send_voice_writer = r['pusher']
 
-        self.send_voice_grabber = "VoiceReader" # xxxx cannot find voice reader
-        self.send_voice_encoder = None # xxxx cannot find voice encoder
 
     def annotate(self) -> None:
         super().annotate()
@@ -129,6 +129,7 @@ class LatencyReceiverAnnotator(Annotator):
         self.recv_pc_pipeline = r['component']
         r = self.datastore.find_first_record(f'component == "{self.recv_pc_pipeline}" and "reader" in record', "receiver pc reader umbrella")
         recv_pc_reader_umbrella = r["reader"]
+        self.recv_synchronizer = r["synchronizer"]
         self.recv_pc_readers = {}
         rr = self.datastore.find_all_records(f'component == "{recv_pc_reader_umbrella}" and "pull_thread" in record', "receiver pc readers")
         for r in rr:
@@ -137,15 +138,19 @@ class LatencyReceiverAnnotator(Annotator):
             self.recv_pc_readers[pull_thread] = tile
         self.recv_pc_preparers = {}
         self.recv_pc_renderers = {}
-        rr = self.datastore.find_all_records(f'component == "{self.recv_pc_pipeline}" and "tile" in record', "receiver pc preparers and renderers")
+        self.recv_pc_decoders = {}
+        rr = self.datastore.find_all_records(f'component == "{self.recv_pc_pipeline}" and "decoder" in record', "receiver pc preparers and renderers")
+        for r in rr:
+            tile = r["tile"]
+            decoder = r["decoder"]
+            self.recv_pc_decoders[decoder] = tile
+        rr = self.datastore.find_all_records(f'component == "{self.recv_pc_pipeline}" and "renderer" in record', "receiver pc preparers and renderers")
         for r in rr:
             tile = r["tile"]
             preparer = r["preparer"]
             renderer = r["renderer"]
             self.recv_pc_preparers[preparer] = tile
             self.recv_pc_renderers[renderer] = tile
-        self.recv_synchronizer = "Synchronizer#1" # xxxx cannot find synchronizer
-        self.recv_pc_decoders = {"NULLDecoder#0" : 0} # xxxx cannot find decoder
         #
         # Find names of receiver side voice components
         # 
@@ -156,13 +161,14 @@ class LatencyReceiverAnnotator(Annotator):
         r = self.datastore.find_first_record('"VoiceReceiver" in component and "reader" in record', "receiver voice reader umbrella")
         self.recv_voice_pipeline = r["component"]
         self.recv_voice_renderer = r["component"] # same
+        self.recv_voice_preparer = r["preparer"]
+        synchronizer = r["synchronizer"]
+        if synchronizer != "none" and synchronizer != self.recv_synchronizer:
+            print("Warning: mismatched synchronizer, was {self.recv_synchronizer} record {r}")
         recv_voice_reader_umbrella = r["reader"]
         r = self.datastore.find_first_record(f'component == "{recv_voice_reader_umbrella}" and "pull_thread" in record', "receiver voice reader umbrella")
         self.recv_voice_reader = r["pull_thread"]
-        self.recv_voice_preparer = "VoicePreparer#0" # xxxx cannot find voice preparer
-        # xxxjack to be done
-        #
-
+      
     def annotate(self) -> None:
         super().annotate()
         for record in self.datastore.data:
