@@ -1,11 +1,15 @@
 from __future__ import annotations
+from runpy import run_module
 import sys
 import json
 from typing import Optional, List, Callable, Any
 from .parser import StatsFileParser
 import pandas
 
-__all__ = ["DataStoreRecord", "DataStore", "combine"]
+__all__ = ["DataStoreRecord", "DataStore", "DataStoreError", "combine"]
+
+class DataStoreError(RuntimeError):
+    pass
 
 DataStoreRecord = dict
 
@@ -35,7 +39,7 @@ class DataStore:
         elif self.filename.endswith(".csv"):
             self.load_csv()
         else:
-            raise RuntimeError(f"Don't know how to load {self.filename}")
+            raise DataStoreError(f"Don't know how to load {self.filename}")
 
     def load_json(self) -> None:
         self.data = [] if self.filename == "-" else json.load(open(self.filename, "r"))
@@ -57,6 +61,8 @@ class DataStore:
     def get_dataframe(
         self, predicate: Any = None, columns: Optional[List[str]] = None
     ) -> pandas.DataFrame:
+        if not self.data:
+            raise DataStoreError("DataStore is empty")
         if predicate or columns:
             data = self._filter_data(predicate, columns)
         else:
@@ -67,6 +73,8 @@ class DataStore:
     def filter(
         self, predicate: Any = None, columns: Optional[List[str]] = None
     ) -> DataStore:
+        if not self.data:
+            raise DataStoreError("DataStore is empty")
         if predicate or columns:
             data = self._filter_data(predicate, columns)
         else:
@@ -113,13 +121,15 @@ class DataStore:
         return rv
 
     def save(self) -> None:
+        if not self.data:
+            raise DataStoreError("DataStore is empty")
         assert self.filename
         if self.filename.endswith(".json"):
             self.save_json()
         elif self.filename.endswith(".csv"):
             self.save_csv()
         else:
-            raise RuntimeError(f"Don't know how to save {self.filename}")
+            raise DataStoreError(f"Don't know how to save {self.filename}")
 
     def save_json(self) -> None:
         json.dump(self.data, open(self.filename, "w"), indent="\t")
@@ -129,41 +139,59 @@ class DataStore:
         pd.to_csv(self.filename, index=False)
 
     def find_first_record(self, predicate : Any, descr : str) -> DataStoreRecord:
+        if not self.data:
+            raise DataStoreError("DataStore is empty")
+        if type(predicate) == type(str):
+            predicate = compile(predicate, "<string>", "eval")
         for record in self.data:
             nsrecord = dict(record) # shallow copy
             nsrecord["record"] = nsrecord
             if predicate == None or eval(predicate, nsrecord):
                 return record
-        raise RuntimeError("missing {descr}")
+        raise DataStoreError(f"missing {descr}")
         
     def find_all_records(self, predicate : Any, descr : str) -> List[DataStoreRecord]:
+        if not self.data:
+            raise DataStoreError("DataStore is empty")
+        if type(predicate) == type(str):
+            predicate = compile(predicate, "<string>", "eval")
         rv = []
         for record in self.data:
             nsrecord = dict(record) # shallow copy
             nsrecord["record"] = nsrecord
             if predicate == None or eval(predicate, nsrecord):
                 rv.append(record)
+        if not rv:
+            raise DataStoreError(f"missing {descr}")
         return rv
         
     def get_session_id(self) -> str:
+        if not self.data:
+            raise DataStoreError("DataStore is empty")
         if self.session_id == None:
             r = self.find_first_record('"starting" in record and component == "OrchestratorController"', "session start")
             self.session_id = r["sessionId"]
         return self.session_id
 
     def get_session_desync(self) -> int:
+        if not self.data:
+            raise DataStoreError("DataStore is empty")
         if self.session_desync == None:
             r = self.find_first_record('"localtime_behind_ms" in record and component == "OrchestratorController"', "session time synchronization")
             self.session_desync = r["localtime_behind_ms"]
         return self.session_desync
 
     def get_session_start_time(self) -> float:
+        if not self.data:
+            raise DataStoreError("DataStore is empty")
         if self.session_start_time == None:
             r = self.find_first_record('component == "SessionPlayerManager"', "session start time")
             self.session_start_time = r["orchtime"]
         return self.session_start_time
 
     def adjust_time_and_role(self, starttime: float, role: str) -> None:
+        if not self.data:
+            raise DataStoreError("DataStore is empty")
         self.session_start_time = starttime
         rv = []
         for r in self.data:
@@ -177,6 +205,8 @@ class DataStore:
         self.data = rv
 
     def sort(self, key: Callable) -> None:
+        if not self.data:
+            raise DataStoreError("DataStore is empty")
         self.data.sort(key=key)
 
 
@@ -206,7 +236,7 @@ def combine(
 
     session_receiver = receiverdata.get_session_id()
     if session_sender != session_receiver:
-        raise RuntimeError(
+        raise DataStoreError(
             f"sender has session {session_sender} and receiver has {session_receiver}"
         )
     session_start_time_receiver = receiverdata.get_session_start_time()
