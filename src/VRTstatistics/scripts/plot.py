@@ -29,8 +29,6 @@ def main():
     )
     args = parser.parse_args()
     predicate = None
-    if args.predicate:
-        predicate = compile(args.predicate, "<string>", "eval")
     fields = None
     if args.fields:
         fields = args.fields
@@ -38,7 +36,7 @@ def main():
         fields = fields + [args.x]
     datastore = DataStore(args.datastore)
     datastore.load()
-    dataframe = datastore.get_dataframe(predicate=predicate, columns=fields)
+    dataframe = datastore.get_dataframe(predicate=args.predicate, columns=fields)
     plot(dataframe, output=args.output, x=args.x)
 
 def plot(data, output=None, x=None, fields=None):

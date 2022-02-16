@@ -59,7 +59,7 @@ class LatencySenderAnnotator(Annotator):
         r = self.datastore.find_first_record('"PointCloudPipeline" in component and self == 1', "sender pc pipeline")
         self.send_pc_pipeline = r['component']
 
-        self.send_pc_grabber = "PrerecordedLineReader#0.0" # xxxx cannot find pointcloud reader
+        self.send_pc_grabber = "PrerecordedLiveReader#0.0" # xxxx cannot find pointcloud reader
 
         self.send_pc_encoder = "NULLEncoder#0" # xxxx cannot find encoder
 
@@ -77,8 +77,10 @@ class LatencySenderAnnotator(Annotator):
         #
         r = self.datastore.find_first_record('"VoiceSender" in component', "sender voice pipeline")
         self.send_voice_pipeline = r['component']
-        self.send_voice_writer = r['writer']
-
+        send_voice_writer_umbrella = r['writer']
+        r = self.datastore.find_first_record(f'component == "{send_voice_writer_umbrella}" and "pusher" in record', "sender voice writer")
+        self.send_voice_writer = r['pusher']
+        
         self.send_voice_grabber = "VoiceReader" # xxxx cannot find voice reader
         self.send_voice_encoder = None # xxxx cannot find voice encoder
 
@@ -94,7 +96,7 @@ class LatencySenderAnnotator(Annotator):
                 tile = self.send_pc_writers[record["component"]]
                 record["component_role"] = f"sender.pc.writer.{tile}"
             if record["component"] == self.send_voice_grabber:
-                record["component_role"] = "sender.voice.reader"
+                record["component_role"] = "sender.voice.grabber"
             if record["component"] == self.send_voice_encoder:
                 record["component_role"] = "sender.voice.encoder"
             if record["component"] == self.send_voice_writer:
@@ -109,6 +111,7 @@ class LatencyReceiverAnnotator(Annotator):
     recv_pc_preparers : Mapping[str, int]
     recv_pc_renderers : Mapping[str, int]
 
+    recv_voice_pipeline : Optional[str]
     recv_voice_reader : Optional[str]
     recv_voice_decoder : Optional[str]
     recv_voice_preparer : Optional[str]
@@ -149,6 +152,8 @@ class LatencyReceiverAnnotator(Annotator):
         self.recv_voice_preparer = None
         self.recv_voice_renderer = None
         r = self.datastore.find_first_record('"VoiceReceiver" in component and "reader" in record', "receiver voice reader umbrella")
+        self.recv_voice_pipeline = r["component"]
+        self.recv_voice_renderer = r["component"] # same
         recv_voice_reader_umbrella = r["reader"]
         r = self.datastore.find_first_record(f'component == "{recv_voice_reader_umbrella}" and "pull_thread" in record', "receiver voice reader umbrella")
         self.recv_voice_reader = r["pull_thread"]

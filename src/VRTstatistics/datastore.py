@@ -15,6 +15,8 @@ DataStoreRecord = dict
 
 
 class DataStore:
+    debug = True
+
     filename: str
     data: list[DataStoreRecord]
    
@@ -135,7 +137,7 @@ class DataStore:
     def find_first_record(self, predicate : Any, descr : str) -> DataStoreRecord:
         if not self.data:
             raise DataStoreError("DataStore is empty")
-        if type(predicate) == type(str):
+        if type(predicate) == type(str)and not self.debug:
             predicate = compile(predicate, "<string>", "eval")
         for record in self.data:
             nsrecord = dict(record) # shallow copy
@@ -147,7 +149,7 @@ class DataStore:
     def find_all_records(self, predicate : Any, descr : str) -> List[DataStoreRecord]:
         if not self.data:
             raise DataStoreError("DataStore is empty")
-        if type(predicate) == type(str):
+        if type(predicate) == type(str) and not self.debug:
             predicate = compile(predicate, "<string>", "eval")
         rv = []
         for record in self.data:

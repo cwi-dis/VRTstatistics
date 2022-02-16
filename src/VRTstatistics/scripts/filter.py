@@ -34,12 +34,10 @@ def main():
     datastore = DataStore(args.datastore)
     datastore.load()
     predicate = None
-    if args.predicate:
-        predicate = compile(args.predicate, "<string>", "eval")
     fields = None
     if args.fields:
         fields = args.fields
-    output = datastore.filter(predicate, fields)
+    output = datastore.filter(args.predicate, fields)
     output.filename = args.output
     output.save()
     sys.exit(0)
