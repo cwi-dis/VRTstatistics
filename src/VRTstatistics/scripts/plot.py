@@ -25,6 +25,13 @@ def main():
         help="FIELD is x-axis",
     )
     parser.add_argument(
+        "-t",
+        "--title",
+        metavar="TITLE",
+        default=None,
+        help="Set plot title",
+    )
+    parser.add_argument(
         "fields", default=None, nargs="*", metavar="FIELD", help="Field mappings to plot (default: all)"
     )
     args = parser.parse_args()
@@ -37,9 +44,9 @@ def main():
     datastore = DataStore(args.datastore)
     datastore.load()
     dataframe = datastore.get_dataframe(predicate=args.predicate, columns=fields)
-    plot(dataframe, output=args.output, x=args.x)
+    plot(dataframe, title=args.title, output=args.output, x=args.x)
 
-def plot(data, output=None, x=None, fields=None):
+def plot(data, title=None, output=None, x=None, fields=None):
     """
     Plot data (optionally after converting to pandas.DataFrame).
     output is optional output file (default: show in a window)
@@ -50,6 +57,8 @@ def plot(data, output=None, x=None, fields=None):
         plot = data.interpolate().plot(x=x, y=fields)
     else:
         plot = data.interpolate().plot(x=x)
+    if title:
+        pyplot.title(title)
     if output:
         pyplot.savefig(output)
     else:
