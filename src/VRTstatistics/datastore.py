@@ -99,13 +99,20 @@ class DataStore:
                             if "." in newk:
                                 # Use field1.field2=field notation
                                 newk1, newk2 = newk.split(".")
-                                if not newk1 in record or not newk2 in record:
+                                if not newk1 in record:
                                     continue
-                                newk = record[newk1] + "." + record[newk2]
+                                if not newk2:
+                                    newk = record[newk1] + "." + oldk
+                                else:
+                                    if not newk2 in record:
+                                        continue
+                                    newk = record[newk1] + "." + record[newk2]
                             else:
                                 if not newk in record:
                                     continue
                                 newk = record[newk]
+                            if not newk:
+                                print(f'Warning: "{k}" produced no value for {record}', file=sys.stderr)
                         else:
                             newk = oldk = k
 
