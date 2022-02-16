@@ -17,16 +17,10 @@ DataStoreRecord = dict
 class DataStore:
     filename: str
     data: list[DataStoreRecord]
-    session_id: Optional[str]
-    session_start_time: Optional[float]
-    session_desync: Optional[float]
-
+   
     def __init__(self, filename: Optional[str] = None) -> None:
         self.filename = filename
         self.data = []
-        self.session_id = None
-        self.session_start_time = None
-        self.session_desync = None
 
     def load(self) -> None:
         assert self.filename
@@ -164,106 +158,8 @@ class DataStore:
         if not rv:
             raise DataStoreError(f"missing {descr}")
         return rv
-        
-    def get_session_id(self) -> str:
-        if not self.data:
-            raise DataStoreError("DataStore is empty")
-        if self.session_id == None:
-            r = self.find_first_record('"starting" in record and component == "OrchestratorController"', "session start")
-            self.session_id = r["sessionId"]
-        return self.session_id
-
-    def get_session_desync(self) -> int:
-        if not self.data:
-            raise DataStoreError("DataStore is empty")
-        if self.session_desync == None:
-            r = self.find_first_record('"localtime_behind_ms" in record and component == "OrchestratorController"', "session time synchronization")
-            self.session_desync = r["localtime_behind_ms"]
-        return self.session_desync
-
-    def get_session_start_time(self) -> float:
-        if not self.data:
-            raise DataStoreError("DataStore is empty")
-        if self.session_start_time == None:
-            r = self.find_first_record('component == "SessionPlayerManager"', "session start time")
-            self.session_start_time = r["orchtime"]
-        return self.session_start_time
-
-    def adjust_time_and_role(self, starttime: float, role: str) -> None:
-        if not self.data:
-            raise DataStoreError("DataStore is empty")
-        self.session_start_time = starttime
-        rv = []
-        for r in self.data:
-            newrecord = dict(r)
-            if "orchtime" in r:
-                newrecord["sessiontime"] = r["orchtime"] - starttime
-            else:
-                continue  # Delete records before start-of-session
-            newrecord["role"] = role
-            rv.append(newrecord)
-        self.data = rv
 
     def sort(self, key: Callable) -> None:
         if not self.data:
             raise DataStoreError("DataStore is empty")
         self.data.sort(key=key)
-
-
-def combine(
-    senderdata: DataStore, receiverdata: DataStore, outputdata: DataStore
-) -> bool:
-    """
-    Senderdata and receiverdata are lists of dictionaries, they are combined and sorted and the result is returned.
-    Session timestamps (relative to start of session), sender/receiver role are added to each record.
-    Records are sorted by timstamp.
-    """
-    #
-    # Find session ID and start time.
-    #
-    session_start_time = None
-    sender_desync = None
-    receiver_desync = None
-
-    session_sender = senderdata.get_session_id()
-    session_start_time_sender = senderdata.get_session_start_time()
-    session_start_time = session_start_time_sender
-    sender_desync = senderdata.get_session_desync()
-    #
-    # Adjust data lists with session timestamps and roles
-    #
-    senderdata.adjust_time_and_role(session_start_time, "sender")
-
-    session_receiver = receiverdata.get_session_id()
-    if session_sender != session_receiver:
-        raise DataStoreError(
-            f"sender has session {session_sender} and receiver has {session_receiver}"
-        )
-    session_start_time_receiver = receiverdata.get_session_start_time()
-    if abs(session_start_time_receiver - session_start_time_sender) > 1:
-        print(
-            f"Warning: different session start times, {abs(session_start_time_receiver-session_start_time_sender)} seconds apart: sender {session_start_time_sender} receiver {session_start_time_receiver}",
-            file=sys.stderr,
-        )
-    receiver_desync = receiverdata.get_session_desync()
-    session_start_time = min(session_start_time_sender, session_start_time_receiver)
-    #
-    # Adjust data lists with session timestamps and roles
-    #
-    receiverdata.adjust_time_and_role(session_start_time, "receiver")
-
-    if abs(sender_desync) > 30 or abs(receiver_desync > 30):
-        print(
-            f"Warning: synchronization: sender {sender_desync}ms behind orchestrator",
-            file=sys.stderr,
-        )
-        print(
-            f"Warning: synchronization: receiver {receiver_desync}ms behind orchestrator",
-            file=sys.stderr,
-        )
-    #
-    # Combine and sort
-    #
-    outputdata.load_data(senderdata.data + receiverdata.data)
-    outputdata.sort(key=lambda r: r["sessiontime"])
-    return True

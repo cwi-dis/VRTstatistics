@@ -2,7 +2,8 @@ import sys
 import os
 import argparse
 
-from ..datastore import DataStore, DataStoreRecord, combine
+from ..datastore import DataStore, DataStoreRecord
+from ..annotator import combine
 from ..runner import Runner
 
 verbose = True
@@ -10,6 +11,7 @@ verbose = True
 def main():
     parser = argparse.ArgumentParser(description="Run a test, or ingest results")
     parser.add_argument("-d", "--destdir", help="directory to store results (default: current directory)")
+    parser.add_argument("-a", "--annotator", metavar="ANN", help="Annotator to use for symbolic naming of records")
     parser.add_argument("-r", "--run", action="store_true", help="Run the test (default: only ingest data from an earlier run)")
     parser.add_argument("-c", "--config", metavar="FILE", help="Use host configuration from FILE")
     parser.add_argument("sender", help="Sender hostname")
@@ -55,7 +57,7 @@ def main():
     receiverdata.load()
 
     outputdata = DataStore(combined)
-    ok = combine(senderdata, receiverdata, outputdata)
+    ok = combine(args.annotator, senderdata, receiverdata, outputdata)
     outputdata.save()
     sys.exit(0 if ok else 1)
 
