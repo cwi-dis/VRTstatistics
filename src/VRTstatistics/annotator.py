@@ -75,9 +75,14 @@ class LatencySenderAnnotator(Annotator):
             rr = self.datastore.find_all_records(f'component == "{send_pc_writer_umbrella}" and "pusher" in record', "sender pc writer")
             self.send_pc_writers = {}
             for r in rr:
-                stream = r["stream"]
                 pusher = r["pusher"]
-                self.send_pc_writers[pusher] = stream
+                if "tile" in r:
+                    # B2DWriter uses tile field. Need to check what happens with multiple qualities.
+                    tile = r["tile"]
+                    self.send_pc_writers[pusher] = tile
+                else:
+                    stream = r["stream"]
+                    self.send_pc_writers[pusher] = stream
         #
         # Find names of sender side voice components
         #
