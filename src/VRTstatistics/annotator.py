@@ -75,13 +75,20 @@ class LatencySenderAnnotator(Annotator):
         #
         # Find names of sender side voice components
         #
-        r = self.datastore.find_first_record('"VoiceSender" in component', "sender voice pipeline")
-        self.send_voice_pipeline = r['component']
-        send_voice_writer_umbrella = r['writer']
-        self.send_voice_grabber = r["reader"]
-        self.send_voice_encoder = r["encoder"]
-        r = self.datastore.find_first_record(f'component == "{send_voice_writer_umbrella}" and "pusher" in record', "sender voice writer")
-        self.send_voice_writer = r['pusher']
+        self.send_voice_pipeline = None
+        self.send_voice_grabber = None
+        self.send_voice_encoder = None
+        self.send_voice_writer = None
+        try:
+            r = self.datastore.find_first_record('"VoiceSender" in component', "sender voice pipeline")
+            self.send_voice_pipeline = r['component']
+            send_voice_writer_umbrella = r['writer']
+            self.send_voice_grabber = r["reader"]
+            self.send_voice_encoder = r["encoder"]
+            r = self.datastore.find_first_record(f'component == "{send_voice_writer_umbrella}" and "pusher" in record', "sender voice writer")
+            self.send_voice_writer = r['pusher']
+        except DataStoreError:
+            pass # It's not an error to have a session without audio
 
 
     def annotate(self) -> None:
@@ -158,16 +165,19 @@ class LatencyReceiverAnnotator(Annotator):
         self.recv_voice_decoder = None
         self.recv_voice_preparer = None
         self.recv_voice_renderer = None
-        r = self.datastore.find_first_record('"VoiceReceiver" in component and "reader" in record', "receiver voice reader umbrella")
-        self.recv_voice_pipeline = r["component"]
-        self.recv_voice_renderer = r["component"] # same
-        self.recv_voice_preparer = r["preparer"]
-        synchronizer = r["synchronizer"]
-        if synchronizer != "none" and synchronizer != self.recv_synchronizer:
-            print("Warning: mismatched synchronizer, was {self.recv_synchronizer} record {r}")
-        recv_voice_reader_umbrella = r["reader"]
-        r = self.datastore.find_first_record(f'component == "{recv_voice_reader_umbrella}" and "pull_thread" in record', "receiver voice reader umbrella")
-        self.recv_voice_reader = r["pull_thread"]
+        try:
+            r = self.datastore.find_first_record('"VoiceReceiver" in component and "reader" in record', "receiver voice reader umbrella")
+            self.recv_voice_pipeline = r["component"]
+            self.recv_voice_renderer = r["component"] # same
+            self.recv_voice_preparer = r["preparer"]
+            synchronizer = r["synchronizer"]
+            if synchronizer != "none" and synchronizer != self.recv_synchronizer:
+                print("Warning: mismatched synchronizer, was {self.recv_synchronizer} record {r}")
+            recv_voice_reader_umbrella = r["reader"]
+            r = self.datastore.find_first_record(f'component == "{recv_voice_reader_umbrella}" and "pull_thread" in record', "receiver voice reader umbrella")
+            self.recv_voice_reader = r["pull_thread"]
+        except DataStoreError:
+            pass # it is not an error to have a sesion without audio
       
     def annotate(self) -> None:
         super().annotate()
