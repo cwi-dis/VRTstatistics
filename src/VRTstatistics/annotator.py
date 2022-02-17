@@ -1,5 +1,7 @@
 import sys
 from typing import Mapping, Optional
+
+from markupsafe import re
 from .datastore import DataStore, DataStoreError
 
 __all__ = ["Annotator", "combine"]
@@ -66,12 +68,16 @@ class LatencySenderAnnotator(Annotator):
         r = self.datastore.find_first_record(f'component == "{self.send_pc_pipeline}" and "writer" in record', "sender pc writer umbrella")
         send_pc_writer_umbrella = r["writer"]
 
-        rr = self.datastore.find_all_records(f'component == "{send_pc_writer_umbrella}" and "pusher" in record', "sender pc writer")
-        self.send_pc_writers = {}
-        for r in rr:
-            stream = r["stream"]
-            pusher = r["pusher"]
-            self.send_pc_writers[pusher] = stream
+        # Hack: SocketIO uses a single writer to push all streams.
+        if "SocketIOWriter" in send_pc_writer_umbrella:
+            self.send_pc_writers = {send_pc_writer_umbrella : "all" }
+        else:
+            rr = self.datastore.find_all_records(f'component == "{send_pc_writer_umbrella}" and "pusher" in record', "sender pc writer")
+            self.send_pc_writers = {}
+            for r in rr:
+                stream = r["stream"]
+                pusher = r["pusher"]
+                self.send_pc_writers[pusher] = stream
         #
         # Find names of sender side voice components
         #
@@ -137,12 +143,16 @@ class LatencyReceiverAnnotator(Annotator):
         r = self.datastore.find_first_record(f'component == "{self.recv_pc_pipeline}" and "reader" in record', "receiver pc reader umbrella")
         recv_pc_reader_umbrella = r["reader"]
         self.recv_synchronizer = r["synchronizer"]
-        self.recv_pc_readers = {}
-        rr = self.datastore.find_all_records(f'component == "{recv_pc_reader_umbrella}" and "pull_thread" in record', "receiver pc readers")
-        for r in rr:
-            tile = r["tile"]
-            pull_thread = r["pull_thread"]
-            self.recv_pc_readers[pull_thread] = tile
+        # Hack - SocketIO uses a single reader to read all streams.
+        if "SocketIOReader" in recv_pc_reader_umbrella:
+            self.recv_pc_readers = { recv_pc_reader_umbrella : "all"}
+        else:
+            self.recv_pc_readers = {}
+            rr = self.datastore.find_all_records(f'component == "{recv_pc_reader_umbrella}" and "pull_thread" in record', "receiver pc readers")
+            for r in rr:
+                tile = r["tile"]
+                pull_thread = r["pull_thread"]
+                self.recv_pc_readers[pull_thread] = tile
         self.recv_pc_preparers = {}
         self.recv_pc_renderers = {}
         self.recv_pc_decoders = {}
