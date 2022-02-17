@@ -13,6 +13,7 @@ def main():
     parser.add_argument("-d", "--destdir", help="directory to store results (default: current directory)")
     parser.add_argument("-a", "--annotator", metavar="ANN", help="Annotator to use for symbolic naming of records")
     parser.add_argument("-r", "--run", action="store_true", help="Run the test (default: only ingest data from an earlier run)")
+    parser.add_argument("--nolog", action="store_true", help="Do not try to get Unity Player logfiles")
     parser.add_argument("-c", "--config", metavar="FILE", help="Use host configuration from FILE")
     parser.add_argument("sender", help="Sender hostname")
     parser.add_argument("receiver", help="Receiver hostname")
@@ -43,15 +44,20 @@ def main():
         if sender_sts != 0 or receiver_sts != 0:
             sys.exit(1)
        
-    sender_log = os.path.join(destdir, "sender.log")
-    receiver_log = os.path.join(destdir, "receiver.log")
+    sender_stats = os.path.join(destdir, "sender.log")
+    receiver_stats = os.path.join(destdir, "receiver.log")
     combined = os.path.join(destdir, "combined.json")
+    sender_logfile = os.path.join(destdir, "sender-unity-log.txt")
+    receiver_logfile = os.path.join(destdir, "receiver-unity-log.txt")
+    
+    if not args.nolog:
+        sender.get_log(sender_logfile)
+        receiver.get_log(receiver_logfile)
+    sender.get_stats(sender_stats)
+    receiver.get_stats(receiver_stats)
 
-    sender.get_stats(sender_log)
-    receiver.get_stats(receiver_log)
-
-    senderdata = DataStore(sender_log)
-    receiverdata = DataStore(receiver_log)
+    senderdata = DataStore(sender_stats)
+    receiverdata = DataStore(receiver_stats)
 
     senderdata.load()
     receiverdata.load()

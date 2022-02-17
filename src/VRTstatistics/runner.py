@@ -3,7 +3,7 @@ import urllib.parse
 import subprocess
 import requests
 import threading
-from typing import Optional
+from typing import Optional, List
 
 from .runnerconfig import defaultRunnerConfig
 
@@ -17,6 +17,10 @@ class Runner:
     host: str
     user: str
     statPath: str
+    logPath: str
+    exePath: str
+    exeArgs : List[str]
+    useSsh : bool
     verbose = True
     runnerConfig = defaultRunnerConfig
 
@@ -46,16 +50,23 @@ class Runner:
         if not self.user:
             self.user = config["user"]
         self.statPath = config["statPath"]
+        self.logPath = config["logPath"]
         self.exePath = config.get("exePath")
         self.exeArgs = config.get("exeArgs", [])
         self.useSsh = config.get("useSsh", False)
         self.running = None
 
-    def get_stats(self, filename):
+    def get_log(self, filename : str) -> None:
+        self._get_remotefile(self.logPath, filename)
+
+    def get_stats(self, filename : str) -> None:
+        self._get_remotefile(self.statPath, filename)
+
+    def _get_remotefile(self, remotepath : str, filename : str) -> None:
         if self.user:
-            scpPath = f"{self.user}@{self.host}:{self.statPath}"
+            scpPath = f"{self.user}@{self.host}:{remotepath}"
         else:
-            scpPath = f"{self.host}:{self.statPath}"
+            scpPath = f"{self.host}:{remotepath}"
         cmd = ["scp", scpPath, filename]
         if self.verbose:
             print("+", " ".join(cmd), file=sys.stderr)

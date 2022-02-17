@@ -4,6 +4,7 @@ __all__ = ["defaultRunnerConfig"]
 defaultRunnerConfig = {
     "sap.local": dict(
         statPath="Library/Application\\ Support/i2Cat/VRTogether/statistics.log",
+        logPath="Library/Application\\ Support/i2Cat/VRTogether/Player.log",
         user="jack",
         exePath="/Users/jack/src/VRTogether/VRTApp-built-mmsys.app/Contents/MacOS/VRTogether",
         useSsh=True,
@@ -11,12 +12,14 @@ defaultRunnerConfig = {
     ),
     "flauwte.local": dict(
         statPath="Library/Application\\ Support/i2Cat/VRTogether/statistics.log",
+        logPath="Library/Application\\ Support/i2Cat/VRTogether/Player.log",
         useSsh=True,
         user="jack",
         exeArgs=["-vrmode", "None", "-disableVR"]
     ),
     "vrtiny.local": dict(
         statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log", 
+        logPath="AppData/LocalLow/i2Cat/VRTogether/Player.log", 
         user="vrtogether",
         exePath="c:/Users/VRTogether/VRTogether/VRTapp-built-mmsys/VRTogether.exe",
         useSsh=False,
@@ -24,6 +27,7 @@ defaultRunnerConfig = {
     ),
     "vrsmall.local": dict(
         statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log",
+        logPath="AppData/LocalLow/i2Cat/VRTogether/Player.log",
         user="vr-together",
         exePath="c:/Users/VR-Together/VRTogether/VRTapp-built-mmsys/VRTogether.exe",
         useSsh=False,
@@ -31,6 +35,7 @@ defaultRunnerConfig = {
    ),
     "vrbig.local": dict(
         statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log", 
+        logPath="AppData/LocalLow/i2Cat/VRTogether/Player.log", 
         user="vrtogether",
         exePath="c:/Users/VRTogether/Desktop/dev/VRTapp-built-mmsys/VRTogether.exe",
         useSsh=False,
@@ -38,11 +43,13 @@ defaultRunnerConfig = {
     ),
     "scallion.local": dict(
         statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log",
+        logPath="AppData/LocalLow/i2Cat/VRTogether/Player.log",
         user="vrtogether",
         exeArgs=["-vrmode", "None", "-disableVR"]
     ),
     "valkenburg-win10.local": dict(
         statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log", 
+        logPath="AppData/LocalLow/i2Cat/VRTogether/Player.log", 
         user="dis",
         exeArgs=["-vrmode", "None", "-disableVR"]
     ),
