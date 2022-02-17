@@ -10,13 +10,10 @@ else
 	. $scriptdir/.venv/Scripts/activate
 fi
 
-sender="vrtiny.local"
-receiver="sap.local"
-
 set -x
 
 # You can pass "--run" to run before getting the logs.
-VRTstatistics-ingest $@ --annotator latency $sender $receiver
+VRTstatistics-ingest --annotator latency $@
 
 # Show a graph with rendered pointcloud sizes
 # This is expected to be "good enough" to judge whether we're doing the right thing.
