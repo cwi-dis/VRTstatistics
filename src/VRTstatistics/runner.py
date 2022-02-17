@@ -35,11 +35,15 @@ defaultRunnerConfig = {
     "vrsmall.local": dict(
         statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log",
         user="vr-together",
+        exePath="c:/Users/VR-Together/VRTogether/VRTapp-built-mmsys/VRTogether.exe",
+        useSsh=False,
         exeArgs=["-vrmode", "None", "-disableVR"]
    ),
     "vrbig.local": dict(
         statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log", 
         user="vrtogether",
+        exePath="c:/Users/VRTogether/Desktop/dev/VRTapp-built-mmsys/VRTogether.exe",
+        useSsh=False,
         exeArgs=["-vrmode", "None", "-disableVR"]
     ),
     "scallion.local": dict(
