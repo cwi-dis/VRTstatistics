@@ -50,6 +50,24 @@ defaultRunnerConfig = {
         useSsh=False,
         exeArgs=["-vrmode", "None", "-disableVR"]
     ),
+    "fiddlehead": dict(
+        statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log", 
+        logPath="AppData/LocalLow/i2Cat/VRTogether/Player.log", 
+        user="vr-together",
+        host="fiddlehead.huiskamer.private",
+        exePath="c:/Users/VR-Together/Desktop/VRTogether/VRTapp-built-mmsys/VRTogether.exe",
+        useSsh=False,
+        exeArgs=["-vrmode", "None", "-disableVR"]
+    ),
+    "arugula": dict(
+        statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log", 
+        logPath="AppData/LocalLow/i2Cat/VRTogether/Player.log", 
+        user="vrtogether",
+        host="arugula.huiskamer.private",
+        exePath="c:/Users/VRTogether/VRTogether/VRTapp-built-mmsys/VRTogether.exe",
+        useSsh=False,
+        exeArgs=["-vrmode", "None", "-disableVR"]
+    ),
     "scallion.local": dict(
         statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log",
         logPath="AppData/LocalLow/i2Cat/VRTogether/Player.log",
