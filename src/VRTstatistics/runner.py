@@ -3,6 +3,7 @@ import urllib.parse
 import subprocess
 import requests
 import threading
+import socket
 from typing import Optional, List
 
 from .runnerconfig import defaultRunnerConfig
@@ -23,6 +24,7 @@ class Runner:
     useSsh : bool
     verbose = True
     runnerConfig = defaultRunnerConfig
+    mdnsWorkaround = True
 
     @classmethod
     def load_config(cls, filename : str) -> None:
@@ -35,6 +37,11 @@ class Runner:
         self.user = config["user"]
         if "host" in config:
             self.host = config["host"]
+        if self.mdnsWorkaround and ".local" in self.host:
+            ip = socket.gethostbyname(self.host)
+            if self.verbose:
+                print(f'+ lookup {self.host} -> {ip}')
+                self.host = ip
         self.statPath = config["statPath"]
         self.logPath = config["logPath"]
         self.exePath = config.get("exePath")
