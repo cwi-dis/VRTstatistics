@@ -28,27 +28,13 @@ class Runner:
     def load_config(cls, filename : str) -> None:
         assert False
 
-    def __init__(self, url: str, config: Optional[RunnerArgs] = None) -> None:
-        if ":" in url:
-            parsed = urllib.parse.urlparse(
-                self.url, scheme="ssh", allow_fragments=False
-            )
-            assert parsed.scheme == "ssh"
-            assert parsed.hostname
-            assert not parsed.port
-            assert not parsed.password
-            assert not parsed.query
-            self.host = parsed.hostname
-            self.user = parsed.username
-        elif "@" in url:
-            self.user, self.host = url.split("@")
-        else:
-            self.host = url
-            self.user = ""
+    def __init__(self, machine: str, config: Optional[RunnerArgs] = None) -> None:
+        self.host = machine
         if not config:
             config = self.runnerConfig[self.host]
-        if not self.user:
-            self.user = config["user"]
+        self.user = config["user"]
+        if "host" in config:
+            self.host = config["host"]
         self.statPath = config["statPath"]
         self.logPath = config["logPath"]
         self.exePath = config.get("exePath")
@@ -63,6 +49,12 @@ class Runner:
         self._get_remotefile(self.statPath, filename)
 
     def _get_remotefile(self, remotepath : str, filename : str) -> None:
+        if self.useSsh:
+            self._get_remotefile_ssh(remotepath, filename)
+        else:
+            self._get_remotefile_server(remotepath, filename)
+
+    def _get_remotefile_ssh(self, remotepath : str, filename : str) -> None:
         if self.user:
             scpPath = f"{self.user}@{self.host}:{remotepath}"
         else:
@@ -72,12 +64,36 @@ class Runner:
             print("+", " ".join(cmd), file=sys.stderr)
         subprocess.run(cmd)
 
+    def _get_remotefile_server(self, remotepath : str, filename : str) -> None:
+        url = f"http://{self.host}:{RunnerServerPort}/getfile"
+        if self.verbose:
+            print(f"+ GET {url} fullpath={remotepath}")
+        r = requests.get(url, json={'fullpath' : remotepath})
+        r.raise_for_status()
+        result = r.text
+        open(filename, 'w').write(result)
+        if self.verbose:
+            print(f"- GET {url} filename={filename} size={len(result)}")
+
+    def put_file(self, filename : str, data : str) -> None:
+        if self.useSsh:
+            raise RuntimeError("put_file not implemented over ssh")
+        url = f"http://{self.host}:{RunnerServerPort}/putfile"
+        if self.verbose:
+            print(f"+ POST {url} filename={filename} data=...", file=sys.stderr)
+        data = {'filename' : filename, 'data' : data}
+        r = requests.post(url, json=data)
+        rv = r.json
+        if self.verbose:
+            print(f'- POST {url} -> {rv}')
+        return rv['fullpath']
+
     def run(self) -> None:
         assert not self.running
         if self.useSsh:
-            self.running = self.run_ssh()
+            self.running = self._run_ssh()
         else:
-            self.running = threading.Thread(target=self.run_server_thread)
+            self.running = threading.Thread(target=self._run_server_thread)
             self.running.start()
 
     def wait(self) -> int:
@@ -89,7 +105,7 @@ class Runner:
             rv = self.status_code
         return rv
 
-    def run_ssh(self) -> subprocess.Popen:
+    def _run_ssh(self) -> subprocess.Popen:
         if not self.exePath:
             raise RuntimeError(f"No exePath for {self.host}")
         if self.user:
@@ -101,7 +117,7 @@ class Runner:
             print("+", " ".join(cmd), file=sys.stderr)
         return subprocess.Popen(cmd)
     
-    def run_server_thread(self):
+    def _run_server_thread(self):
         if not self.exePath:
             raise RuntimeError(f"No exePath for {self.host}")
         cmd = [self.exePath] + self.exeArgs

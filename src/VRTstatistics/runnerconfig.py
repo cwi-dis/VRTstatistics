@@ -4,10 +4,19 @@ __all__ = ["defaultRunnerConfig"]
 defaultRunnerConfig = {
     "sap.local": dict(
         statPath="Library/Application\\ Support/i2Cat/VRTogether/statistics.log",
-        logPath="Library/Application\\ Support/i2Cat/VRTogether/Player.log",
+        logPath="Library/Logs/i2Cat/VRTogether/Player.log",
         user="jack",
         exePath="/Users/jack/src/VRTogether/VRTApp-built-mmsys.app/Contents/MacOS/VRTogether",
         useSsh=True,
+        exeArgs=["-vrmode", "None", "-disableVR"]
+    ),
+    "sap-via-server": dict(
+        statPath="Library/Application Support/i2Cat/VRTogether/statistics.log",
+        logPath="Library/Logs/i2Cat/VRTogether/Player.log",
+        user="jack",
+        exePath="/Users/jack/src/VRTogether/VRTApp-built-mmsys.app/Contents/MacOS/VRTogether",
+        useSsh=False,
+        host="sap.local",
         exeArgs=["-vrmode", "None", "-disableVR"]
     ),
     "flauwte.local": dict(
