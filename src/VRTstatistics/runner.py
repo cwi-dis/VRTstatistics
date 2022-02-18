@@ -90,17 +90,17 @@ class Runner:
             print(f"+ POST {url} filename={filename} data=...", file=sys.stderr)
         data = {'filename' : filename, 'data' : data}
         r = requests.post(url, json=data)
-        rv = r.json
+        rv = r.json()
         if self.verbose:
             print(f'- POST {url} -> {rv}')
         return rv['fullpath']
 
-    def run(self) -> None:
+    def run(self, additionalArgs : Optional[List[str]] = None) -> None:
         assert not self.running
         if self.useSsh:
-            self.running = self._run_ssh()
+            self.running = self._run_ssh(additionalArgs)
         else:
-            self.running = threading.Thread(target=self._run_server_thread)
+            self.running = threading.Thread(target=self._run_server_thread, args=(additionalArgs,))
             self.running.start()
 
     def wait(self) -> int:
@@ -112,7 +112,7 @@ class Runner:
             rv = self.status_code
         return rv
 
-    def _run_ssh(self) -> subprocess.Popen:
+    def _run_ssh(self, additionalArgs : Optional[List[str]] = None) -> subprocess.Popen:
         if not self.exePath:
             raise RuntimeError(f"No exePath for {self.host}")
         if self.user:
@@ -120,17 +120,26 @@ class Runner:
         else:
             sshHost = self.host
         cmd = ["ssh", sshHost, self.exePath] + self.exeArgs
+        if additionalArgs:
+            cmd += additionalArgs
         if self.verbose:
             print("+", " ".join(cmd), file=sys.stderr)
         return subprocess.Popen(cmd)
     
-    def _run_server_thread(self):
+    def _run_server_thread(self, additionalArgs : Optional[List[str]] = None):
         if not self.exePath:
             raise RuntimeError(f"No exePath for {self.host}")
         cmd = [self.exePath] + self.exeArgs
+        if additionalArgs:
+            cmd += additionalArgs
         url = f"http://{self.host}:{RunnerServerPort}/run"
         if self.verbose:
             print(f"+ POST {url} {cmd}", file=sys.stderr)
         response = requests.post(url, json=cmd)
         print(response.text)
         self.status_code = response.status_code if response.status_code != 200 else 0
+
+    def run_with_config(self, configfile : str) -> None:
+        configdata = open(configfile).read()
+        remotepath = self.put_file("curconfig.json", configdata)
+        self.run(["-vrtconfig", remotepath])

@@ -13,6 +13,7 @@ def main():
     parser.add_argument("-d", "--destdir", help="directory to store results (default: current directory)")
     parser.add_argument("-a", "--annotator", metavar="ANN", help="Annotator to use for symbolic naming of records")
     parser.add_argument("-r", "--run", action="store_true", help="Run the test (default: only ingest data from an earlier run)")
+    parser.add_argument("-C", "--vrtconfig", action="store", metavar="CONFIGFILE", help="Upload and use CONFIGFILE when running")
     parser.add_argument("--nolog", action="store_true", help="Do not try to get Unity Player logfiles")
     parser.add_argument("-c", "--config", metavar="FILE", help="Use host configuration from FILE")
     parser.add_argument("sender", help="Sender hostname")
@@ -31,8 +32,12 @@ def main():
         os.mkdir(destdir)
     
     if args.run:
-        sender.run()
-        receiver.run()
+        if args.vrtconfig:
+            sender.run_with_config(args.vrtconfig)
+            receiver.run_with_config(args.vrtconfig)
+        else:
+            sender.run()
+            receiver.run()
         if verbose:
             print("Waiting for processes to finish...", file=sys.stderr)
         sender_sts = sender.wait()
