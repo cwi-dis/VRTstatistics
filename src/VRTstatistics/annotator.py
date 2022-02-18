@@ -58,7 +58,7 @@ class LatencySenderAnnotator(Annotator):
         #
         # Find names of sender side PC components
         #
-        r = self.datastore.find_first_record('"PointCloudPipeline" in component and self == 1', "sender pc pipeline")
+        r = self.datastore.find_first_record('"PointCloudPipeline" in component and "self" in record and self == 1', "sender pc pipeline")
         self.send_pc_pipeline = r['component']
 
         self.send_pc_grabber = "PrerecordedLiveReader#0.0" # xxxx cannot find pointcloud reader
