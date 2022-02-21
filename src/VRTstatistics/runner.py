@@ -142,4 +142,4 @@ class Runner:
     def run_with_config(self, configfile : str) -> None:
         configdata = open(configfile).read()
         remotepath = self.put_file("curconfig.json", configdata)
-        self.run(["-vrtconfig", remotepath])
+        self.run(["-vrt-config", remotepath])
