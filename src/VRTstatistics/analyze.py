@@ -1,7 +1,7 @@
 import matplotlib.pyplot as pyplot
 from .datastore import DataStore
 
-def plot_simple(datastore : DataStore, *, predicate=None, title=None, output=None, x=None, fields=None):
+def plot_simple(datastore : DataStore, *, predicate=None, title=None, output=None, x="sessiontime", fields=None):
     """
     Plot data (optionally after converting to pandas.DataFrame).
     output is optional output file (default: show in a window)
