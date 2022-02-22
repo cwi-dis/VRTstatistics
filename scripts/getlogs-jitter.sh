@@ -9,6 +9,7 @@ if [ -f $scriptdir/.venv/bin/activate ]; then
 else
 	. $scriptdir/.venv/Scripts/activate
 fi
+echo NOTE: this script is outdated, kept here mainly for reference. See Python script in mmsys22-pipeline-measurements for replacement.
 
 set -x
 
