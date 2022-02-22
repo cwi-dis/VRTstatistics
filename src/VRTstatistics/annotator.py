@@ -278,37 +278,3 @@ def combine(
     outputdata.load_data(senderdata.data + receiverdata.data)
     outputdata.sort(key=lambda r: r["sessiontime"])
     return True
-
-class Symbolicate:
-    def __init__(self, datastore : DataStore) -> None:
-        self.datastore = datastore
-
-    def run(self) -> None:
- 
-
-        # Add symbolic names to all relevant records
-        #
-        for record in self.datastore.data:
-            # sender pc
-            if record["role"] == "sender" and record["component"] == self.send_pc_reader:
-                record["component_role"] = "sender.reader"
-            if record["role"] == "sender" and record["component"] == self.send_pc_encoder:
-                record["component_role"] = "sender.encoder"
-            if record["role"] == "sender" and record["component"] in self.send_pc_writers:
-                record["component_role"] = f"sender.writer.{tile}"
-            # receiver pc
-            if record["role"] == "receiver" and record["component"] in self.recv_pc_readers:
-                tile = self.recv_pc_readers[record["component"]]
-                record["component_role"] = f"receiver.reader.{tile}"
-            if record["role"] == "receiver" and record["component"] in self.recv_pc_decoders:
-                tile = self.recv_pc_decoders[record["component"]]
-                record["component_role"] = f"receiver.decoder.{tile}"
-            if record["role"] == "receiver" and record["component"] in self.recv_pc_preparers:
-                tile = self.recv_pc_preparers[record["component"]]
-                record["component_role"] = f"receiver.preparer.{tile}"
-            if record["role"] == "receiver" and record["component"] == self.recv_pc_synchronizer:
-                record["component_role"] = f"receiver.synchronizer"
-            if record["role"] == "receiver" and record["component"] in self.recv_pc_renderers:
-                tile = self.recv_pc_renderers[record["component"]]
-                record["component_role"] = f"receiver.renderer.{tile}"
-
