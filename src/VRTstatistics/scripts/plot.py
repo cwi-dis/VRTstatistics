@@ -1,8 +1,7 @@
 import argparse
 import sys
-import pandas as pd
-import matplotlib.pyplot as pyplot
 from ..datastore import DataStore
+from ..analyze import plot_simple
 
 def main():
     parser = argparse.ArgumentParser(description="Plot datastore or CSV file")
@@ -36,33 +35,9 @@ def main():
     )
     args = parser.parse_args()
     predicate = None
-    fields = None
-    if args.fields:
-        fields = args.fields
-    if args.x and fields and not args.x in fields:
-        fields = fields + [args.x]
     datastore = DataStore(args.datastore)
     datastore.load()
-    dataframe = datastore.get_dataframe(predicate=args.predicate, columns=fields)
-    plot(dataframe, title=args.title, output=args.output, x=args.x)
-
-def plot(data, title=None, output=None, x=None, fields=None):
-    """
-    Plot data (optionally after converting to pandas.DataFrame).
-    output is optional output file (default: show in a window)
-    x is name of x-axis field
-    fields is list of fields to plot (default: all, except x)
-    """
-    if fields:
-        plot = data.interpolate().plot(x=x, y=fields)
-    else:
-        plot = data.interpolate().plot(x=x)
-    if title:
-        pyplot.title(title)
-    if output:
-        pyplot.savefig(output)
-    else:
-        pyplot.show()
+    plot_simple(datastore, title=args.title, output=args.output, predicate=args.predicate, x=args.x, fields=args.fields)
 
 
 if __name__ == "__main__":
