@@ -40,10 +40,11 @@ class DataStore:
     def load_json(self) -> None:
         self.data = [] if self.filename == "-" else json.load(open(self.filename, "r"))
 
-    def load_log(self) -> None:
+    def load_log(self, nocheck=False) -> None:
         parser = StatsFileParser(self.filename)
         self.data = parser.parse()
-        parser.check()
+        if not nocheck:
+            parser.check()
 
     def load_csv(self) -> None:
         dataframe : pandas.DataFrame = pandas.read_csv(self.filename)

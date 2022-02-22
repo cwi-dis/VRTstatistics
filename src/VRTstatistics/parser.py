@@ -90,7 +90,7 @@ class StatsFileParser:
             entry[k] = v
         return entry
 
-    def check(self) -> None:
+    def check(self) -> bool:
         ok = True
         startEntry = None
         stopEntry = None

@@ -50,12 +50,12 @@ class Runner:
         self.running = None
 
     def get_log(self, filename : str) -> None:
-        self._get_remotefile(self.logPath, filename)
+        self.get_remotefile(self.logPath, filename)
 
     def get_stats(self, filename : str) -> None:
-        self._get_remotefile(self.statPath, filename)
+        self.get_remotefile(self.statPath, filename)
 
-    def _get_remotefile(self, remotepath : str, filename : str) -> None:
+    def get_remotefile(self, remotepath : str, filename : str) -> None:
         if self.useSsh:
             self._get_remotefile_ssh(remotepath, filename)
         else:
