@@ -10,7 +10,7 @@ defaultRunnerConfig = {
         useSsh=True,
         exeArgs=["-vrmode", "None", "-disableVR"]
     ),
-    "sap-via-server": dict(
+    "sap": dict(
         statPath="Library/Application Support/i2Cat/VRTogether/statistics.log",
         logPath="Library/Logs/i2Cat/VRTogether/Player.log",
         user="jack",
@@ -26,11 +26,12 @@ defaultRunnerConfig = {
         user="jack",
         exeArgs=["-vrmode", "None", "-disableVR"]
     ),
-    "vrtiny.local": dict(
+    "vrtiny": dict(
         statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log", 
         logPath="AppData/LocalLow/i2Cat/VRTogether/Player.log", 
         user="vrtogether",
         exePath="c:/Users/VRTogether/VRTogether/VRTapp-built-mmsys/VRTogether.exe",
+        host="vrtiny.local",
         useSsh=False,
         exeArgs=["-vrmode", "None", "-disableVR"]
     ),
