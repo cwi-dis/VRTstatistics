@@ -20,6 +20,13 @@ VRTstatistics-ingest --annotator latency $@
 VRTstatistics-filter -d combined.json -o pointcloud_sizes.csv --predicate '"receiver.pc.renderer" in component_role' sessiontime component_role=points_per_cloud
 VRTstatistics-plot -d combined.json -t "receiver point counts" --predicate '"receiver.pc.renderer" in component_role' sessiontime component_role=points_per_cloud
 #
+# CPU usage
+VRTstatistics-plot -d combined.json -t "CPU usage" --predicate 'component == "ResourceConsumption"' sessiontime role.=cpu role.=cpu_max
+#
+# Bandwidth usage
+VRTstatistics-plot -d combined.json -t "Bandwidth usage" --predicate 'component == "ResourceConsumption"' sessiontime role.=recv_bandwidth role.=sent_bandwidth
+
+#
 # Graph latencies
 VRTstatistics-filter -d combined.json -o pointcloud_latencies.csv --predicate '".pc." in component_role or component_role == "receiver.voice.renderer"' sessiontime component_role.=downsample_ms component_role.=encoder_queue_ms component_role.=encoder_ms component_role.=transmitter_queue_ms  component_role.=receive_ms component_role.=decoder_queue_ms component_role.=decoder_ms component_role.=decoded_queue_ms component_role.=renderer_queue_ms component_role.=latency_ms   
 VRTstatistics-plot -d combined.json -t "latency contributions" --predicate '".pc." in component_role or component_role == "receiver.voice.renderer"' component_role.=downsample_ms component_role.=encoder_queue_ms component_role.=encoder_ms component_role.=transmitter_queue_ms  component_role.=receive_ms component_role.=decoder_queue_ms component_role.=decoder_ms component_role.=decoded_queue_ms component_role.=renderer_queue_ms component_role.=latency_ms   
