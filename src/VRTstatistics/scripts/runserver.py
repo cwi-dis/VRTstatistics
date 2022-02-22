@@ -1,19 +1,76 @@
-from flask import Flask, request, Response, jsonify
-import subprocess
 import os
+import time
+import subprocess
+import datetime
+from flask import Flask, request, Response, jsonify
+import psutil
 from ..runner import RunnerServerPort
 
 app = Flask(__name__)
+
+class RUsageCollector:
+    def __init__(self, filename : str, proc : psutil.Process) -> None:
+        self.fp = open(filename, 'w')
+        self.proc = proc
+        self.net_last_time = 0
+        self.net_bytes_recv = 0
+        self.net_bytes_sent = 0
+        self._get_bandwidth()
+
+    def close(self):
+        self.fp.close()
+
+    def step(self):
+        now = datetime.datetime.now()
+        midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        ts = (now-midnight).total_seconds()
+        try:
+            cpu = self.proc.cpu_percent()
+            mem = self.proc.memory_info()
+        except psutil.ZombieProcess:
+            return
+        allcpu = psutil.cpu_percent(percpu=True)
+        maxcpu = max(allcpu)
+        rss = mem.rss
+        vms = mem.vms
+        net = psutil.net_io_counters()
+        recv, sent = self._get_bandwidth()
+        print(f'stats: component=ResourceConsumption, ts={ts:.3f}, cpu={cpu}, cpu_max={maxcpu}, mem={vms}, recv_bandwidth={recv:.0f}, sent_bandwidth={sent:.0f}', file=self.fp)
+
+    def _get_bandwidth(self):
+        net = psutil.net_io_counters()
+        now = time.time()
+        interval = now - self.net_last_time
+        recv_bandwidth = (net.bytes_recv - self.net_bytes_recv) / interval
+        sent_bandwidth = (net.bytes_sent - self.net_bytes_sent) / interval
+        self.net_last_time = now
+        self.net_bytes_recv = net.bytes_recv
+        self.net_bytes_sent = net.bytes_sent
+        return recv_bandwidth, sent_bandwidth
 
 @app.route("/about")
 def about():
     return "<p>Hello world!</p>"
 
-@app.route("/run", methods=["POST"])
+@app.route("/runold", methods=["POST"])
 def run():
     command = request.json
     print(f"run: command={command}")
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    stdout_data, stderr_data = process.communicate()
+    process.wait()
+    return Response(stdout_data, mimetype="text/plain")
+
+@app.route("/run", methods=["POST"])
+def runwithusage():
+    command = request.json
+    print(f"run: command={command}")
+    process = psutil.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    usage_collector = RUsageCollector('rusage.log', process)
+    while process.poll() == None:
+        time.sleep(1)
+        usage_collector.step()
+    usage_collector.close()
     stdout_data, stderr_data = process.communicate()
     process.wait()
     return Response(stdout_data, mimetype="text/plain")
