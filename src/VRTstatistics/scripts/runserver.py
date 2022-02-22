@@ -29,6 +29,8 @@ class RUsageCollector:
             mem = self.proc.memory_info()
         except psutil.ZombieProcess:
             return
+        except psutil.NoSuchProcess:
+            return
         allcpu = psutil.cpu_percent(percpu=True)
         maxcpu = max(allcpu)
         rss = mem.rss
