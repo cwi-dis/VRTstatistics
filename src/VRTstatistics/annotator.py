@@ -61,11 +61,9 @@ class LatencySenderAnnotator(Annotator):
         r = self.datastore.find_first_record('"PointCloudPipeline" in component and "self" in record and self == 1', "sender pc pipeline")
         self.send_pc_pipeline = r['component']
 
-        self.send_pc_grabber = "PrerecordedLiveReader#0.0" # xxxx cannot find pointcloud reader
-
-        self.send_pc_encoder = "NULLEncoder#0" # xxxx cannot find encoder
-
         r = self.datastore.find_first_record(f'component == "{self.send_pc_pipeline}" and "writer" in record', "sender pc writer umbrella")
+        self.send_pc_grabber = r["reader"]
+        self.send_pc_encoder = r["encoder"]
         send_pc_writer_umbrella = r["writer"]
 
         # Hack: SocketIO uses a single writer to push all streams.
