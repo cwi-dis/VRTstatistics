@@ -19,10 +19,12 @@ class DataStore:
 
     filename: str
     data: list[DataStoreRecord]
+    annotator : Any
    
     def __init__(self, filename: Optional[str] = None) -> None:
         self.filename = filename
         self.data = []
+        self.annotator = None
 
     def load(self) -> None:
         assert self.filename

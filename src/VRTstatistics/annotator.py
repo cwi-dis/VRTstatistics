@@ -1,5 +1,6 @@
 import sys
-from typing import Mapping, Optional
+import time
+from typing import Mapping, Optional, Tuple, Type
 
 from markupsafe import re
 from .datastore import DataStore, DataStoreError
@@ -12,6 +13,8 @@ class Annotator:
     session_id : str
     session_start_time : float
     desync : float
+    desync_uncertainty : float
+    user_name : str
 
     def __init__(self, datastore : DataStore, role : str) -> None:
         self.datastore = datastore
@@ -24,8 +27,11 @@ class Annotator:
         r = self.datastore.find_first_record('component == "SessionPlayerManager"', "session start time")
         self.session_start_time = r["orchtime"]
         r = self.datastore.find_first_record('"localtime_behind_ms" in record and component == "OrchestratorController"', "session time synchronization")
-        self.desync = r["localtime_behind_ms"]
-
+        self.desync = r["localtime_behind_ms"] / 1000.0
+        self.desync_uncertainty = r["uncertainty_interval_ms"] / 1000.0
+        r = self.datastore.find_first_record('component == "SessionPlayerManager" and "userName" in record and self == "True"', "user name")
+        self.user_name = r["userName"]
+        
     def annotate(self) -> None:
         self._adjust_time_and_role(self.session_start_time, self.role)
         
@@ -41,6 +47,29 @@ class Annotator:
             newrecord["role"] = role
             rv.append(newrecord)
         self.datastore.data = rv
+
+    def description(self) -> str:
+        return f"captured: {time.ctime(self.session_start_time)}\nrole: {self.role}\nsession_id: {self.session_id}\nusername: {self.user_name}"
+
+class CombinedAnnotator(Annotator):
+    sender : str
+    receiver : str
+
+    def collect(self) -> None:
+        super().collect()
+
+    def from_sources(self, sender_annotator : Annotator, receiver_annotator : Annotator) -> None:
+        self.desync = 0
+        desync = abs(sender_annotator.desync - receiver_annotator.desync)
+        self.desync_uncertainty = desync + sender_annotator.desync_uncertainty + receiver_annotator.desync_uncertainty
+        self.sender = sender_annotator.user_name
+        self.receiver = receiver_annotator.user_name
+
+    def annotate(self) -> None:
+        pass # Nothing to change in the data, has all been done in the sender and receiver annotator
+
+    def description(self) -> str:
+        return f"captured: {time.ctime(self.session_start_time)}\nsender: {self.sender}\nreceiver: {self.receiver}\ntiming_uncertainty: {self.desync_uncertainty:.3f}"
 
 class LatencySenderAnnotator(Annotator):
     send_pc_pipeline : str
@@ -222,9 +251,25 @@ class LatencyReceiverAnnotator(Annotator):
             else:
                 record["component_role"] = ""
 
-_Annotators = {
-    None: (Annotator, Annotator),
-    "latency" : (LatencySenderAnnotator, LatencyReceiverAnnotator)
+class LatencyCombinedAnnotator(CombinedAnnotator):
+    protocol : str
+    nTiles : int
+    nQualities : int
+    compressed : bool
+
+    def from_sources(self, sender_annotator : Annotator, receiver_annotator : Annotator) -> None:
+        super().from_sources(sender_annotator, receiver_annotator)
+
+    def collect(self) -> None:
+        super().collect()
+
+    def annotate(self) -> None:
+        pass # Nothing to change in the data, has all been done in the sender and receiver annotator
+
+
+_Annotators : dict[Optional[str], Tuple[Type[Annotator], Type[Annotator], Type[CombinedAnnotator]]]= {
+    None: (Annotator, Annotator, CombinedAnnotator),
+    "latency" : (LatencySenderAnnotator, LatencyReceiverAnnotator, LatencyCombinedAnnotator)
 }
 
 def combine(
@@ -237,10 +282,16 @@ def combine(
     """
     if not annotator in _Annotators:
         raise RuntimeError(f"Unknown annotator {annotator}, only know {list(_Annotators.keys())}")
-    annotate_sender = _Annotators[annotator][0](senderdata, "sender")
-    annotate_receiver = _Annotators[annotator][1](receiverdata, "receiver")
+    AnnoClassSender, AnnoClassReceiver, AnnoClassCombined = _Annotators[annotator]
+    assert AnnoClassSender
+    assert AnnoClassReceiver
+
+    annotate_sender = AnnoClassSender(senderdata, "sender")
+    annotate_receiver = AnnoClassReceiver(receiverdata, "receiver")
     annotate_sender.collect()
     annotate_receiver.collect()
+
+    print(f"Sender:\n{annotate_sender.description()}\n\nReceiver:\n{annotate_receiver.description()}\n\n")
     
     if annotate_sender.session_id != annotate_receiver.session_id:
         raise DataStoreError(
@@ -251,13 +302,13 @@ def combine(
             f"Warning: different session start times, {abs(annotate_sender.session_start_time-annotate_receiver.session_start_time)} seconds apart: receiver {annotate_receiver.session_start_time} sender {annotate_sender.session_start_time}",
             file=sys.stderr,
         )
-    if abs(annotate_sender.desync) > 30 or abs(annotate_receiver.desync > 30):
+    if abs(annotate_sender.desync) > 0.030 or abs(annotate_receiver.desync > 0.030):
         print(
-            f"Warning: synchronization: sender {annotate_sender.desync}ms behind orchestrator",
+            f"Warning: synchronization: sender {annotate_sender.desync:.3f}s (+/- {annotate_sender.desync_uncertainty/2:.3f}s) behind orchestrator",
             file=sys.stderr,
         )
         print(
-            f"Warning: synchronization: receiver {annotate_receiver.desync}ms behind orchestrator",
+            f"Warning: synchronization: receiver {annotate_receiver.desync:.3f}s (+/- {annotate_receiver.desync_uncertainty/2:.3f}s) behind orchestrator",
             file=sys.stderr,
         )
 
@@ -275,4 +326,11 @@ def combine(
     #
     outputdata.load_data(senderdata.data + receiverdata.data)
     outputdata.sort(key=lambda r: r["sessiontime"])
+    # And annotate, if wanted
+    if AnnoClassCombined:
+        annotate_combined = AnnoClassCombined(outputdata, "combined")
+        annotate_combined.collect()
+        annotate_combined.from_sources(annotate_sender, annotate_receiver)
+        annotate_combined.annotate()
+        print(f"Session:\n{annotate_combined.description()}\n\n")
     return True
