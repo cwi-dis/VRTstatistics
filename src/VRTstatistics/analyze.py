@@ -1,8 +1,13 @@
+import fnmatch
+from sqlite3 import DatabaseError
+from typing import List
 import matplotlib.pyplot as pyplot
 import pandas as pd
 from .datastore import DataStore
 
-def plot_simple(datastore : DataStore, *, predicate=None, title=None, output=None, x="sessiontime", fields=None):
+__all__ = ["plot_simple", "plot_dataframe", "TileCombiner"]
+
+def plot_simple(datastore : DataStore, *, predicate=None, title=None, output=None, x="sessiontime", fields=None, datafilter=None):
     """
     Plot data (optionally after converting to pandas.DataFrame).
     output is optional output file (default: show in a window)
@@ -18,6 +23,8 @@ def plot_simple(datastore : DataStore, *, predicate=None, title=None, output=Non
     if not fields_to_retrieve:
         fields_to_retrieve = None
     dataframe = datastore.get_dataframe(predicate=predicate, columns=fields_to_retrieve)
+    if datafilter:
+        dataframe = datafilter(dataframe)
     descr = datastore.annotator.description()
     plot_dataframe(dataframe, title=title, output=output, x=x, fields=fields_to_plot, descr=descr)
 
@@ -35,3 +42,48 @@ def plot_dataframe(dataframe : pd.DataFrame, *, title=None, output=None, x=None,
         pyplot.savefig(output)
     else:
         pyplot.show()
+
+class TileCombiner:
+
+    def __init__(self, pattern : str, column : str, function : str) -> None:
+        self.pattern = pattern
+        self.column = column
+        self.function = function
+
+    def __call__(self, dataframe : pd.DataFrame) -> pd.DataFrame:
+        column_names = self._get_column_names(dataframe, self.pattern)
+        columns = []
+        rv = None
+        for n in column_names:
+            # Create scaffolding (sessiontimes) if we haven't done so.
+            filter = dataframe[n].notna()
+            if rv is None:
+                rv = dataframe[filter]
+                rv.drop(column_names, axis=1, inplace=True)
+                # rv = rv["sessiontime"]
+            # filter out values for this column
+            c = dataframe.loc[filter, n]
+            
+            # Insert
+            rv[n] = list(c)
+        # Now sum the relevant columns
+        if self.function == "sum":
+            rv[self.column] = rv[column_names].sum(axis=1)
+        elif self.function == "mean":
+            rv[self.column] = rv[column_names].mean(axis=1)
+        elif self.function == "min":
+            rv[self.column] = rv[column_names].min(axis=1)
+        elif self.function == "max":
+            rv[self.column] = rv[column_names].max(axis=1)
+        else:
+            raise DatabaseError(f"Unknown function {self.function}")
+        rv.drop(column_names, axis=1, inplace=True)
+        return rv
+
+    def _get_column_names(self, dataframe : pd.DataFrame, pattern) -> List[str]:
+        all_columns = list(dataframe.keys())
+        rv = []
+        for col in all_columns:
+            if fnmatch.fnmatchcase(col, pattern):
+                rv.append(col)
+        return rv
