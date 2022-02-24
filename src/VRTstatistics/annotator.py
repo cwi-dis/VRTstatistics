@@ -1,11 +1,12 @@
 import sys
 import time
 from typing import Mapping, Optional, Tuple, Type
+from flask import send_from_directory
 
 from markupsafe import re
 from .datastore import DataStore, DataStoreError
 
-__all__ = ["Annotator", "combine"]
+__all__ = ["Annotator", "combine", "deserialize"]
 
 class Annotator:
     datastore : DataStore
@@ -18,8 +19,21 @@ class Annotator:
 
     def __init__(self, datastore : DataStore, role : str) -> None:
         self.datastore = datastore
+        self.datastore.annotator = self
         self.role = role
     
+    def to_dict(self) -> dict:
+        rv = dict(
+            type=type(self).__name__,
+            role=self.role,
+            session_id=self.session_id,
+            session_start_time=self.session_start_time,
+            desync=self.desync,
+            desync_uncertainty=self.desync_uncertainty,
+            user_name=self.user_name
+        )
+        return rv
+
     def collect(self) -> None:
         r = self.datastore.find_first_record('"starting" in record and component == "OrchestratorController"', "session start")
         self.session_id = r["sessionId"]
@@ -64,6 +78,13 @@ class CombinedAnnotator(Annotator):
         self.desync_uncertainty = desync + sender_annotator.desync_uncertainty + receiver_annotator.desync_uncertainty
         self.sender = sender_annotator.user_name
         self.receiver = receiver_annotator.user_name
+        self.user_name = None
+
+    def to_dict(self):
+        rv = super().to_dict()
+        rv["sender"] = self.sender
+        rv["receiver"] = self.receiver
+        return rv
 
     def annotate(self) -> None:
         pass # Nothing to change in the data, has all been done in the sender and receiver annotator
@@ -260,8 +281,20 @@ class LatencyCombinedAnnotator(CombinedAnnotator):
     def from_sources(self, sender_annotator : Annotator, receiver_annotator : Annotator) -> None:
         super().from_sources(sender_annotator, receiver_annotator)
 
+    def to_dict(self) -> dict:
+        rv = super().to_dict()
+        rv["protocol"] = self.protocol
+        rv["nTiles"] = self.nTiles
+        rv["nQualities"] = self.nQualities
+        rv["compressed"] = self.compressed
+        return rv
+
     def collect(self) -> None:
         super().collect()
+        self.protocol = "unknown"
+        self.nTiles = -1
+        self.nQualities = -1
+        self.compressed = False
 
     def annotate(self) -> None:
         pass # Nothing to change in the data, has all been done in the sender and receiver annotator
@@ -334,3 +367,12 @@ def combine(
         annotate_combined.annotate()
         print(f"Session:\n{annotate_combined.description()}\n\n")
     return True
+
+def deserialize(datastore : DataStore, d : dict) -> Annotator:
+    klass = globals()[d["type"]]
+    ann = klass(datastore, d["role"])
+    for k, v in d.items():
+        if k == "type": continue
+        setattr(ann, k, v)
+    print(f"deserialize:\n{ann.description()}")
+    return ann

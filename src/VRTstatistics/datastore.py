@@ -40,7 +40,15 @@ class DataStore:
             raise DataStoreError(f"Don't know how to load {self.filename}")
 
     def load_json(self) -> None:
-        self.data = [] if self.filename == "-" else json.load(open(self.filename, "r"))
+        data = json.load(open(self.filename, "r"))
+        metadata = None
+        if type(data) != type([]):
+            data = data["data"]
+            metadata = data["metadata"]
+        self.data = data
+        if metadata:
+            from .annotator import deserialize
+            self.annotator = deserialize(self, metadata)
 
     def load_log(self, nocheck=False) -> None:
         parser = StatsFileParser(self.filename)
@@ -138,7 +146,11 @@ class DataStore:
             raise DataStoreError(f"Don't know how to save {self.filename}")
 
     def save_json(self) -> None:
-        json.dump(self.data, open(self.filename, "w"), indent="\t")
+        data = dict(
+            metadata=self.annotator.to_dict(),
+            data=self.data
+        )
+        json.dump(data, open(self.filename, "w"), indent="\t")
 
     def save_csv(self) -> None:
         pd = self.get_dataframe()
