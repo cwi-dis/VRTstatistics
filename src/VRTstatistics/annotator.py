@@ -1,5 +1,6 @@
 import sys
 import time
+import datetime
 from typing import Mapping, Optional, Tuple, Type
 from flask import send_from_directory
 
@@ -314,6 +315,17 @@ class LatencyCombinedAnnotator(CombinedAnnotator):
         self.nQualities = -1
         self.compressed = False
 
+    def description(self) -> str:
+        dt = datetime.datetime.fromtimestamp(self.session_start_time)
+        dt = dt.strftime("%d-%b-%Y %H:%M")
+        rv = f"{dt}\n{self.sender} to {self.receiver}\n{self.protocol}"
+        if self.compressed:
+            rv += ", compressed"
+            if self.nQualities > 1:
+                rv += f" ({self.nQualities} levels)"
+        if self.nTiles > 1:
+            rv += f", {self.nTiles} tiles"
+        return rv
     def annotate(self) -> None:
         pass # Nothing to change in the data, has all been done in the sender and receiver annotator
 

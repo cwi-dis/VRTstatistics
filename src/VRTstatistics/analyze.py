@@ -18,13 +18,17 @@ def plot_simple(datastore : DataStore, *, predicate=None, title=None, output=Non
     if not fields_to_retrieve:
         fields_to_retrieve = None
     dataframe = datastore.get_dataframe(predicate=predicate, columns=fields_to_retrieve)
-    plot_dataframe(dataframe, title=title, output=output, x=x, fields=fields_to_plot)
+    descr = datastore.annotator.description()
+    plot_dataframe(dataframe, title=title, output=output, x=x, fields=fields_to_plot, descr=descr)
 
-def plot_dataframe(dataframe : pd.DataFrame, *, title=None, output=None, x=None, fields=None):
+def plot_dataframe(dataframe : pd.DataFrame, *, title=None, output=None, x=None, fields=None, descr=None):
     if fields:
         plot = dataframe.interpolate().plot(x=x, y=fields)
     else:
         plot = dataframe.interpolate().plot(x=x)
+    if descr:
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plot.text(0.97, 0.97, descr, transform=plot.transAxes, verticalalignment='top', horizontalalignment='right', bbox=props)
     if title:
         pyplot.title(title)
     if output:
