@@ -97,6 +97,10 @@ class LatencySenderAnnotator(Annotator):
     send_pc_grabber : str
     send_pc_encoder : str
     send_pc_writers : Mapping[str, int]
+    protocol : str
+    compressed : bool
+    nTiles : int
+    nQualities : int
 
     send_voice_pipeline : Optional[str]
     send_voice_grabber : Optional[str]
@@ -115,11 +119,21 @@ class LatencySenderAnnotator(Annotator):
         self.send_pc_grabber = r["reader"]
         self.send_pc_encoder = r["encoder"]
         send_pc_writer_umbrella = r["writer"]
+        self.compressed = "PCEncoder" in self.send_pc_encoder
+        self.nTiles = r["ntile"]
+        self.nQualities = r["nquality"]
 
         # Hack: SocketIO uses a single writer to push all streams.
         if "SocketIOWriter" in send_pc_writer_umbrella:
             self.send_pc_writers = {send_pc_writer_umbrella : "all" }
+            self.protocol = "socketio"
         else:
+            if "TCPWriter" in send_pc_writer_umbrella:
+                self.protocol = "tcp"
+            elif "B2DWriter" in send_pc_writer_umbrella:
+                self.protocol = "dash"
+            else:
+                raise DataStoreError(f"Unknown protocol for writer {send_pc_writer_umbrella}")
             rr = self.datastore.find_all_records(f'component == "{send_pc_writer_umbrella}" and "pusher" in record', "sender pc writer")
             self.send_pc_writers = {}
             for r in rr:
@@ -280,6 +294,10 @@ class LatencyCombinedAnnotator(CombinedAnnotator):
 
     def from_sources(self, sender_annotator : Annotator, receiver_annotator : Annotator) -> None:
         super().from_sources(sender_annotator, receiver_annotator)
+        self.protocol = sender_annotator.protocol
+        self.nTiles = sender_annotator.nTiles
+        self.nQualities = sender_annotator.nQualities
+        self.compressed = sender_annotator.compressed
 
     def to_dict(self) -> dict:
         rv = super().to_dict()

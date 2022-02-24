@@ -43,8 +43,8 @@ class DataStore:
         data = json.load(open(self.filename, "r"))
         metadata = None
         if type(data) != type([]):
-            data = data["data"]
             metadata = data["metadata"]
+            data = data["data"]
         self.data = data
         if metadata:
             from .annotator import deserialize
