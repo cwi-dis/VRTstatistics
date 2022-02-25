@@ -1,5 +1,6 @@
 import argparse
 import sys
+import matplotlib.pyplot as pyplot
 from ..datastore import DataStore
 from ..analyze import plot_simple
 
@@ -37,7 +38,9 @@ def main():
     predicate = None
     datastore = DataStore(args.datastore)
     datastore.load()
-    plot_simple(datastore, title=args.title, output=args.output, predicate=args.predicate, x=args.x, fields=args.fields)
+    plt = plot_simple(datastore, title=args.title, noshow=not not args.output, predicate=args.predicate, x=args.x, fields=args.fields)
+    if args.output:
+        pyplot.savefig(args.output)
 
 
 if __name__ == "__main__":

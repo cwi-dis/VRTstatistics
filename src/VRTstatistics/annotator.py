@@ -325,6 +325,7 @@ class LatencyCombinedAnnotator(CombinedAnnotator):
                 rv += f" ({self.nQualities} levels)"
         if self.nTiles > 1:
             rv += f", {self.nTiles} tiles"
+        rv += f"\ntiming uncertainty: {int(self.desync_uncertainty*1000)} ms"
         return rv
     def annotate(self) -> None:
         pass # Nothing to change in the data, has all been done in the sender and receiver annotator

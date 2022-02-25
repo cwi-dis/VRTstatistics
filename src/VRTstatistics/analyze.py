@@ -1,15 +1,13 @@
 from __future__ import annotations
 import fnmatch
-from re import T
-from sqlite3 import DatabaseError
-from typing import List
+from typing import List, Optional
 import matplotlib.pyplot as pyplot
 import pandas as pd
-from .datastore import DataStore
+from .datastore import DataStore, DataStoreError
 
 __all__ = ["plot_simple", "plot_dataframe", "TileCombiner"]
 
-def plot_simple(datastore : DataStore, *, predicate=None, title=None, output=None, x="sessiontime", fields=None, datafilter=None):
+def plot_simple(datastore : DataStore, *, predicate=None, title=None, noshow=False, x="sessiontime", fields=None, datafilter=None, plotargs={}) -> pyplot.Axes:
     """
     Plot data (optionally after converting to pandas.DataFrame).
     output is optional output file (default: show in a window)
@@ -28,24 +26,24 @@ def plot_simple(datastore : DataStore, *, predicate=None, title=None, output=Non
     if datafilter:
         dataframe = datafilter(dataframe)
     descr = datastore.annotator.description()
-    plot_dataframe(dataframe, title=title, output=output, x=x, fields=fields_to_plot, descr=descr)
+    return plot_dataframe(dataframe, title=title, noshow=noshow, x=x, fields=fields_to_plot, descr=descr, plotargs=plotargs)
 
-def plot_dataframe(dataframe : pd.DataFrame, *, title=None, output=None, x=None, fields=None, descr=None):
+def plot_dataframe(dataframe : pd.DataFrame, *, title=None, noshow=False, x=None, fields=None, descr=None, plotargs={}) -> pyplot.Axes:
     if fields:
-        plot = dataframe.interpolate().plot(x=x, y=fields)
+        plot = dataframe.interpolate().plot(x=x, y=fields, **plotargs)
     else:
-        plot = dataframe.interpolate().plot(x=x)
+        plot = dataframe.interpolate().plot(x=x, **plotargs)
     if descr:
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
         plot.text(0.97, 0.97, descr, transform=plot.transAxes, verticalalignment='top', horizontalalignment='right', bbox=props)
     if title:
         pyplot.title(title)
-    if output:
-        pyplot.savefig(output)
-    else:
+    if not noshow:
         pyplot.show()
+    return plot
 
 class TileCombiner:
+    previous_combiner : Optional[TileCombiner]
 
     def __init__(self, pattern : str, column : str, function : str, combined : bool = False, keep : bool = False) -> None:
         self.pattern = pattern
@@ -53,13 +51,15 @@ class TileCombiner:
         self.function = function
         self.combined = combined
         self.keep = keep
-        self.next = None
+        self.previous_combiner = None
 
     def __add__(self, other : TileCombiner) -> TileCombiner:
-        other.next = self
+        other.previous_combiner = self
         return other
 
     def __call__(self, dataframe : pd.DataFrame) -> pd.DataFrame:
+        if self.previous_combiner:
+            dataframe = self.previous_combiner(dataframe)
         column_names = self._get_column_names(dataframe, self.pattern)
         columns = []
         rv = None
@@ -88,7 +88,7 @@ class TileCombiner:
         elif self.function == "max":
             rv[self.column] = rv[column_names].max(axis=1)
         else:
-            raise DatabaseError(f"Unknown function {self.function}")
+            raise DataStoreError(f"Unknown function {self.function}")
         rv.drop(column_names, axis=1, inplace=True)
         if self.combined:
             orig_columns = list(dataframe.keys())
@@ -101,8 +101,6 @@ class TileCombiner:
             rv = dataframe.join(rv)
             if not self.keep:
                 rv.drop(column_names, axis=1, inplace=True)
-        if self.next:
-            rv = self.next(rv)
         return rv
 
     def _get_column_names(self, dataframe : pd.DataFrame, pattern) -> List[str]:
