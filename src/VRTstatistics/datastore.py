@@ -66,24 +66,24 @@ class DataStore:
         self.data = data
 
     def get_dataframe(
-        self, predicate: Any = None, columns: Optional[List[str]] = None
+        self, predicate: Any = None, fields: Optional[List[str]] = None
     ) -> pandas.DataFrame:
         if not self.data:
             raise DataStoreError("DataStore is empty")
-        if predicate or columns:
-            data = self._filter_data(predicate, columns)
+        if predicate or fields:
+            data = self._filter_data(predicate, fields)
         else:
             data = self.data
         rv = pandas.DataFrame(data)
         return rv
 
     def filter(
-        self, predicate: Any = None, columns: Optional[List[str]] = None
+        self, predicate: Any = None, fields: Optional[List[str]] = None
     ) -> DataStore:
         if not self.data:
             raise DataStoreError("DataStore is empty")
-        if predicate or columns:
-            data = self._filter_data(predicate, columns)
+        if predicate or fields:
+            data = self._filter_data(predicate, fields)
         else:
             data = self.data
         rv = DataStore()

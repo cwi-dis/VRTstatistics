@@ -1,4 +1,6 @@
+from __future__ import annotations
 import fnmatch
+from re import T
 from sqlite3 import DatabaseError
 from typing import List
 import matplotlib.pyplot as pyplot
@@ -22,7 +24,7 @@ def plot_simple(datastore : DataStore, *, predicate=None, title=None, output=Non
     fields_to_plot = None # For simple plots we use all fields (except x, which is automatically ignored)
     if not fields_to_retrieve:
         fields_to_retrieve = None
-    dataframe = datastore.get_dataframe(predicate=predicate, columns=fields_to_retrieve)
+    dataframe = datastore.get_dataframe(predicate=predicate, fields=fields_to_retrieve)
     if datafilter:
         dataframe = datafilter(dataframe)
     descr = datastore.annotator.description()
@@ -45,10 +47,17 @@ def plot_dataframe(dataframe : pd.DataFrame, *, title=None, output=None, x=None,
 
 class TileCombiner:
 
-    def __init__(self, pattern : str, column : str, function : str) -> None:
+    def __init__(self, pattern : str, column : str, function : str, combined : bool = False, keep : bool = False) -> None:
         self.pattern = pattern
         self.column = column
         self.function = function
+        self.combined = combined
+        self.keep = keep
+        self.next = None
+
+    def __add__(self, other : TileCombiner) -> TileCombiner:
+        other.next = self
+        return other
 
     def __call__(self, dataframe : pd.DataFrame) -> pd.DataFrame:
         column_names = self._get_column_names(dataframe, self.pattern)
@@ -65,7 +74,10 @@ class TileCombiner:
             c = dataframe.loc[filter, n]
             
             # Insert
-            rv[n] = list(c)
+            new_values = list(c)
+            if len(new_values) < len(rv):
+                new_values.append(0)
+            rv[n] = new_values
         # Now sum the relevant columns
         if self.function == "sum":
             rv[self.column] = rv[column_names].sum(axis=1)
@@ -78,6 +90,19 @@ class TileCombiner:
         else:
             raise DatabaseError(f"Unknown function {self.function}")
         rv.drop(column_names, axis=1, inplace=True)
+        if self.combined:
+            orig_columns = list(dataframe.keys())
+            rv_columns = list(rv.keys())
+            todrop_columns = []
+            for c in orig_columns:
+                if c in rv_columns:
+                    todrop_columns.append(c)
+            rv.drop(todrop_columns, axis=1, inplace=True)
+            rv = dataframe.join(rv)
+            if not self.keep:
+                rv.drop(column_names, axis=1, inplace=True)
+        if self.next:
+            rv = self.next(rv)
         return rv
 
     def _get_column_names(self, dataframe : pd.DataFrame, pattern) -> List[str]:
