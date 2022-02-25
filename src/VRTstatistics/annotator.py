@@ -108,6 +108,15 @@ class LatencySenderAnnotator(Annotator):
     send_voice_encoder : Optional[str]
     send_voice_writer : Optional[str]
 
+    def _check(self):
+        assert self.send_pc_pipeline
+        assert self.send_pc_grabber
+        assert self.send_pc_encoder
+        assert len(self.send_pc_writers) >= 1
+        assert self.protocol
+        assert self.nTiles >= 1
+        assert self.nQualities >= 1
+
     def collect(self) -> None:
         super().collect()
         #
@@ -163,7 +172,7 @@ class LatencySenderAnnotator(Annotator):
             self.send_voice_writer = r['pusher']
         except DataStoreError:
             pass # It's not an error to have a session without audio
-
+        self._check()
 
     def annotate(self) -> None:
         super().annotate()
@@ -200,6 +209,13 @@ class LatencyReceiverAnnotator(Annotator):
     recv_voice_preparer : Optional[str]
     recv_voice_renderer : Optional[str]
 
+    def _check(self):
+        assert self.recv_pc_pipeline
+        assert self.recv_synchronizer
+        assert len(self.recv_pc_readers) >= 1
+        assert len(self.recv_pc_decoders) == len(self.recv_pc_readers)
+        assert len(self.recv_pc_preparers) == len(self.recv_pc_readers)
+        assert len(self.recv_pc_renderers) == len(self.recv_pc_readers)
 
     def collect(self) -> None:
         super().collect()
@@ -256,6 +272,7 @@ class LatencyReceiverAnnotator(Annotator):
             self.recv_voice_reader = r["pull_thread"]
         except DataStoreError:
             pass # it is not an error to have a sesion without audio
+        self._check()
       
     def annotate(self) -> None:
         super().annotate()
