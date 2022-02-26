@@ -61,13 +61,16 @@ class TileCombiner:
         if self.previous_combiner:
             dataframe = self.previous_combiner(dataframe)
         column_names = self._get_column_names(dataframe, self.pattern)
+        if not column_names:
+            print(f'Warning: pattern {self.pattern} did not select any columns. Returning dataframe as-is.')
+            return dataframe
         columns = []
         rv = None
         for n in column_names:
             # Create scaffolding (sessiontimes) if we haven't done so.
             filter = dataframe[n].notna()
             if rv is None:
-                rv = dataframe[filter]
+                rv = dataframe[filter].copy()
                 rv.drop(column_names, axis=1, inplace=True)
                 # rv = rv["sessiontime"]
             # filter out values for this column
@@ -77,6 +80,8 @@ class TileCombiner:
             new_values = list(c)
             if len(new_values) < len(rv):
                 new_values.append(0)
+            if len(new_values) > len(rv):
+                new_values = new_values[:-1]
             rv[n] = new_values
         # Now sum the relevant columns
         if self.function == "sum":
