@@ -76,7 +76,7 @@ class CombinedAnnotator(Annotator):
     def from_sources(self, sender_annotator : Annotator, receiver_annotator : Annotator) -> None:
         self.desync = 0
         desync = abs(sender_annotator.desync - receiver_annotator.desync)
-        self.desync_uncertainty = desync + sender_annotator.desync_uncertainty + receiver_annotator.desync_uncertainty
+        self.desync_uncertainty = desync + max(sender_annotator.desync_uncertainty, receiver_annotator.desync_uncertainty)/2
         self.sender = sender_annotator.user_name
         self.receiver = receiver_annotator.user_name
         self.user_name = None

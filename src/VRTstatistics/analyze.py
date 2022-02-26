@@ -5,7 +5,7 @@ import matplotlib.pyplot as pyplot
 import pandas as pd
 from .datastore import DataStore, DataStoreError
 
-__all__ = ["plot_simple", "plot_dataframe", "TileCombiner"]
+__all__ = ["plot_simple", "plot_dataframe", "TileCombiner", "SessionTimeFilter"]
 
 def plot_simple(datastore : DataStore, *, predicate=None, title=None, noshow=False, x="sessiontime", fields=None, datafilter=None, plotargs={}) -> pyplot.Axes:
     """
@@ -35,31 +35,52 @@ def plot_dataframe(dataframe : pd.DataFrame, *, title=None, noshow=False, x=None
         plot = dataframe.interpolate().plot(x=x, **plotargs)
     if descr:
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-        plot.text(0.97, 0.97, descr, transform=plot.transAxes, verticalalignment='top', horizontalalignment='right', bbox=props)
+        plot.text(0.98, 0.98, descr, transform=plot.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props)
     if title:
         pyplot.title(title)
+    plot.legend(loc='upper left', fontsize='small')
     if not noshow:
         pyplot.show()
     return plot
 
-class TileCombiner:
-    previous_combiner : Optional[TileCombiner]
+class DataFrameFilter:
+    previous_filter : Optional[DataFrameFilter]
+
+    def __init__(self):
+        self.previous_filter = None
+
+    def __add__(self, other : DataFrameFilter) -> DataFrameFilter:
+        other.previous_filter = self
+        return other
+
+    def __call__(self, dataframe : pd.DataFrame) -> pd.DataFrame:
+        if self.previous_filter:
+            dataframe = self.previous_filter(dataframe)
+        dataframe = self._apply(dataframe)
+        return dataframe
+
+    def _apply(self, dataframe : pd.DataFrame) -> pd.DataFrame:
+        return dataframe
+
+class SessionTimeFilter(DataFrameFilter):
+
+    def _apply(self, dataframe : pd.DataFrame) -> pd.DataFrame:
+        dataframe = dataframe[dataframe["sessiontime"] >= 0]
+        return dataframe
+
+class TileCombiner(DataFrameFilter):
 
     def __init__(self, pattern : str, column : str, function : str, combined : bool = False, keep : bool = False) -> None:
+        super().__init__()
         self.pattern = pattern
         self.column = column
         self.function = function
         self.combined = combined
         self.keep = keep
-        self.previous_combiner = None
 
-    def __add__(self, other : TileCombiner) -> TileCombiner:
-        other.previous_combiner = self
-        return other
-
-    def __call__(self, dataframe : pd.DataFrame) -> pd.DataFrame:
-        if self.previous_combiner:
-            dataframe = self.previous_combiner(dataframe)
+    def _apply(self, dataframe : pd.DataFrame) -> pd.DataFrame:
+        if self.previous_filter:
+            dataframe = self.previous_filter(dataframe)
         column_names = self._get_column_names(dataframe, self.pattern)
         if not column_names:
             print(f'Warning: pattern {self.pattern} did not select any columns. Returning dataframe as-is.')
@@ -78,7 +99,7 @@ class TileCombiner:
             
             # Insert
             new_values = list(c)
-            if len(new_values) < len(rv):
+            while len(new_values) < len(rv):
                 new_values.append(0)
             if len(new_values) > len(rv):
                 new_values = new_values[:-1]
