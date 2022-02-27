@@ -75,8 +75,8 @@ class CombinedAnnotator(Annotator):
 
     def from_sources(self, sender_annotator : Annotator, receiver_annotator : Annotator) -> None:
         self.desync = 0
-        desync = abs(sender_annotator.desync - receiver_annotator.desync)
-        self.desync_uncertainty = desync + max(sender_annotator.desync_uncertainty, receiver_annotator.desync_uncertainty)/2
+        self.desync = sender_annotator.desync - receiver_annotator.desync
+        self.desync_uncertainty = max(sender_annotator.desync_uncertainty, receiver_annotator.desync_uncertainty)/2
         self.sender = sender_annotator.user_name
         self.receiver = receiver_annotator.user_name
         self.user_name = None
@@ -91,7 +91,7 @@ class CombinedAnnotator(Annotator):
         pass # Nothing to change in the data, has all been done in the sender and receiver annotator
 
     def description(self) -> str:
-        return f"captured: {time.ctime(self.session_start_time)}\nsender: {self.sender}\nreceiver: {self.receiver}\ntiming_uncertainty: {self.desync_uncertainty:.3f}"
+        return f"captured: {time.ctime(self.session_start_time)}\nsender: {self.sender}\nreceiver: {self.receiver}\ndesync: {self.desync:.3f} ± {self.desync_uncertainty:.3f}"
 
 class LatencySenderAnnotator(Annotator):
     send_pc_pipeline : str
@@ -213,9 +213,9 @@ class LatencyReceiverAnnotator(Annotator):
         assert self.recv_pc_pipeline
         assert self.recv_synchronizer
         assert len(self.recv_pc_readers) >= 1
-        assert len(self.recv_pc_decoders) == len(self.recv_pc_readers)
-        assert len(self.recv_pc_preparers) == len(self.recv_pc_readers)
-        assert len(self.recv_pc_renderers) == len(self.recv_pc_readers)
+        assert len(self.recv_pc_decoders) == len(self.recv_pc_readers) or list(self.recv_pc_readers.values())[0] == 'all'
+        assert len(self.recv_pc_preparers) == len(self.recv_pc_decoders)
+        assert len(self.recv_pc_renderers) == len(self.recv_pc_preparers)
 
     def collect(self) -> None:
         super().collect()
@@ -342,7 +342,7 @@ class LatencyCombinedAnnotator(CombinedAnnotator):
                 rv += f" ({self.nQualities} levels)"
         if self.nTiles > 1:
             rv += f", {self.nTiles} tiles"
-        rv += f"\ntiming uncertainty: {int(self.desync_uncertainty*1000)} ms"
+        rv += f"\ndesync: {int(self.desync*1000)} ms ± {int(self.desync_uncertainty*1000)}"
         return rv
     def annotate(self) -> None:
         pass # Nothing to change in the data, has all been done in the sender and receiver annotator
