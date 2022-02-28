@@ -101,7 +101,7 @@ class TileCombiner(DataFrameFilter):
             new_values = list(c)
             while len(new_values) < len(rv):
                 new_values.append(0)
-            if len(new_values) > len(rv):
+            while len(new_values) > len(rv):
                 new_values = new_values[:-1]
             rv[n] = new_values
         # Now sum the relevant columns
