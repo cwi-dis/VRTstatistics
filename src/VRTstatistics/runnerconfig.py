@@ -19,10 +19,12 @@ defaultRunnerConfig = {
         host="sap.local",
         exeArgs=["-vrmode", "None", "-disableVR"]
     ),
-    "flauwte.local": dict(
-        statPath="Library/Application\\ Support/i2Cat/VRTogether/statistics.log",
-        logPath="Library/Application\\ Support/i2Cat/VRTogether/Player.log",
-        useSsh=True,
+    "flauwte": dict(
+        statPath="Library/Application Support/i2Cat/VRTogether/statistics.log",
+        logPath="Library/Logs/i2Cat/VRTogether/Player.log",
+        exePath="/Users/jack/src/VRTogether/VRTApp-built-mmsys.app/Contents/MacOS/VRTogether",
+        useSsh=False,
+        host="flauwte.local",
         user="jack",
         exeArgs=["-vrmode", "None", "-disableVR"]
     ),
