@@ -151,6 +151,8 @@ class LatencySenderAnnotator(Annotator):
                 if "tile" in r:
                     # B2DWriter uses tile field. Need to check what happens with multiple qualities.
                     tile = r["tile"]
+                    # And B2DWriter uses tile numbers (1-based) not indices.
+                    tile = tile-1
                     self.send_pc_writers[pusher] = tile
                 else:
                     stream = r["stream"]
@@ -235,6 +237,8 @@ class LatencyReceiverAnnotator(Annotator):
             rr = self.datastore.find_all_records(f'component == "{recv_pc_reader_umbrella}" and "pull_thread" in record', "receiver pc readers")
             for r in rr:
                 tile = r["tile"]
+                # Grrr, need to subtract one, at least for PCSubReader
+                tile = tile-1
                 pull_thread = r["pull_thread"]
                 self.recv_pc_readers[pull_thread] = tile
         self.recv_pc_preparers = {}

@@ -28,11 +28,11 @@ def plot_simple(datastore : DataStore, *, predicate=None, title=None, noshow=Fal
     descr = datastore.annotator.description()
     return plot_dataframe(dataframe, title=title, noshow=noshow, x=x, fields=fields_to_plot, descr=descr, plotargs=plotargs)
 
-def plot_dataframe(dataframe : pd.DataFrame, *, title=None, noshow=False, x=None, fields=None, descr=None, plotargs={}) -> pyplot.Axes:
+def plot_dataframe(dataframe : pd.DataFrame, *, title=None, noshow=False, x=None, fields=None, descr=None, plotargs={}, interpolate='linear') -> pyplot.Axes:
     if fields:
-        plot = dataframe.interpolate().plot(x=x, y=fields, **plotargs)
+        plot = dataframe.interpolate(method=interpolate).plot(x=x, y=fields, **plotargs)
     else:
-        plot = dataframe.interpolate().plot(x=x, **plotargs)
+        plot = dataframe.interpolate(method=interpolate).plot(x=x, **plotargs)
     if descr:
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
         plot.text(0.98, 0.98, descr, transform=plot.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props)
