@@ -238,7 +238,8 @@ class LatencyReceiverAnnotator(Annotator):
             for r in rr:
                 tile = r["tile"]
                 # Grrr, need to subtract one, at least for PCSubReader
-                tile = tile-1
+                if 'Sub' in recv_pc_reader_umbrella:
+                    tile = tile-1
                 pull_thread = r["pull_thread"]
                 self.recv_pc_readers[pull_thread] = tile
         self.recv_pc_preparers = {}
