@@ -70,20 +70,24 @@ class SessionTimeFilter(DataFrameFilter):
 
 class TileCombiner(DataFrameFilter):
 
-    def __init__(self, pattern : str, column : str, function : str, combined : bool = False, keep : bool = False) -> None:
+    def __init__(self, pattern : str, column : str, function : str, combined : bool = False, keep : bool = False, optional : bool = False) -> None:
         super().__init__()
         self.pattern = pattern
         self.column = column
         self.function = function
         self.combined = combined
         self.keep = keep
+        self.optional = optional
+        self.didwarn = False
 
     def _apply(self, dataframe : pd.DataFrame) -> pd.DataFrame:
         if self.previous_filter:
             dataframe = self.previous_filter(dataframe)
         column_names = self._get_column_names(dataframe, self.pattern)
         if not column_names:
-            print(f'Warning: pattern {self.pattern} did not select any columns. Returning dataframe as-is.')
+            if not self.optional and not self.didwarn:
+                print(f'Warning: pattern {self.pattern} did not select any columns. Returning dataframe as-is.')
+                self.didwarn = True
             return dataframe
         columns = []
         rv = None
