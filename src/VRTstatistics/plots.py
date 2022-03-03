@@ -150,7 +150,8 @@ def _plot_latencies_per_tile(df : pandas.DataFrame, tilenum, ax) -> pyplot.Axes:
  
 def latencies_per_tile(ds : DataStore, dirname=None, showplot=True, saveplot=False) -> pyplot.Axes:
     # Per-tile
-    if ds.annotator.nTiles == 4:
+    nTiles = ds.annotator.nTiles
+    if nTiles > 1:
         predicate='".pc." in component_role or component_role == "receiver.voice.renderer" or component_role == "receiver.synchronizer"'
         fields=[
             'sessiontime',
@@ -169,15 +170,14 @@ def latencies_per_tile(ds : DataStore, dirname=None, showplot=True, saveplot=Fal
         df = ds.get_dataframe(predicate=predicate, fields=fields)
         n = ds.annotator.nTiles
         ax = None
-        fig, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = pyplot.subplots(2, 3, sharex=True, sharey=True)
-        _plot_latencies_per_tile(df, 0, ax1)
-        _plot_latencies_per_tile(df, 1, ax2)
-        fig.delaxes(ax3)
-        _plot_latencies_per_tile(df, 2, ax4)
-        _plot_latencies_per_tile(df, 3, ax5)
-        fig.delaxes(ax6)
-        handles, labels = ax4.get_legend_handles_labels()
-        fig.legend(handles, labels, loc='upper right')
+        fig, axs = pyplot.subplots(nTiles, 1, sharex=True, sharey=True)
+        fig.set_figheight(fig.get_figheight()*(nTiles-1))
+        fig.set_figwidth(fig.get_figwidth()*1.5)
+        for i in range(nTiles):
+            _plot_latencies_per_tile(df, i, axs[i])
+        handles, labels = axs[0].get_legend_handles_labels()
+        fig.legend(handles, labels, loc='center right')
+        pyplot.subplots_adjust(right=0.66)
         if saveplot:
             _save_multi_plot(os.path.join(dirname, "latencies-per-tile.pdf"))
         if showplot:
