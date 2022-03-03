@@ -124,7 +124,6 @@ def _plot_latencies_per_tile(df : pandas.DataFrame, tilenum, ax) -> pyplot.Axes:
         f"receiver.pc.reader.{tilenum}.receive_ms",
         f"receiver.pc.decoder.{tilenum}.decoder_queue_ms",
         f"receiver.pc.decoder.{tilenum}.decoder_ms",
-        f"receiver.pc.decoder.{tilenum}.decoded_queue_ms",
         f"receiver.pc.renderer.{tilenum}.renderer_queue_ms"
     ]
     todelete = []
@@ -162,7 +161,6 @@ def latencies_per_tile(ds : DataStore, dirname=None, showplot=True, saveplot=Fal
             'component_role.=receive_ms',
             'component_role.=decoder_queue_ms',
             'component_role.=decoder_ms',
-            'component_role.=decoded_queue_ms',
             'component_role.=renderer_queue_ms',
             'component_role.=latency_ms',
             'component_role.=latency_max_ms',
@@ -193,7 +191,6 @@ def latencies(ds : DataStore, dirname=None, showplot=True, saveplot=False, savec
         TileCombiner("receiver.pc.reader.*.receive_ms", "receivers", "mean", combined=True) +
         TileCombiner("receiver.pc.decoder.*.decoder_queue_ms", "decoder queues", "mean", combined=True) +
         TileCombiner("receiver.pc.decoder.*.decoder_ms", "decoders", "max", combined=True) +
-        TileCombiner("receiver.pc.decoder.*.decoded_queue_ms", "synchronizer queues", "mean", combined=True) +
         TileCombiner("receiver.pc.renderer.*.renderer_queue_ms", "renderers", "mean", combined=True)
         )
         
@@ -210,7 +207,6 @@ def latencies(ds : DataStore, dirname=None, showplot=True, saveplot=False, savec
             'component_role.=receive_ms',
             'component_role.=decoder_queue_ms',
             'component_role.=decoder_ms',
-            'component_role.=decoded_queue_ms',
             'component_role.=renderer_queue_ms'
             ],
         datafilter = dataFilter,
@@ -257,7 +253,6 @@ def latencies(ds : DataStore, dirname=None, showplot=True, saveplot=False, savec
             'component_role.=receive_ms',
             'component_role.=decoder_queue_ms',
             'component_role.=decoder_ms',
-            'component_role.=decoded_queue_ms',
             'component_role.=renderer_queue_ms',
             'component_role.=latency_ms'
             ]
@@ -377,8 +372,10 @@ def progress(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecs
         series = df.loc[:, ["sessiontime", y]]
         # Some columns need to be adjusted
         if ds.annotator.nTiles > 1:
-            if '.all' in y or y == "sender.pc.encoder":
+            if '.all' in y:
                 series[y] = series[y] / ds.annotator.nTiles
+            elif y == "sender.pc.encoder":
+                series[y] = series[y] / (ds.annotator.nTiles*ds.annotator.nQualities)
         ax = series.interpolate(method='pad').plot(x="sessiontime", marker=marker, markevery=markevery, color=color, alpha=0.5, ax=ax)
     ax.legend(loc='upper left', fontsize='small')
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
