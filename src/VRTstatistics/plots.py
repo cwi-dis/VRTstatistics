@@ -143,8 +143,8 @@ def _plot_latencies_per_tile(df : pandas.DataFrame, tilenum, ax) -> pyplot.Axes:
         f"receiver.pc.renderer.{tilenum}.latency_ms",
         f"receiver.pc.renderer.{tilenum}.latency_max_ms",
         ]
-    ax = df.interpolate().plot(x="sessiontime", y=fields, kind="area", colormap="Paired", ax=ax, legend=False)
-    df.interpolate().plot(x="sessiontime", y=latency_fields, ax=ax, color=["blue", "red", "yellow"], legend=False)
+    ax = df.interpolate(method='pad').plot(x="sessiontime", y=fields, kind="area", colormap="Paired", ax=ax, legend=False)
+    df.interpolate(method='pad').plot(x="sessiontime", y=latency_fields, ax=ax, color=["blue", "red", "yellow"], legend=False)
     ax.set_title(f"Per-tile Latency contributions, tile={tilenum}")
     return ax
  
