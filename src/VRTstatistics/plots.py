@@ -18,6 +18,7 @@ def _save_multi_plot(filename):
     pp.close()
     
 def pointcounts(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> pyplot.Axes:
+    pyplot.close() # Close old figure
     #
     # Plot receiver point counts
     #
@@ -98,6 +99,7 @@ def resource_bandwidth(ds : DataStore) -> pyplot.Axes:
     return ax3
 
 def resources(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> Tuple[pyplot.Axes, pyplot.Axes, pyplot.Axes]:
+    pyplot.close() # Close old figure
     ax1 = resource_cpu(ds)
     ax2 = resource_mem(ds)
     ax3 = resource_bandwidth(ds)
@@ -148,6 +150,7 @@ def _plot_latencies_per_tile(df : pandas.DataFrame, tilenum, ax) -> pyplot.Axes:
     return ax
  
 def latencies_per_tile(ds : DataStore, dirname=None, showplot=True, saveplot=False) -> pyplot.Axes:
+    pyplot.close() # Close old figure
     # Per-tile
     nTiles = ds.annotator.nTiles
     if nTiles > 1:
@@ -183,6 +186,7 @@ def latencies_per_tile(ds : DataStore, dirname=None, showplot=True, saveplot=Fal
         return ax
    
 def latencies(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> pyplot.Axes:
+    pyplot.close() # Close old figure
     dataFilter = (
         TileCombiner("sender.pc.grabber.downsample_ms", "downsample", "mean", combined=True) +
         TileCombiner("sender.pc.grabber.encoder_queue_ms", "encoder queue", "mean", combined=True) +
@@ -191,7 +195,7 @@ def latencies(ds : DataStore, dirname=None, showplot=True, saveplot=False, savec
         TileCombiner("receiver.pc.reader.*.receive_ms", "receivers", "mean", combined=True) +
         TileCombiner("receiver.pc.decoder.*.decoder_queue_ms", "decoder queues", "mean", combined=True) +
         TileCombiner("receiver.pc.decoder.*.decoder_ms", "decoders", "max", combined=True) +
-        TileCombiner("receiver.pc.renderer.*.renderer_queue_ms", "renderers", "mean", combined=True)
+        TileCombiner("receiver.pc.renderer.*.renderer_queue_ms", "renderer queues", "mean", combined=True)
         )
         
     #fig = pyplot.figure()
@@ -261,6 +265,7 @@ def latencies(ds : DataStore, dirname=None, showplot=True, saveplot=False, savec
     return ax
 
 def framerates(ds : DataStore) -> pyplot.Axes:
+    pyplot.close() # Close old figure
     df = ds.get_dataframe(
         predicate='component_role and "fps" in record', 
         fields=['sessiontime', 'component_role.=fps'],
@@ -290,7 +295,6 @@ def framerates(ds : DataStore) -> pyplot.Axes:
     return ax1
 
 def framerates_dropped(ds : DataStore) -> pyplot.Axes:
-   #fig = pyplot.figure()
     dataFilter = (
         TileCombiner("sender.voice.grabber.fps_dropped", "voice capturer dropped", "min", combined=True, optional=True) +
         TileCombiner("sender.voice.encoder.fps_dropped", "voice encoder dropped", "min", combined=True, optional=True) +
@@ -313,7 +317,7 @@ def framerates_dropped(ds : DataStore) -> pyplot.Axes:
     return ax2
 
 def framerates_and_dropped(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> Tuple[pyplot.Axes, pyplot.Axes]:
-    #fig = pyplot.figure()
+    pyplot.close() # Close old figure
     ax1 = framerates(ds)
     ax2 = framerates_dropped(ds)
 
@@ -332,6 +336,7 @@ def framerates_and_dropped(ds : DataStore, dirname=None, showplot=True, saveplot
     return ax1, ax2
     
 def progress(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> pyplot.Axes:
+    pyplot.close() # Close old figure
     df = ds.get_dataframe(
         predicate='"aggregate_packets" in record and component_role',
         fields = ['sessiontime', 'component_role=aggregate_packets']
@@ -347,28 +352,34 @@ def progress(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecs
         color='black'
         marker=None
         markevery = 100
+        markoffset = 0
         if '.0' in y:
             color='red'
-            markevery=(20,100)
+            markoffset = 20
         elif '.1' in y:
             color='blue'
-            markevery=(40,100)
+            markoffset = 40
         elif '.2' in y:
             color='green'
-            markevery=(60,100)
+            markoffset = 60
         elif '.3' in y:
             color='purple'
-            markevery=(80,100)
+            markoffset = 80
         if '.encoder' in y:
-            marker = '*'
+            marker = '+'
+            markoffset += 3
         elif '.writer' in y:
             marker = '>'
+            markoffset += 6
         elif '.decoder' in y:
             marker = 'o'
+            markoffset += 9
         elif '.preparer' in y:
             marker = '<'
+            markoffset += 12
         elif '.reader' in y:
-            marker = '+'
+            marker = '*'
+            markoffset += 15
         series = df.loc[:, ["sessiontime", y]]
         # Some columns need to be adjusted
         if ds.annotator.nTiles > 1:
@@ -376,7 +387,7 @@ def progress(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecs
                 series[y] = series[y] / ds.annotator.nTiles
             elif y == "sender.pc.encoder":
                 series[y] = series[y] / (ds.annotator.nTiles*ds.annotator.nQualities)
-        ax = series.interpolate(method='pad').plot(x="sessiontime", marker=marker, markevery=markevery, color=color, alpha=0.5, ax=ax)
+        ax = series.interpolate(method='pad').plot(x="sessiontime", marker=marker, markevery=(markoffset, markevery), color=color, alpha=0.5, ax=ax)
     ax.legend(loc='upper left', fontsize='small')
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
     descr = ds.annotator.description()
