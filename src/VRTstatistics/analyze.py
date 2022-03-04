@@ -105,3 +105,46 @@ class TileCombiner(DataFrameFilter):
             if fnmatch.fnmatchcase(col, pattern):
                 rv.append(col)
         return rv
+
+def _df_to_pc_index_1(df : pd.DataFrame, column : str) -> pd.DataFrame:
+    """Helper - convert a single column from time->index mapping into index->time mapping"""
+    tmp = df[["sessiontime", column]].dropna()
+    filter = tmp[column] > 0
+    tmp = tmp[filter].copy()
+    tmp.loc[:,'pc_index'] = tmp[column]
+    tmp[column+'.sessiontime'] = tmp['sessiontime']
+    tmp.drop(['sessiontime', column], axis=1, inplace=True)
+    tmp.set_index('pc_index', inplace=True)
+    return tmp
+
+def _df_to_pc_index(df : pd.DataFrame, columns : List[str]) -> pd.DataFrame:
+    """Helper - convert a set of columns from sessiontime-indexed into pcindex-indexed"""
+    all = []
+    for c in columns:
+        all.append(_df_to_pc_index_1(df, c))
+    rv = all[0]
+    rv = rv.join(all[1:])
+    return rv
+    
+def dataframe_to_pcindex_for_tile(dataframe : pd.DataFrame, tilenum : int, include_sender : bool=False) -> pd.DataFrame:
+    """Convert a sessiontime-indexed dataframe to a pcindex-indexed dataframe"""
+    cols = [
+        f'receiver.pc.reader.{tilenum}', 
+        f'receiver.pc.decoder.{tilenum}', 
+        f'receiver.pc.preparer.{tilenum}'
+        ]
+    if include_sender:
+        cols.insert(0, f'sender.pc.writer.{tilenum}')
+    return _df_to_pc_index(dataframe, cols)
+
+def dataframe_to_pcindex_latencies_for_tile(dataframe : pd.DataFrame, tilenum : int) -> pd.DataFrame:
+    rv = dataframe_to_pcindex_for_tile(dataframe, tilenum, include_sender=False)
+    basecol = rv[f'receiver.pc.reader.{tilenum}.sessiontime']
+    
+    rv[f'receiver.pc.preparer.{tilenum}.latency'] = rv[f'receiver.pc.preparer.{tilenum}.sessiontime'] - basecol
+    rv[f'receiver.pc.decoder.{tilenum}.latency'] = rv[f'receiver.pc.decoder.{tilenum}.sessiontime'] - basecol
+    rv[f'sessiontime'] = rv[f'receiver.pc.reader.{tilenum}.sessiontime']
+    rv.drop(f'receiver.pc.preparer.{tilenum}.sessiontime', axis=1, inplace=True)
+    rv.drop(f'receiver.pc.decoder.{tilenum}.sessiontime', axis=1, inplace=True)
+    rv.drop(f'receiver.pc.reader.{tilenum}.sessiontime', axis=1, inplace=True)
+    return rv

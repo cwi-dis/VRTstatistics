@@ -7,7 +7,7 @@ import matplotlib.pyplot as pyplot
 from matplotlib.backends.backend_pdf import PdfPages
 
 from .datastore import DataStore
-from .analyze import TileCombiner, SessionTimeFilter
+from .analyze import TileCombiner, SessionTimeFilter, dataframe_to_pcindex_latencies_for_tile
 
 __all__ = [
     "plot_simple", 
@@ -448,6 +448,33 @@ def plot_progress(ds : DataStore, dirname=None, showplot=True, saveplot=False, s
     ax.set_title("Pointcloud Progress")
     if saveplot:
         _save_multi_plot(os.path.join(dirname, "progress.pdf"))
+    if showplot:
+        pyplot.show()
+    return ax
+
+def plot_progress_latency(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> pyplot.Axes:
+    pyplot.close() # Close old figure
+    df = ds.get_dataframe(
+        predicate='"aggregate_packets" in record and component_role',
+        fields = ['sessiontime', 'component_role=aggregate_packets']
+        )
+    ax = None
+    df0 = dataframe_to_pcindex_latencies_for_tile(df, 0)
+    ax = df0.plot(x="sessiontime", ax=ax)
+    df1 = dataframe_to_pcindex_latencies_for_tile(df, 1)
+    ax = df1.plot(x="sessiontime", ax=ax)
+    df2 = dataframe_to_pcindex_latencies_for_tile(df, 2)
+    ax = df2.plot(x="sessiontime", ax=ax)
+    df3 = dataframe_to_pcindex_latencies_for_tile(df, 3)
+    ax = df3.plot(x="sessiontime", ax=ax)
+
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+    descr = ds.annotator.description()
+    ax.text(0.98, 0.98, descr, transform=ax.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props)
+    ax.set_title("Pointcloud Receiver latencies")
+
+    if saveplot:
+        _save_multi_plot(os.path.join(dirname, "progress-latencies.pdf"))
     if showplot:
         pyplot.show()
     return ax
