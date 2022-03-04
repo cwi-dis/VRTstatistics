@@ -2,12 +2,65 @@ import sys
 import os
 from typing import Tuple
 from matplotlib.axes import Axes
-import pandas
+import pandas as pd
 import matplotlib.pyplot as pyplot
 from matplotlib.backends.backend_pdf import PdfPages
 
 from .datastore import DataStore
-from .analyze import plot_simple, plot_dataframe, TileCombiner, SessionTimeFilter
+from .analyze import TileCombiner, SessionTimeFilter
+
+__all__ = [
+    "plot_simple", 
+    "plot_dataframe", 
+    "plot_pointcounts", 
+    "plot_framerates_and_dropped", 
+    "plot_framerates_dropped", 
+    "plot_framerates", 
+    "plot_progress", 
+    "plot_resources", 
+    "plot_resources_cpu", 
+    "plot_resources_mem", 
+    "plot_resources_bandwidth", 
+    "plot_latencies", 
+    "plot_latencies_for_tile", 
+    "plot_latencies_per_tile", 
+    ]
+
+def plot_simple(datastore : DataStore, *, predicate=None, title=None, noshow=False, x="sessiontime", fields=None, datafilter=None, plotargs={}) -> pyplot.Axes:
+    """
+    Plot data (optionally after converting to pandas.DataFrame).
+    output is optional output file (default: show in a window)
+    x is name of x-axis field
+    fields is list of fields to plot (default: all, except x)
+    """
+    fields_to_retrieve = list(fields)
+    fields_to_plot = fields
+    # If we have specified fields to retrieve ensure our x-axis is in the list
+    if fields_to_retrieve and x and not x in fields_to_retrieve:
+        fields_to_retrieve.append(x)
+    fields_to_plot = None # For simple plots we use all fields (except x, which is automatically ignored)
+    if not fields_to_retrieve:
+        fields_to_retrieve = None
+    dataframe = datastore.get_dataframe(predicate=predicate, fields=fields_to_retrieve)
+    if datafilter:
+        dataframe = datafilter(dataframe)
+    descr = datastore.annotator.description()
+    return plot_dataframe(dataframe, title=title, noshow=noshow, x=x, fields=fields_to_plot, descr=descr, plotargs=plotargs)
+
+def plot_dataframe(dataframe : pd.DataFrame, *, title=None, noshow=False, x=None, fields=None, descr=None, plotargs={}, interpolate='linear') -> pyplot.Axes:
+    if fields:
+        plot = dataframe.interpolate(method=interpolate).plot(x=x, y=fields, **plotargs)
+    else:
+        plot = dataframe.interpolate(method=interpolate).plot(x=x, **plotargs)
+    if descr:
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plot.text(0.98, 0.98, descr, transform=plot.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props)
+    if title:
+        pyplot.title(title)
+    plot.legend(loc='upper left', fontsize='small')
+    if not noshow:
+        pyplot.show()
+    return plot
 
 def _save_multi_plot(filename):
     pp = PdfPages(filename)
@@ -17,7 +70,7 @@ def _save_multi_plot(filename):
         fig.savefig(pp, format='pdf')
     pp.close()
     
-def pointcounts(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> pyplot.Axes:
+def plot_pointcounts(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> pyplot.Axes:
     pyplot.close() # Close old figure
     #
     # Plot receiver point counts
@@ -49,7 +102,7 @@ def pointcounts(ds : DataStore, dirname=None, showplot=True, saveplot=False, sav
         df.to_csv(os.path.join(dirname, "pointcounts.csv"))
     return ax
     
-def resource_cpu(ds : DataStore) -> pyplot.Axes:
+def plot_resource_cpu(ds : DataStore) -> pyplot.Axes:
     dataFilter=SessionTimeFilter()
     predicate='component == "ResourceConsumption"'
     ax1 = plot_simple(ds, 
@@ -65,7 +118,7 @@ def resource_cpu(ds : DataStore) -> pyplot.Axes:
     ax1.set_ylim(0, top*1.5)
     return ax1
 
-def resource_mem(ds : DataStore) -> pyplot.Axes:
+def plot_resource_mem(ds : DataStore) -> pyplot.Axes:
     dataFilter=SessionTimeFilter()
     predicate='component == "ResourceConsumption"'
     ax2 = plot_simple(ds, 
@@ -81,7 +134,7 @@ def resource_mem(ds : DataStore) -> pyplot.Axes:
     ax2.set_ylim(0, top*1.5)
     return ax2
 
-def resource_bandwidth(ds : DataStore) -> pyplot.Axes:
+def plot_resource_bandwidth(ds : DataStore) -> pyplot.Axes:
     dataFilter=SessionTimeFilter()
     predicate='component == "ResourceConsumption"'
     ax3 = plot_simple(ds, 
@@ -98,11 +151,11 @@ def resource_bandwidth(ds : DataStore) -> pyplot.Axes:
     ax3.set_ylim(0, top*1.5)
     return ax3
 
-def resources(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> Tuple[pyplot.Axes, pyplot.Axes, pyplot.Axes]:
+def plot_resources(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> Tuple[pyplot.Axes, pyplot.Axes, pyplot.Axes]:
     pyplot.close() # Close old figure
-    ax1 = resource_cpu(ds)
-    ax2 = resource_mem(ds)
-    ax3 = resource_bandwidth(ds)
+    ax1 = plot_resource_cpu(ds)
+    ax2 = plot_resource_mem(ds)
+    ax3 = plot_resource_bandwidth(ds)
 
     if saveplot:
         _save_multi_plot(os.path.join(dirname, "resources.pdf"))
@@ -117,7 +170,7 @@ def resources(ds : DataStore, dirname=None, showplot=True, saveplot=False, savec
         df.to_csv(os.path.join(dirname, "resources.csv"))
     return ax1, ax2, ax3
     
-def _plot_latencies_per_tile(df : pandas.DataFrame, tilenum, ax) -> pyplot.Axes:
+def plot_latencies_for_tile(df : pd.DataFrame, tilenum, ax) -> pyplot.Axes:
     fields = [
         "sender.pc.grabber.downsample_ms",
         "sender.pc.grabber.encoder_queue_ms",
@@ -149,7 +202,7 @@ def _plot_latencies_per_tile(df : pandas.DataFrame, tilenum, ax) -> pyplot.Axes:
     ax.set_title(f"Per-tile Latency contributions, tile={tilenum}")
     return ax
  
-def latencies_per_tile(ds : DataStore, dirname=None, showplot=True, saveplot=False) -> pyplot.Axes:
+def plot_latencies_per_tile(ds : DataStore, dirname=None, showplot=True, saveplot=False) -> pyplot.Axes:
     pyplot.close() # Close old figure
     # Per-tile
     nTiles = ds.annotator.nTiles
@@ -175,7 +228,7 @@ def latencies_per_tile(ds : DataStore, dirname=None, showplot=True, saveplot=Fal
         fig.set_figheight(fig.get_figheight()*(nTiles-1))
         fig.set_figwidth(fig.get_figwidth()*1.5)
         for i in range(nTiles):
-            _plot_latencies_per_tile(df, i, axs[i])
+            plot_latencies_for_tile(df, i, axs[i])
         handles, labels = axs[0].get_legend_handles_labels()
         fig.legend(handles, labels, loc='center right')
         pyplot.subplots_adjust(right=0.66)
@@ -185,7 +238,7 @@ def latencies_per_tile(ds : DataStore, dirname=None, showplot=True, saveplot=Fal
             pyplot.show()
         return ax
    
-def latencies(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> pyplot.Axes:
+def plot_latencies(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> pyplot.Axes:
     pyplot.close() # Close old figure
     dataFilter = (
         TileCombiner("sender.pc.grabber.downsample_ms", "downsample", "mean", combined=True) +
@@ -264,7 +317,7 @@ def latencies(ds : DataStore, dirname=None, showplot=True, saveplot=False, savec
         df.to_csv(os.path.join(dirname, "latencies.csv"))    
     return ax
 
-def framerates(ds : DataStore) -> pyplot.Axes:
+def plot_framerates(ds : DataStore) -> pyplot.Axes:
     pyplot.close() # Close old figure
     df = ds.get_dataframe(
         predicate='component_role and "fps" in record', 
@@ -294,7 +347,7 @@ def framerates(ds : DataStore) -> pyplot.Axes:
         )
     return ax1
 
-def framerates_dropped(ds : DataStore) -> pyplot.Axes:
+def plot_framerates_dropped(ds : DataStore) -> pyplot.Axes:
     dataFilter = (
         TileCombiner("sender.voice.grabber.fps_dropped", "voice capturer dropped", "min", combined=True, optional=True) +
         TileCombiner("sender.voice.encoder.fps_dropped", "voice encoder dropped", "min", combined=True, optional=True) +
@@ -316,10 +369,10 @@ def framerates_dropped(ds : DataStore) -> pyplot.Axes:
         )
     return ax2
 
-def framerates_and_dropped(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> Tuple[pyplot.Axes, pyplot.Axes]:
+def plot_framerates_and_dropped(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> Tuple[pyplot.Axes, pyplot.Axes]:
     pyplot.close() # Close old figure
-    ax1 = framerates(ds)
-    ax2 = framerates_dropped(ds)
+    ax1 = plot_framerates(ds)
+    ax2 = plot_framerates_dropped(ds)
 
     if saveplot:
         _save_multi_plot(os.path.join(dirname, "framerates.pdf"))
@@ -335,7 +388,7 @@ def framerates_and_dropped(ds : DataStore, dirname=None, showplot=True, saveplot
         df.to_csv(os.path.join(dirname, "framerates.csv"))    
     return ax1, ax2
     
-def progress(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> pyplot.Axes:
+def plot_progress(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> pyplot.Axes:
     pyplot.close() # Close old figure
     df = ds.get_dataframe(
         predicate='"aggregate_packets" in record and component_role',

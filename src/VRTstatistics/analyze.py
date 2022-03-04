@@ -5,43 +5,8 @@ import matplotlib.pyplot as pyplot
 import pandas as pd
 from .datastore import DataStore, DataStoreError
 
-__all__ = ["plot_simple", "plot_dataframe", "TileCombiner", "SessionTimeFilter"]
+__all__ = ["TileCombiner", "SessionTimeFilter"]
 
-def plot_simple(datastore : DataStore, *, predicate=None, title=None, noshow=False, x="sessiontime", fields=None, datafilter=None, plotargs={}) -> pyplot.Axes:
-    """
-    Plot data (optionally after converting to pandas.DataFrame).
-    output is optional output file (default: show in a window)
-    x is name of x-axis field
-    fields is list of fields to plot (default: all, except x)
-    """
-    fields_to_retrieve = list(fields)
-    fields_to_plot = fields
-    # If we have specified fields to retrieve ensure our x-axis is in the list
-    if fields_to_retrieve and x and not x in fields_to_retrieve:
-        fields_to_retrieve.append(x)
-    fields_to_plot = None # For simple plots we use all fields (except x, which is automatically ignored)
-    if not fields_to_retrieve:
-        fields_to_retrieve = None
-    dataframe = datastore.get_dataframe(predicate=predicate, fields=fields_to_retrieve)
-    if datafilter:
-        dataframe = datafilter(dataframe)
-    descr = datastore.annotator.description()
-    return plot_dataframe(dataframe, title=title, noshow=noshow, x=x, fields=fields_to_plot, descr=descr, plotargs=plotargs)
-
-def plot_dataframe(dataframe : pd.DataFrame, *, title=None, noshow=False, x=None, fields=None, descr=None, plotargs={}, interpolate='linear') -> pyplot.Axes:
-    if fields:
-        plot = dataframe.interpolate(method=interpolate).plot(x=x, y=fields, **plotargs)
-    else:
-        plot = dataframe.interpolate(method=interpolate).plot(x=x, **plotargs)
-    if descr:
-        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-        plot.text(0.98, 0.98, descr, transform=plot.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props)
-    if title:
-        pyplot.title(title)
-    plot.legend(loc='upper left', fontsize='small')
-    if not noshow:
-        pyplot.show()
-    return plot
 
 class DataFrameFilter:
     previous_filter : Optional[DataFrameFilter]
