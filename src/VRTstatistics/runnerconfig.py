@@ -37,18 +37,20 @@ defaultRunnerConfig = {
         useSsh=False,
         exeArgs=["-vrmode", "None", "-disableVR"]
     ),
-    "vrsmall.local": dict(
+    "vrsmall": dict(
         statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log",
         logPath="AppData/LocalLow/i2Cat/VRTogether/Player.log",
-        user="vr-together",
-        exePath="c:/Users/VR-Together/VRTogether/VRTapp-built-mmsys/VRTogether.exe",
+        user="vrtogether",
+        host="vrsmall.huiskamer.private",
+        exePath="c:/Users/VRTogether/VRTogether/VRTapp-built-mmsys/VRTogether.exe",
         useSsh=False,
         exeArgs=["-vrmode", "None", "-disableVR"]
    ),
-    "vrbig.local": dict(
+    "vrbig": dict(
         statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log", 
         logPath="AppData/LocalLow/i2Cat/VRTogether/Player.log", 
         user="vrtogether",
+        host="vrbig.huiskamer.private",
         exePath="c:/Users/VRTogether/Desktop/dev/VRTapp-built-mmsys/VRTogether.exe",
         useSsh=False,
         exeArgs=["-vrmode", "None", "-disableVR"]
