@@ -32,7 +32,7 @@ defaultRunnerConfig = {
         statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log", 
         logPath="AppData/LocalLow/i2Cat/VRTogether/Player.log", 
         user="vrtogether",
-        exePath="c:/Users/VRTogether/VRTogether/VRTapp-built-mmsys/VRTogether.exe",
+        exePath="C:/Users/vrtogether/VRTogether/VRTogether-built-measurements/VRTogether.exe",
         host="vrtiny.local",
         useSsh=False,
         exeArgs=["-vrmode", "None", "-disableVR"]
@@ -42,7 +42,7 @@ defaultRunnerConfig = {
         logPath="AppData/LocalLow/i2Cat/VRTogether/Player.log",
         user="vrtogether",
         host="vrsmall.huiskamer.private",
-        exePath="c:/Users/VRTogether/VRTogether/VRTapp-built-mmsys/VRTogether.exe",
+        exePath="C:/Users/vrtogether/VRTogether/VRTogether-built-measurements/VRTogether.exe",
         useSsh=False,
         exeArgs=["-vrmode", "None", "-disableVR"]
    ),
@@ -51,7 +51,7 @@ defaultRunnerConfig = {
         logPath="AppData/LocalLow/i2Cat/VRTogether/Player.log", 
         user="vrtogether",
         host="vrbig.huiskamer.private",
-        exePath="c:/Users/VRTogether/Desktop/dev/VRTapp-built-mmsys/VRTogether.exe",
+        exePath="C:/Users/vrtogether/VRTogether/VRTogether-built-measurements/VRTogether.exe",
         useSsh=False,
         exeArgs=["-vrmode", "None", "-disableVR"]
     ),
