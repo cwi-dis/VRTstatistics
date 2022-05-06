@@ -461,12 +461,15 @@ def plot_progress_latency(ds : DataStore, dirname=None, showplot=True, saveplot=
     ax = None
     df0 = dataframe_to_pcindex_latencies_for_tile(df, 0)
     ax = df0.plot(x="sessiontime", ax=ax)
-    df1 = dataframe_to_pcindex_latencies_for_tile(df, 1)
-    ax = df1.plot(x="sessiontime", ax=ax)
-    df2 = dataframe_to_pcindex_latencies_for_tile(df, 2)
-    ax = df2.plot(x="sessiontime", ax=ax)
-    df3 = dataframe_to_pcindex_latencies_for_tile(df, 3)
-    ax = df3.plot(x="sessiontime", ax=ax)
+    if 'receiver.pc.reader.1' in df:
+        df1 = dataframe_to_pcindex_latencies_for_tile(df, 1)
+        ax = df1.plot(x="sessiontime", ax=ax)
+    if 'receiver.pc.reader.2' in df:
+        df2 = dataframe_to_pcindex_latencies_for_tile(df, 2)
+        ax = df2.plot(x="sessiontime", ax=ax)
+    if 'receiver.pc.reader.3' in df:
+        df3 = dataframe_to_pcindex_latencies_for_tile(df, 3)
+        ax = df3.plot(x="sessiontime", ax=ax)
 
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
     descr = ds.annotator.description()
