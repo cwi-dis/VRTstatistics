@@ -70,7 +70,7 @@ def runwithusage():
     process = psutil.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     usage_collector = RUsageCollector('rusage.log', process)
     while process.poll() == None:
-        time.sleep(1)
+        time.sleep(0.1)
         usage_collector.step()
     usage_collector.close()
     stdout_data, stderr_data = process.communicate()
