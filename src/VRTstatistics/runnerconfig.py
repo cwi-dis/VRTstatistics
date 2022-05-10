@@ -55,6 +55,15 @@ defaultRunnerConfig = {
         useSsh=False,
         exeArgs=["-vrmode", "None", "-disableVR"]
     ),
+    "carrageen": dict(
+        statPath="/home/dis/.config/unity3d/i2Cat/VRTogether/statistics.log", 
+        logPath="/home/dis/.config/unity3d/i2Cat/VRTogether/Player.log", 
+        user="dis",
+        host="carrageen.huiskamer.private",
+        exePath="/home/dis/src/VRTogether/VRTogether-built-measurements/VRTogether.x86_64",
+        useSsh=False,
+        exeArgs=["-vrmode", "None", "-disableVR"]
+    ),
     "fiddlehead": dict(
         statPath="AppData/LocalLow/i2Cat/VRTogether/statistics.log", 
         logPath="AppData/LocalLow/i2Cat/VRTogether/Player.log", 
