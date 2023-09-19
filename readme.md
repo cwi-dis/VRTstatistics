@@ -59,7 +59,7 @@ You can also specify that that output field name is taken from an input field. S
 Example, for untiled session:
 
 ```
-python -m VRTstatistics.scripts.filter combined/sessionname.json sessionname-latency.csv '"PointBufferRenderer" in component' sessiontime role=pc_latency_ms
+python -m VRTstatistics.scripts.filter combined/sessionname.json sessionname-latency.csv -p '"PointBufferRenderer" in component' sessiontime role=pc_latency_ms
 ```
 
 Will create a 3-column CSV file with latencies for sender (self view) and receiver.
