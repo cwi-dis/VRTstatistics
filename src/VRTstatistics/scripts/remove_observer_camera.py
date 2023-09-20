@@ -28,15 +28,12 @@ def get_camera_movement(camera_data: List[Any]) -> float:
     """Computes the total movement distance of a list of camera positions."""
     total_dist = 0.0
 
-    for i, record in enumerate(camera_data[:-1]):
-        # Get next record
-        next_record = camera_data[i+1]
-
+    for a, b in zip(camera_data, camera_data[1:]):
         # Compute distance between current and next position and sum it
         total_dist += math.sqrt(
-            math.pow(next_record["px"] - record["px"], 2) +
-            math.pow(next_record["py"] - record["py"], 2) +
-            math.pow(next_record["pz"] - record["pz"], 2)
+            math.pow(a["px"] - b["px"], 2) +
+            math.pow(a["py"] - b["py"], 2) +
+            math.pow(a["pz"] - b["pz"], 2)
         )
 
     return total_dist
