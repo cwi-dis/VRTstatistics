@@ -52,19 +52,26 @@ def get_observer_camera(camera_data) -> str:
     return sorted(distances, key=itemgetter(1))[0][0]
 
 
+def filter_observer_data(data: List[Any]) -> List[Any]:
+    # Get camera records
+    camera_data = get_cameras(data)
+    # Get ID of camera which is most likely the observer
+    observer_key = get_observer_camera(camera_data)
+
+    # Filter out all records which contain observer camera information
+    return [
+        record for record in data
+        if record["component"] != observer_key
+    ]
+
+
 def main(infile: str, outfile: Optional[str] = None) -> None:
     with open(infile, "r") as f:
         # Parse input file at get all camera position records
         data = json.load(f)
-        camera_data = get_cameras(data)
 
-        # Get ID of camera which is most likely the observer
-        observer_key = get_observer_camera(camera_data)
         # Filter out all records which contain observer camera information
-        filtered_data = [
-            record for record in data
-            if record["component"] != observer_key
-        ]
+        filtered_data = filter_observer_data(data)
 
         # If not output file name is given, print to stdout, otherwise write
         # to given output file name
