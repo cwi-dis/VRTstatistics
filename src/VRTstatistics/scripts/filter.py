@@ -26,20 +26,27 @@ def main():
         "fields", default=None, nargs="*", metavar="FIELD", help="Field mappings to plot (default: all)"
     )
     args = parser.parse_args()
+
     if len(sys.argv) < 4:
         print(
             f"Usage: {sys.argv[0]} datastore output-json-or-csv predicate [field [...]]"
         )
+
         sys.exit(1)
+
     datastore = DataStore(args.datastore)
     datastore.load()
+
     predicate = None
     fields = None
+
     if args.fields:
         fields = args.fields
+
     output = datastore.filter(args.predicate, fields)
     output.filename = args.output
     output.save()
+
     sys.exit(0)
 
 
