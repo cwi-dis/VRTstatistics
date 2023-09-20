@@ -72,6 +72,25 @@ python -m VRTstatistics.scripts.plot sessionname-latency.csv
 
 The plotter has options to save to file, select the X axis, more. Use `--help` to see the options.
 
+### Filtering observer camera
+
+Sometimes it may be necessary to filter out the log entries of an observer. To
+do this, the script `remove_observer_camera.py` can be used. It expects a JSON
+log file as input and can be invoked as follows:
+
+```
+python -m VRTstatistics.scripts.remove_observer_camera input_log.json filtered.json
+```
+
+Where `input_log.json` is the file to be filtered and `filtered.json` is the
+output file where all records for the observer camera have been removed. If no
+output file name is given, the result is printed to the standard output.
+
+The observer camera is assumed to be the camera which has moved the least
+during the course of the session. So for files that do not contain an observer
+or if the observer has moved more than participants, the script will not return
+accurate data. Please double check the results.
+
 ## Performance testing guidelines
 
 Writing this down here because I keep forgetting.
