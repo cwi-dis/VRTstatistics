@@ -1,3 +1,4 @@
+import argparse
 import math
 import json
 import sys
@@ -5,7 +6,7 @@ import sys
 from collections import defaultdict
 from functools import reduce
 from operator import itemgetter
-from typing import Optional, Dict, List, TypedDict, cast
+from typing import Optional, Dict, List, TypedDict, cast, TextIO
 
 
 class LogEntry(TypedDict):
@@ -83,32 +84,36 @@ def filter_observer_data(data: List[LogEntry]) -> List[LogEntry]:
     ]
 
 
-def main(infile: str, outfile: Optional[str] = None) -> None:
-    with open(infile, "r") as f:
-        # Parse input file at get all camera position records
-        data = json.load(f)
+def main(infile: TextIO, outfile: TextIO) -> None:
+    # Parse input file at get all camera position records
+    data = json.load(infile)
 
-        # Filter out all records which contain observer camera information
-        filtered_data = filter_observer_data(data)
+    # Filter out all records which contain observer camera information
+    filtered_data = filter_observer_data(data)
 
-        # If not output file name is given, print to stdout, otherwise write
-        # to given output file name
-        if outfile is None:
-            print(json.dumps(filtered_data))
-        else:
-            with open(outfile, "w") as f:
-                json.dump(filtered_data, f)
+    # If not output file name is given, print to stdout, otherwise write
+    # to given output file name
+    json.dump(filtered_data, outfile, indent=2)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("USAGE:", sys.argv[0], "input_json [output_json]")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description="Filter observer camera from a log file."
+    )
+    parser.add_argument(
+        "infile", default=None,
+        help="Log file in JSON format"
+    )
+    parser.add_argument(
+        "outfile", default=None, nargs="?",
+        help="Filtered log file in JSON format (optional)"
+    )
+    args = parser.parse_args()
 
-    infile = sys.argv[1]
-    outfile = None
+    infile = open(args.infile, "r")
+    outfile = sys.stdout
 
-    if len(sys.argv) == 3:
-        outfile = sys.argv[2]
+    if args.outfile:
+        outfile = open(args.outfile, "w")
 
     main(infile, outfile)
