@@ -64,6 +64,13 @@ def get_observer_camera_id(cam_logs: Dict[str, List[CameraLogEntry]]) -> str:
 
 
 def filter_observer_data(data: List[LogEntry]) -> List[LogEntry]:
+    """Filters out observer camera from a list of log entries.
+
+    Takes a list of log entries and returns another list with all entries of
+    what is determined to be the observer camera removed. The observer camera
+    is assumed to be the camera that moved the least during the course of the
+    session.
+    """
     # Get camera records
     camera_data = get_cameras(data)
     # Get ID of camera which is most likely the observer
