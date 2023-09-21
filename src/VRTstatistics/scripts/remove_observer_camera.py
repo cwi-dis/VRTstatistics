@@ -5,26 +5,36 @@ import sys
 from collections import defaultdict
 from functools import reduce
 from operator import itemgetter
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, TypedDict, cast
 
 
-def get_cameras(data) -> Dict[str, List[Any]]:
+class LogEntry(TypedDict):
+    component: str
+
+
+class CameraLogEntry(LogEntry):
+    px: float
+    py: float
+    pz: float
+
+
+def get_cameras(data: List[LogEntry]) -> Dict[str, List[CameraLogEntry]]:
     """Returns all records which contain camera position information.
 
     Takes a JSON data structure containing logging information and filters it
     by records containing camera information. The records are returned as a
     dictionary grouped by camera ID.
     """
-    def reduce_cameras(acc, record):
+    def reduce_cameras(acc: Dict[str, List[CameraLogEntry]], record: LogEntry):
         if record["component"].startswith("PositionTracker#Camera"):
-            acc[record["component"]].append(record)
+            acc[record["component"]].append(cast(CameraLogEntry, record))
 
         return acc
 
     return reduce(reduce_cameras, data, defaultdict(list))
 
 
-def get_camera_movement(camera_data: List[Any]) -> float:
+def get_camera_movement_distance(camera_data: List[CameraLogEntry]) -> float:
     """Computes the total movement distance of a list of camera positions."""
     total_dist = 0.0
 
@@ -39,21 +49,25 @@ def get_camera_movement(camera_data: List[Any]) -> float:
     return total_dist
 
 
-def get_observer_camera(camera_data) -> str:
+def get_observer_camera_id(cam_logs: Dict[str, List[CameraLogEntry]]) -> str:
     """Returns the ID of the observer camera.
 
     This function computes the distance each camera has moved. The camera that
     has moved the least is assumed to be the observer and its ID is returned.
     """
-    distances = [(k, get_camera_movement(v)) for k, v in camera_data.items()]
+    distances = [
+        (k, get_camera_movement_distance(v))
+        for k, v in cam_logs.items()
+    ]
+
     return sorted(distances, key=itemgetter(1))[0][0]
 
 
-def filter_observer_data(data: List[Any]) -> List[Any]:
+def filter_observer_data(data: List[LogEntry]) -> List[LogEntry]:
     # Get camera records
     camera_data = get_cameras(data)
     # Get ID of camera which is most likely the observer
-    observer_key = get_observer_camera(camera_data)
+    observer_key = get_observer_camera_id(camera_data)
 
     # Filter out all records which contain observer camera information
     return [
