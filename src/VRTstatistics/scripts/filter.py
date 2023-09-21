@@ -1,11 +1,6 @@
-import sys
-import os
-import json
-import time
-import types
-import csv
 import argparse
-from typing import Callable, List
+import sys
+
 from ..datastore import DataStore
 
 
@@ -37,7 +32,6 @@ def main():
     datastore = DataStore(args.datastore)
     datastore.load()
 
-    predicate = None
     fields = None
 
     if args.fields:

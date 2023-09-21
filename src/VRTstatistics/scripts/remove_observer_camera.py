@@ -6,7 +6,7 @@ import sys
 from collections import defaultdict
 from functools import reduce
 from operator import itemgetter
-from typing import Optional, Dict, List, TypedDict, cast, TextIO
+from typing import Dict, List, TypedDict, cast, TextIO
 
 
 class LogEntry(TypedDict):
