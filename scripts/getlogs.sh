@@ -7,8 +7,8 @@ set -e
 # CWI
 SENDER_SSH_ID=dis@fiddlehead.local
 RECEIVER_SSH_ID=dis@topinambur.local
-SENDER_STATS_PATH="AppData/LocalLow/i2Cat/VRTogether/VQEG_Experiment.txt"
-RECEIVER_STATS_PATH="AppData/LocalLow/i2Cat/VRTogether/VQEG_Experiment.txt"
+SENDER_STATS_PATH="AppData/LocalLow/dis_cwi_nl/VR2Gather/VQEG_Experiment.txt"
+RECEIVER_STATS_PATH="AppData/LocalLow/dis_cwi_nl/VR2Gather/VQEG_Experiment.txt"
 # Jack work overrides for testing
 SENDER_SSH_ID=vrtogether@vrtiny.local
 RECEIVER_SSH_ID=jack@flauwte.local

@@ -2,9 +2,7 @@ import sys
 import time
 import datetime
 from typing import Mapping, Optional, Tuple, Type
-from flask import send_from_directory
 
-from markupsafe import re
 from .datastore import DataStore, DataStoreError
 
 __all__ = ["Annotator", "combine", "deserialize"]
