@@ -166,7 +166,7 @@ class DataStore:
             nsrecord["record"] = nsrecord
             if predicate == None or eval(predicate, nsrecord):
                 return record
-        raise DataStoreError(f"missing {descr}")
+        raise DataStoreError(f"missing {descr}, predicate: {repr(predicate)}")
         
     def find_all_records(self, predicate : Any, descr : str) -> List[DataStoreRecord]:
         if not self.data:

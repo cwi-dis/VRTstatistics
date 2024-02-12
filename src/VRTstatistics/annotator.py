@@ -120,7 +120,7 @@ class LatencySenderAnnotator(Annotator):
         #
         # Find names of sender side PC components
         #
-        r = self.datastore.find_first_record('"PointCloudPipeline" in component and "self" in record and self == 1', "sender pc pipeline")
+        r = self.datastore.find_first_record('"PointCloudPipelineSelf" in component and "self" in record and self == 1', "sender pc pipeline")
         self.send_pc_pipeline = r['component']
 
         r = self.datastore.find_first_record(f'component == "{self.send_pc_pipeline}" and "writer" in record', "sender pc writer umbrella")

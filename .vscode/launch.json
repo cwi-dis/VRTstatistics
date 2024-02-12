@@ -5,21 +5,26 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: mmsys-analyze",
-            "type": "python",
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
             "request": "launch",
-            "program": "/Users/jack/src/VRTogether/mmsys-pipeline-measurements/mmsys-analyze.py",
+            "program": "${file}",
             "console": "integratedTerminal",
-            "cwd" : "/Users/jack/src/VRTogether/mmsys-pipeline-measurements/measurements/03-tcp-compressed-tiled"
+            "cwd" : "${workspaceFolder}/data"
         },
         {
-            "name": "Python: Module",
+            "name": "Python: Module ingest",
             "type": "python",
             "request": "launch",
             "module": "VRTstatistics.scripts.ingest",
             "args": [
-                "--help",
+                "--nolog",
+                "--norusage",
+                "--annotator", "latency",
+                "flauwte.local",
+                "vrtiny.local"
             ],
+            "cwd" : "${workspaceFolder}/vqeg_data"
         }
     ]
 }

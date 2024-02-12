@@ -25,7 +25,7 @@ defaultRunnerConfig = {
         user="vrtogether",
         exePath="C:/Users/vrtogether/VRTogether/VRTogether-built-measurements/VR2Gather.exe",
         host="vrtiny.local",
-        useSsh=False,
+        useSsh=True,
         exeArgs=["-vrmode", "None", "-disableVR"]
     ),
 
