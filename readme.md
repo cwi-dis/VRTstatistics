@@ -22,7 +22,76 @@ After having done this once, you can use the scripts and utilities from any dire
 . .../VRTstatistics/.venv/bin/activate
 ```
 
+## Gathering data
+
+### Creating your configuration
+
+Edit `src/VRTstatistics/runnerconfig.py` and ensure the settings for the machines you want to use are correct. Generally, we use `foo.local` for manual runs and ssh access, and `foo` for runserver access.
+
+Create a directory (or maybe a directory tree) to gather your data.
+
+> Suggestion: for automatic testing, for example latency/bandwidth tests with different settings, use subdirectories with logical names. You can store per-experiment config files in those subdirectories and transfer them to the machines under test with the `--config` option.
+> 
+> For experiments with multiple participants use subdirectories with names like `YYYYMMDD-HHMM` so it is easier to match data with participants/runs.
+
+#### Manual running
+
+Run manually on the two machines.
+
+After that, ingest the data with
+
+```
+VRTstatistics-ingest --nolog --norusage --annotator latency flauwte.local vrtiny.local
+```
+
+Then, do a spot-check of your data, for example plotting the latency. Check that the total session is as long as you expect, and the numbers seem somewhat reasonable.
+
+> Command to be provided
+
+
+#### runserver running
+
+On both machines, run (in a `CMD` prompt on the machine, not in an ssh remote connection because then you won't have access to start the binary)
+
+```
+VRTStatistics-runserver
+```
+ 
+Now you can automatically start everything from your master/control machine with
+ 
+```
+VRTstatistics-ingest --run --config config.json --annotator latency flauwte vrtiny
+```
+ 
+## Processing the data
+
+Processing the data with the scripts is likely to be disappointing (because everyone is interested in different graphs, tables, etc).
+
+It is probably easiest to start playing with the data in `jupyter`.
+
+> Example should be provided.
+
+Once you think you know what data you need, and how you want to visualize it turn it into a Python script.
+
+> Example to be provided.
+
+Another option is the export only the data you want as a CSV file, for easy processing with other tools. For this there is a tool `VRTstatistics-filter`. With the `--predicate` option you pass a boolean function that selects the records you want in your output file. With the positional argument you say which fields you want.
+
+> Examples to be provided.
+> 
+> Need examples for the predicate functions.
+> 
+> Also need examples of field constructs like `role=latency_ms` which selects one field as the field name and another as the data.
+
+## Annotators
+
+**Note**: you should probably look at the annotators (`VRTStatistics/annotator.py`). These create new fields in your database, by combining data from multiple fields and possibly multiple records.
+
+For example, the latency annotator will lookup the `component` field (which may be something like `PointCloudRenderer#7`) and create a `component_role` field like `receiver.pointcloud.renderer.tile.2` which tells you what this record is about in the context of your measurements.
+
 ## Getting the data
+
+> **Note**: This section is outdated.
 
 ### Two-machine runs
 
@@ -48,6 +117,8 @@ The file `combined.json` contains all the combined data from the run.
 If you're only interested in statistics of a single machine, inspect the `getlogs.sh` script and simply execute the corresponding (python) commands.
 
 ## Analysing the data
+
+> **Note**: This section is outdated.
 
 Converting to CSV and filtering can be done with
 `VRTstatistics.scripts.filter`. It has a predicate argument allowing you to select the records you want to save. Each field can be addressed by name, so `sessiontime > 1 and sessiontime < 5` selects on sessiontime. Also, `record` has all fields, so `"fps" in record` can be used to select all records with an `fps` field.
