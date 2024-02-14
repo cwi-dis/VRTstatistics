@@ -350,10 +350,19 @@ class LatencyCombinedAnnotator(CombinedAnnotator):
     def annotate(self) -> None:
         pass # Nothing to change in the data, has all been done in the sender and receiver annotator
 
+class VqegCombinedAnnotator(CombinedAnnotator):
+    pass
+
+class VqegSenderAnnotator(Annotator):
+    pass
+
+class VqegReceiverAnnotator(Annotator):
+    pass
 
 _Annotators : dict[Optional[str], Tuple[Type[Annotator], Type[Annotator], Type[CombinedAnnotator]]]= {
     None: (Annotator, Annotator, CombinedAnnotator),
-    "latency" : (LatencySenderAnnotator, LatencyReceiverAnnotator, LatencyCombinedAnnotator)
+    "latency" : (LatencySenderAnnotator, LatencyReceiverAnnotator, LatencyCombinedAnnotator),
+    "vqeg" : (VqegSenderAnnotator, VqegReceiverAnnotator, VqegCombinedAnnotator)
 }
 
 def combine(
