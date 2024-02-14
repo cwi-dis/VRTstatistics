@@ -1,0 +1,326 @@
+stats: ts=57577.526, component=stats, starting=1, wallClock=20240214-1559, statsFilename=C:/Users/vrtogether/AppData/LocalLow/dis_cwi_nl/VR2Gather/VQEG_Experiment.txt
+stats: seq=1, ts=57577.677, component=VRTSynchronizer#4, minLatency=100, maxLatency=5000, maxDecrease=1, maxIncrease=33, acceptDesync=False
+stats: seq=2, ts=57578.394, component=PointCloudPipelineSelf#0, self=1, userid=6181c47e-847b-4a3b-8059-292e59eeee17, representation=0
+stats: seq=3, ts=57578.398, component=PointCloudPipelineSelf#0, preparer=AsyncPointCloudPreparer#0, renderer=PointCloudRenderer#0
+stats: seq=4, ts=57581.299, component=OrchestratorController, orchestrator_ntptime_ms=1707922781243, localtime_behind_ms=-56, uncertainty_interval_ms=56
+stats: seq=5, ts=57587.527, component=AsyncPointCloudPreparer#0, fps=40.48, fps_dropped=0.00, fps_nodata=31.78, aggregate_packets=87
+stats: seq=6, ts=57587.560, component=AsyncAutoReader, fps=8.77, points_per_cloud=318921, avg_pointsize=0, fps_dropped=0.00, selfdrop_fps=0.00,  encoder_queue_ms=0, downsample_ms=0.00, pc_timestamp=1707922787491, aggregate_packets=88
+stats: seq=7, ts=57587.584, component=PointCloudRenderer#0, fps=8.74, latency_ms=27, latency_max_ms=93, fps_display=40.54, points_per_cloud=318921, points_per_display=293113, avg_pointsize=0.002, renderer_queue_ms=0, framenumber=411,  timestamp=1707922787491
+stats: seq=8, ts=57588.753, component=OrchestratorController, starting=1, sessionId=6ea4f7f8-c0e5-4449-81b4-8689cf5825d6, sessionName=ashu-test
+stats: seq=9, ts=57592.126, component=PointCloudPipelineSelf#0, finished=1
+stats: seq=10, ts=57592.216, component=VqegController, scene=Vqeg,confederate=1
+stats: seq=11, ts=57592.274, component=SessionPlayerManager, self=False, userId=cd8e6c27-c108-4378-8a77-ed1957644e03, userName=topinambur
+stats: seq=12, ts=57592.276, component=PointCloudPipelineOther#1, self=0, userid=cd8e6c27-c108-4378-8a77-ed1957644e03
+stats: seq=13, ts=57592.309, component=AsyncTCPReader, pull_thread=AsyncTCPReader#0.0
+stats: seq=14, ts=57592.310, component=VoiceReceiver#0, encoded=False, reader=AsyncTCPReader#0, decoder=none, preparer=AsyncVoicePreparer#1, synchronizer=none
+stats: seq=15, ts=57592.312, component=AsyncTCPReader#0.0, connected=0, destination=192.168.126.4:9900
+stats: seq=16, ts=57592.327, component=SessionPlayerManager, self=True, userId=6181c47e-847b-4a3b-8059-292e59eeee17, userName=fiddlehead
+stats: seq=17, ts=57592.327, component=PointCloudPipelineSelf#2, self=1, userid=6181c47e-847b-4a3b-8059-292e59eeee17, representation=0
+stats: seq=18, ts=57592.328, component=PointCloudPipelineSelf#2, preparer=AsyncPointCloudPreparer#2, renderer=PointCloudRenderer#1
+stats: seq=19, ts=57595.048, component=AsyncTCPWriter, pusher=AsyncTCPWriter.9901, stream=0, port=9901
+stats: seq=20, ts=57595.048, component=PointCloudPipelineSelf#2, reader=AsyncAutoReader, encoder=AsyncPCNullEncoder, writer=AsyncTCPWriter, ntile=1, nquality=1, nStream=1
+stats: seq=21, ts=57595.049, component=AsyncTCPWriter.9901, open=0, listen=1
+stats: seq=22, ts=57595.359, component=AsyncTCPReader#0.0, connected=0, destination=192.168.126.4:9900
+stats: seq=23, ts=57596.082, component=AsyncTCPWriter, pusher=AsyncTCPWriter.9900, stream=0, port=9900
+stats: seq=24, ts=57596.083, component=VoiceSender, encoded=False, samples_per_buffer=960, reader=AsyncVoiceReader, encoder=none, writer=AsyncTCPWriter
+stats: seq=25, ts=57596.083, component=AsyncTCPWriter.9900, open=0, listen=1
+stats: seq=26, ts=57596.094, component=HeadRotationPositionSave, logFile=C:/Users/vrtogether/AppData/LocalLow/dis_cwi_nl/VR2Gather/Log_20240214155956.txt,millis=57596094.2872
+stats: seq=27, ts=57597.372, component=AsyncTCPReader#0.0, connected=1, destination=192.168.126.4:9900
+stats: seq=28, ts=57597.588, component=AsyncAutoReader, fps=3.20, points_per_cloud=279948, avg_pointsize=0, fps_dropped=0.00, selfdrop_fps=0.00,  encoder_queue_ms=0, downsample_ms=0.00, pc_timestamp=1707922797520, aggregate_packets=32
+stats: seq=29, ts=57597.592, component=AsyncPCNullEncoder, fps=3.20, fps_dropped=3.10, encoder_ms=1.50, transmitter_queue_ms=59.46875, aggregate_packets=32
+stats: seq=30, ts=57597.594, component=AsyncVoiceReader, fps=7.393, record_latency_ms=13, output_queue_ms=75, fps_dropped=6.9929155471883, samples_per_frame=960
+stats: seq=31, ts=57597.594, component=AsyncVoicePreparer#1, fps=15.58, fps_dropped=0.00, fps_nodata=15.58, samples_per_frame=0
+stats: seq=32, ts=57597.595, component=AsyncPointCloudPreparer#2, fps=8.69, fps_dropped=0.00, fps_nodata=5.49, aggregate_packets=32
+stats: seq=33, ts=57597.596, component=PointCloudRenderer#1, fps=3.20, latency_ms=71, latency_max_ms=554, fps_display=8.69, points_per_cloud=279948, points_per_display=280477, avg_pointsize=0.002, renderer_queue_ms=102, framenumber=655,  timestamp=1707922797520
+stats: seq=34, ts=57597.604, component=VoiceReceiver#0, latency_ms=0, fps_output=6.99, fps_zero_inserted=6.99, zero_inserted_percentage=100.00, zero_inserted_samples=71680, voicereceiver_queue_ms=0, samples_per_frame=1024, output_freq=7153.74, timestamp=1707922797604
+stats: seq=35, ts=57598.202, component=AsyncTCPWriter.9900, open=1, remote=192.168.126.4:59275
+stats: seq=36, ts=57598.202, component=AsyncTCPWriter.9900, fps=0.09, bytes_per_packet=3840, aggregate_packets=1
+stats: seq=37, ts=57598.252, component=AsyncTCPWriter.9901, open=1, remote=192.168.126.4:59276
+stats: seq=38, ts=57598.252, component=AsyncTCPWriter.9901, fps=0.09, bytes_per_packet=4410992, aggregate_packets=1
+stats: seq=39, ts=57598.297, component=PointCloudPipelineOther#1, preparer=AsyncPointCloudPreparer#3, renderer=PointCloudRenderer#2, tile=0
+stats: seq=40, ts=57598.298, component=PointCloudPipelineOther#1, tile=0, tile_number=0, decoder=AsyncPCNullDecoder#0
+stats: seq=41, ts=57598.299, component=AsyncTCPPCReader, pull_thread=AsyncTCPPCReader#1.0, tile=0
+stats: seq=42, ts=57598.300, component=PointCloudPipelineOther#1, reader=AsyncTCPPCReader#1, synchronizer=none
+stats: seq=43, ts=57598.301, component=AsyncTCPPCReader#1.0, connected=0, destination=192.168.126.4:9901
+stats: seq=44, ts=57598.301, component=AsyncTCPPCReader#1.0, connected=1, destination=192.168.126.4:9901
+stats: seq=45, ts=57599.346, component=AsyncTCPReader#0.0, fps=0.09, fps_dropped=0.00, receive_ms=0, receive_bandwidth=326, bytes_per_packet=3840, aggregate_packets=1
+stats: seq=46, ts=57607.599, component=AsyncVoiceReader, fps=49.976, record_latency_ms=14, output_queue_ms=28, fps_dropped=2.89858146321772, samples_per_frame=960
+stats: seq=47, ts=57607.600, component=AsyncAutoReader, fps=14.98, points_per_cloud=292451, avg_pointsize=0, fps_dropped=0.00, selfdrop_fps=0.00,  encoder_queue_ms=0, downsample_ms=0.00, pc_timestamp=1707922807532, aggregate_packets=182
+stats: seq=48, ts=57607.600, component=AsyncVoicePreparer#1, fps=60.67, fps_dropped=0.00, fps_nodata=19.49, samples_per_frame=960
+stats: seq=49, ts=57607.603, component=AsyncPointCloudPreparer#2, fps=53.26, fps_dropped=0.00, fps_nodata=38.27, aggregate_packets=182
+stats: seq=50, ts=57607.605, component=PointCloudRenderer#1, fps=14.99, latency_ms=70, latency_max_ms=118, fps_display=53.25, points_per_cloud=292451, points_per_display=292024, avg_pointsize=0.002, renderer_queue_ms=0, framenumber=1188,  timestamp=1707922807532
+stats: seq=51, ts=57607.605, component=VoiceReceiver#0, latency_ms=72, fps_output=46.90, fps_zero_inserted=8.50, zero_inserted_percentage=17.71, zero_inserted_samples=85056, voicereceiver_queue_ms=31, samples_per_frame=1024, output_freq=48022.05, timestamp=1707922807512
+stats: seq=52, ts=57607.605, component=AsyncPCNullEncoder, fps=14.98, fps_dropped=0.90, encoder_ms=2.54, transmitter_queue_ms=3.98666666666667, aggregate_packets=182
+stats: seq=53, ts=57607.689, component=NetworkTrigger, name=QuestionaireManager, sessionId=6ea4f7f8-c0e5-4449-81b4-8689cf5825d6
+stats: seq=54, ts=57608.212, component=AsyncTCPWriter.9900, fps=50.35, bytes_per_packet=3840, aggregate_packets=505
+stats: seq=55, ts=57608.253, component=AsyncPointCloudPreparer#3, fps=52.49, fps_dropped=0.00, fps_nodata=38.89, aggregate_packets=136
+stats: seq=56, ts=57608.268, component=AsyncTCPWriter.9901, fps=15.08, bytes_per_packet=4693580, aggregate_packets=152
+stats: seq=57, ts=57608.290, component=AsyncTCPPCReader#1.0, fps=13.65, fps_dropped=0.00, receive_ms=6, receive_bandwidth=73137693, bytes_per_packet=5359006, aggregate_packets=137
+stats: seq=58, ts=57608.294, component=AsyncPCNullDecoder#0, fps=13.64, fps_dropped=0.00, points_per_cloud=334935, decoder_queue_ms=0, decoder_ms=4.52, decoded_queue_ms=0, aggregate_packets=137
+stats: seq=59, ts=57608.298, component=PointCloudRenderer#2, fps=13.64, latency_ms=83, latency_max_ms=1457, fps_display=52.56, points_per_cloud=334935, points_per_display=335213, avg_pointsize=0.002, renderer_queue_ms=0, framenumber=1221,  timestamp=1707922808161
+stats: seq=60, ts=57609.006, component=PointCloudPipelineOther#1, finished=1
+stats: seq=61, ts=57611.412, component=PointCloudPipelineSelf#2, finished=1
+stats: seq=62, ts=57611.454, component=VqegController, scene=ExerciseScene,confederate=1
+stats: seq=63, ts=57612.208, component=SessionPlayerManager, self=False, userId=cd8e6c27-c108-4378-8a77-ed1957644e03, userName=topinambur
+stats: seq=64, ts=57612.208, component=PointCloudPipelineOther#3, self=0, userid=cd8e6c27-c108-4378-8a77-ed1957644e03
+stats: seq=65, ts=57612.249, component=AsyncTCPReader, pull_thread=AsyncTCPReader#2.0
+stats: seq=66, ts=57612.250, component=AsyncTCPReader#2.0, connected=0, destination=192.168.126.4:9900
+stats: seq=67, ts=57612.251, component=VoiceReceiver#1, encoded=False, reader=AsyncTCPReader#2, decoder=none, preparer=AsyncVoicePreparer#4, synchronizer=none
+stats: seq=68, ts=57612.261, component=SessionPlayerManager, self=True, userId=6181c47e-847b-4a3b-8059-292e59eeee17, userName=fiddlehead
+stats: seq=69, ts=57612.261, component=PointCloudPipelineSelf#4, self=1, userid=6181c47e-847b-4a3b-8059-292e59eeee17, representation=0
+stats: seq=70, ts=57612.262, component=PointCloudPipelineSelf#4, preparer=AsyncPointCloudPreparer#5, renderer=PointCloudRenderer#3
+stats: seq=71, ts=57615.004, component=AsyncTCPWriter, pusher=AsyncTCPWriter.9901, stream=0, port=9901
+stats: seq=72, ts=57615.004, component=PointCloudPipelineSelf#4, reader=AsyncAutoReader, encoder=AsyncPCNullEncoder, writer=AsyncTCPWriter, ntile=1, nquality=1, nStream=1
+stats: seq=73, ts=57615.005, component=AsyncTCPWriter.9901, open=0, listen=1
+stats: seq=74, ts=57615.302, component=AsyncTCPReader#2.0, connected=0, destination=192.168.126.4:9900
+stats: seq=75, ts=57616.022, component=AsyncTCPWriter, pusher=AsyncTCPWriter.9900, stream=0, port=9900
+stats: seq=76, ts=57616.023, component=VoiceSender, encoded=False, samples_per_buffer=960, reader=AsyncVoiceReader, encoder=none, writer=AsyncTCPWriter
+stats: seq=77, ts=57616.023, component=AsyncTCPWriter.9900, open=0, listen=1
+stats: seq=78, ts=57616.030, component=HeadRotationPositionSave, logFile=C:/Users/vrtogether/AppData/LocalLow/dis_cwi_nl/VR2Gather/Log_20240214160016.txt,millis=57616030.0766
+stats: seq=79, ts=57617.329, component=AsyncTCPReader#2.0, connected=1, destination=192.168.126.4:9900
+stats: seq=80, ts=57618.273, component=AsyncTCPWriter.9900, open=1, remote=192.168.126.4:59281
+stats: seq=81, ts=57618.305, component=AsyncTCPWriter.9901, open=1, remote=192.168.126.4:59282
+stats: seq=82, ts=57618.305, component=AsyncTCPWriter.9901, fps=0.10, bytes_per_packet=4565104, aggregate_packets=1
+stats: seq=83, ts=57618.310, component=AsyncVoiceReader, fps=11.187, record_latency_ms=12, output_queue_ms=76, fps_dropped=10.6873912295752, samples_per_frame=960
+stats: seq=84, ts=57618.310, component=AsyncTCPWriter.9900, fps=0.50, bytes_per_packet=3840, aggregate_packets=5
+stats: seq=85, ts=57618.310, component=AsyncVoicePreparer#4, fps=24.47, fps_dropped=0.00, fps_nodata=24.47, samples_per_frame=0
+stats: seq=86, ts=57618.310, component=AsyncPointCloudPreparer#5, fps=13.98, fps_dropped=0.00, fps_nodata=9.69, aggregate_packets=43
+stats: seq=87, ts=57618.318, component=VoiceReceiver#1, latency_ms=0, fps_output=10.58, fps_zero_inserted=10.58, zero_inserted_percentage=100.00, zero_inserted_samples=108544, voicereceiver_queue_ms=0, samples_per_frame=1024, output_freq=10832.93, timestamp=1707922818317
+stats: seq=88, ts=57618.325, component=PointCloudPipelineOther#3, preparer=AsyncPointCloudPreparer#6, renderer=PointCloudRenderer#4, tile=0
+stats: seq=89, ts=57618.326, component=PointCloudPipelineOther#3, tile=0, tile_number=0, decoder=AsyncPCNullDecoder#1
+stats: seq=90, ts=57618.328, component=AsyncTCPPCReader, pull_thread=AsyncTCPPCReader#3.0, tile=0
+stats: seq=91, ts=57618.328, component=PointCloudPipelineOther#3, reader=AsyncTCPPCReader#3, synchronizer=none
+stats: seq=92, ts=57618.328, component=AsyncTCPPCReader#3.0, connected=0, destination=192.168.126.4:9901
+stats: seq=93, ts=57618.329, component=AsyncTCPPCReader#3.0, connected=1, destination=192.168.126.4:9901
+stats: seq=94, ts=57618.341, component=AsyncAutoReader, fps=4.38, points_per_cloud=286689, avg_pointsize=0, fps_dropped=0.00, selfdrop_fps=0.00,  encoder_queue_ms=0, downsample_ms=0.00, pc_timestamp=1707922818273, aggregate_packets=44
+stats: seq=95, ts=57618.346, component=AsyncPCNullEncoder, fps=4.38, fps_dropped=4.18, encoder_ms=1.77, transmitter_queue_ms=59.75, aggregate_packets=44
+stats: seq=96, ts=57618.355, component=PointCloudRenderer#3, fps=4.38, latency_ms=70, latency_max_ms=517, fps_display=14.22, points_per_cloud=286689, points_per_display=286547, avg_pointsize=0.002, renderer_queue_ms=69, framenumber=1395,  timestamp=1707922818273
+stats: seq=97, ts=57619.375, component=AsyncTCPReader#2.0, fps=0.09, fps_dropped=0.00, receive_ms=0, receive_bandwidth=346, bytes_per_packet=3840, aggregate_packets=1
+stats: seq=98, ts=57628.314, component=AsyncVoiceReader, fps=50.077, record_latency_ms=14, output_queue_ms=24, fps_dropped=0, samples_per_frame=960
+stats: seq=99, ts=57628.314, component=AsyncTCPWriter.9900, fps=50.08, bytes_per_packet=3840, aggregate_packets=506
+stats: seq=100, ts=57628.314, component=AsyncVoicePreparer#4, fps=57.48, fps_dropped=0.00, fps_nodata=12.99, samples_per_frame=960
+stats: seq=101, ts=57628.314, component=AsyncPointCloudPreparer#5, fps=52.68, fps_dropped=0.00, fps_nodata=37.68, aggregate_packets=193
+stats: seq=102, ts=57628.321, component=VoiceReceiver#1, latency_ms=85, fps_output=46.88, fps_zero_inserted=5.40, zero_inserted_percentage=11.11, zero_inserted_samples=53376, voicereceiver_queue_ms=39, samples_per_frame=1024, output_freq=48007.79, timestamp=1707922828222
+stats: seq=103, ts=57628.328, component=AsyncPointCloudPreparer#6, fps=52.74, fps_dropped=0.00, fps_nodata=39.16, aggregate_packets=136
+stats: seq=104, ts=57628.336, component=AsyncTCPPCReader#3.0, fps=13.67, fps_dropped=0.00, receive_ms=6, receive_bandwidth=75132473, bytes_per_packet=5494395, aggregate_packets=137
+stats: seq=105, ts=57628.342, component=AsyncTCPWriter.9901, fps=15.04, bytes_per_packet=4584595, aggregate_packets=152
+stats: seq=106, ts=57628.365, component=AsyncPCNullDecoder#1, fps=13.64, fps_dropped=0.00, points_per_cloud=343397, decoder_queue_ms=2, decoder_ms=5.05, decoded_queue_ms=0, aggregate_packets=137
+stats: seq=107, ts=57628.369, component=PointCloudRenderer#3, fps=14.98, latency_ms=70, latency_max_ms=104, fps_display=52.53, points_per_cloud=286544, points_per_display=286508, avg_pointsize=0.002, renderer_queue_ms=0, framenumber=1921,  timestamp=1707922828271
+stats: seq=108, ts=57628.372, component=PointCloudRenderer#4, fps=13.63, latency_ms=77, latency_max_ms=1454, fps_display=52.61, points_per_cloud=343397, points_per_display=342234, avg_pointsize=0.002, renderer_queue_ms=0, framenumber=1921,  timestamp=1707922828229
+stats: seq=109, ts=57628.404, component=AsyncAutoReader, fps=15.01, points_per_cloud=286484, avg_pointsize=0, fps_dropped=0.00, selfdrop_fps=0.00,  encoder_queue_ms=0, downsample_ms=0.00, pc_timestamp=1707922828337, aggregate_packets=195
+stats: seq=110, ts=57628.407, component=AsyncPCNullEncoder, fps=15.01, fps_dropped=0.00, encoder_ms=2.98, transmitter_queue_ms=0, aggregate_packets=195
+stats: seq=111, ts=57629.399, component=AsyncTCPReader#2.0, fps=49.98, fps_dropped=0.00, receive_ms=0, receive_bandwidth=191928, bytes_per_packet=3840, aggregate_packets=502
+stats: seq=112, ts=57638.321, component=AsyncVoiceReader, fps=49.968, record_latency_ms=14, output_queue_ms=24, fps_dropped=0, samples_per_frame=960
+stats: seq=113, ts=57638.321, component=AsyncTCPWriter.9900, fps=49.97, bytes_per_packet=3840, aggregate_packets=1006
+stats: seq=114, ts=57638.321, component=AsyncVoicePreparer#4, fps=50.87, fps_dropped=0.00, fps_nodata=0.80, samples_per_frame=960
+stats: seq=115, ts=57638.322, component=AsyncPointCloudPreparer#5, fps=53.26, fps_dropped=0.00, fps_nodata=38.27, aggregate_packets=343
+stats: seq=116, ts=57638.325, component=VoiceReceiver#1, latency_ms=98, fps_output=46.99, fps_zero_inserted=0.10, zero_inserted_percentage=0.04, zero_inserted_samples=192, voicereceiver_queue_ms=48, samples_per_frame=1024, output_freq=48114.74, timestamp=1707922838236
+stats: seq=117, ts=57638.348, component=AsyncPointCloudPreparer#6, fps=53.19, fps_dropped=0.00, fps_nodata=38.22, aggregate_packets=286
+stats: seq=118, ts=57638.356, component=AsyncTCPPCReader#3.0, fps=14.97, fps_dropped=0.00, receive_ms=6, receive_bandwidth=80770917, bytes_per_packet=5395432, aggregate_packets=287
+stats: seq=119, ts=57638.373, component=AsyncTCPWriter.9901, fps=14.95, bytes_per_packet=4548529, aggregate_packets=302
+stats: seq=120, ts=57638.380, component=PointCloudRenderer#3, fps=14.98, latency_ms=69, latency_max_ms=113, fps_display=53.34, points_per_cloud=284281, points_per_display=284204, avg_pointsize=0.002, renderer_queue_ms=0, framenumber=2455,  timestamp=1707922838301
+stats: seq=121, ts=57638.436, component=AsyncAutoReader, fps=14.95, points_per_cloud=284348, avg_pointsize=0, fps_dropped=0.00, selfdrop_fps=0.00,  encoder_queue_ms=0, downsample_ms=0.00, pc_timestamp=1707922838367, aggregate_packets=345
+stats: seq=122, ts=57638.440, component=AsyncPCNullEncoder, fps=14.95, fps_dropped=0.00, encoder_ms=2.99, transmitter_queue_ms=0, aggregate_packets=345
+stats: seq=123, ts=57638.448, component=AsyncPCNullDecoder#1, fps=14.98, fps_dropped=0.00, points_per_cloud=337241, decoder_queue_ms=0, decoder_ms=4.92, decoded_queue_ms=0, aggregate_packets=288
+stats: seq=124, ts=57638.455, component=PointCloudRenderer#4, fps=14.98, latency_ms=88, latency_max_ms=176, fps_display=53.26, points_per_cloud=337241, points_per_display=337398, avg_pointsize=0.002, renderer_queue_ms=0, framenumber=2458,  timestamp=1707922838337
+stats: seq=125, ts=57639.433, component=AsyncTCPReader#2.0, fps=49.93, fps_dropped=0.00, receive_ms=0, receive_bandwidth=191734, bytes_per_packet=3840, aggregate_packets=1003
+stats: seq=126, ts=57648.328, component=AsyncVoiceReader, fps=49.964, record_latency_ms=14, output_queue_ms=23, fps_dropped=0, samples_per_frame=960
+stats: seq=127, ts=57648.328, component=AsyncTCPWriter.9900, fps=49.96, bytes_per_packet=3840, aggregate_packets=1506
+stats: seq=128, ts=57648.328, component=AsyncVoicePreparer#4, fps=50.96, fps_dropped=0.00, fps_nodata=0.90, samples_per_frame=960
+stats: seq=129, ts=57648.328, component=AsyncPointCloudPreparer#5, fps=52.47, fps_dropped=0.00, fps_nodata=37.68, aggregate_packets=491
+stats: seq=130, ts=57648.342, component=VoiceReceiver#1, latency_ms=84, fps_output=46.92, fps_zero_inserted=0.20, zero_inserted_percentage=0.07, zero_inserted_samples=320, voicereceiver_queue_ms=37, samples_per_frame=1024, output_freq=48046.04, timestamp=1707922848259
+stats: seq=131, ts=57648.356, component=AsyncPointCloudPreparer#6, fps=52.56, fps_dropped=0.00, fps_nodata=37.67, aggregate_packets=435
+stats: seq=132, ts=57648.411, component=AsyncTCPWriter.9901, fps=14.85, bytes_per_packet=4621788, aggregate_packets=451
+stats: seq=133, ts=57648.416, component=PointCloudRenderer#3, fps=14.85, latency_ms=69, latency_max_ms=110, fps_display=52.51, points_per_cloud=288859, points_per_display=288779, avg_pointsize=0.002, renderer_queue_ms=0, framenumber=2982,  timestamp=1707922848339
+stats: seq=134, ts=57648.450, component=AsyncTCPPCReader#3.0, fps=14.76, fps_dropped=0.00, receive_ms=6, receive_bandwidth=81083241, bytes_per_packet=5492943, aggregate_packets=436
+stats: seq=135, ts=57648.457, component=AsyncPCNullDecoder#1, fps=14.79, fps_dropped=0.00, points_per_cloud=343318, decoder_queue_ms=0, decoder_ms=4.86, decoded_queue_ms=0, aggregate_packets=436
+stats: seq=136, ts=57648.471, component=PointCloudRenderer#4, fps=14.78, latency_ms=86, latency_max_ms=174, fps_display=52.61, points_per_cloud=343318, points_per_display=343346, avg_pointsize=0.002, renderer_queue_ms=0, framenumber=2985,  timestamp=1707922848297
+stats: seq=137, ts=57648.473, component=AsyncAutoReader, fps=14.84, points_per_cloud=288823, avg_pointsize=0, fps_dropped=0.00, selfdrop_fps=0.00,  encoder_queue_ms=0, downsample_ms=0.00, pc_timestamp=1707922848407, aggregate_packets=494
+stats: seq=138, ts=57648.477, component=AsyncPCNullEncoder, fps=14.85, fps_dropped=0.00, encoder_ms=2.67, transmitter_queue_ms=0, aggregate_packets=494
+stats: seq=139, ts=57649.457, component=AsyncTCPReader#2.0, fps=50.08, fps_dropped=0.00, receive_ms=0, receive_bandwidth=192307, bytes_per_packet=3840, aggregate_packets=1505
+stats: seq=140, ts=57658.341, component=AsyncVoiceReader, fps=50.036, record_latency_ms=13, output_queue_ms=24, fps_dropped=0, samples_per_frame=960
+stats: seq=141, ts=57658.341, component=AsyncTCPWriter.9900, fps=50.04, bytes_per_packet=3840, aggregate_packets=2007
+stats: seq=142, ts=57658.342, component=AsyncVoicePreparer#4, fps=51.13, fps_dropped=0.00, fps_nodata=1.30, samples_per_frame=960
+stats: seq=143, ts=57658.342, component=AsyncPointCloudPreparer#5, fps=54.03, fps_dropped=0.00, fps_nodata=39.15, aggregate_packets=640
+stats: seq=144, ts=57658.360, component=VoiceReceiver#1, latency_ms=88, fps_output=46.81, fps_zero_inserted=0.20, zero_inserted_percentage=0.31, zero_inserted_samples=1472, voicereceiver_queue_ms=41, samples_per_frame=1024, output_freq=47936.58, timestamp=1707922858261
+stats: seq=145, ts=57658.362, component=AsyncPointCloudPreparer#6, fps=53.97, fps_dropped=0.00, fps_nodata=39.08, aggregate_packets=584
+stats: seq=146, ts=57658.419, component=AsyncTCPWriter.9901, fps=14.89, bytes_per_packet=4731763, aggregate_packets=600
+stats: seq=147, ts=57658.427, component=PointCloudRenderer#3, fps=14.88, latency_ms=70, latency_max_ms=116, fps_display=54.14, points_per_cloud=295733, points_per_display=295677, avg_pointsize=0.002, renderer_queue_ms=0, framenumber=3524,  timestamp=1707922858347
+stats: seq=148, ts=57658.459, component=AsyncTCPPCReader#3.0, fps=14.99, fps_dropped=0.00, receive_ms=7, receive_bandwidth=80751369, bytes_per_packet=5387786, aggregate_packets=586
+stats: seq=149, ts=57658.463, component=AsyncPCNullDecoder#1, fps=14.99, fps_dropped=0.00, points_per_cloud=336734, decoder_queue_ms=0, decoder_ms=4.41, decoded_queue_ms=1, aggregate_packets=586
+stats: seq=150, ts=57658.480, component=AsyncAutoReader, fps=14.89, points_per_cloud=295803, avg_pointsize=0, fps_dropped=0.00, selfdrop_fps=0.00,  encoder_queue_ms=0, downsample_ms=0.00, pc_timestamp=1707922858414, aggregate_packets=643
+stats: seq=151, ts=57658.485, component=AsyncPCNullEncoder, fps=14.89, fps_dropped=0.00, encoder_ms=2.79, transmitter_queue_ms=0, aggregate_packets=643
+stats: seq=152, ts=57658.576, component=PointCloudRenderer#4, fps=14.94, latency_ms=81, latency_max_ms=171, fps_display=54.04, points_per_cloud=336595, points_per_display=336606, avg_pointsize=0.002, renderer_queue_ms=0, framenumber=3531,  timestamp=1707922858436
+stats: seq=153, ts=57659.468, component=AsyncTCPReader#2.0, fps=49.85, fps_dropped=0.00, receive_ms=0, receive_bandwidth=191415, bytes_per_packet=3840, aggregate_packets=2004
+stats: seq=154, ts=57668.349, component=AsyncVoiceReader, fps=50.061, record_latency_ms=13, output_queue_ms=23, fps_dropped=0, samples_per_frame=960
+stats: seq=155, ts=57668.349, component=AsyncTCPWriter.9900, fps=50.07, bytes_per_packet=3840, aggregate_packets=2508
+stats: seq=156, ts=57668.350, component=AsyncPointCloudPreparer#5, fps=54.06, fps_dropped=0.00, fps_nodata=39.07, aggregate_packets=790
+stats: seq=157, ts=57668.363, component=AsyncVoicePreparer#4, fps=50.49, fps_dropped=0.00, fps_nodata=0.50, samples_per_frame=960
+stats: seq=158, ts=57668.365, component=AsyncPointCloudPreparer#6, fps=54.08, fps_dropped=0.00, fps_nodata=39.29, aggregate_packets=732
+stats: seq=159, ts=57668.371, component=VoiceReceiver#1, latency_ms=96, fps_output=46.95, fps_zero_inserted=0.10, zero_inserted_percentage=0.04, zero_inserted_samples=192, voicereceiver_queue_ms=49, samples_per_frame=1024, output_freq=48073.98, timestamp=1707922868273
+stats: seq=160, ts=57668.427, component=PointCloudRenderer#3, fps=14.90, latency_ms=70, latency_max_ms=104, fps_display=53.80, points_per_cloud=299119, points_per_display=299004, avg_pointsize=0.002, renderer_queue_ms=0, framenumber=4062,  timestamp=1707922868333
+stats: seq=161, ts=57668.477, component=AsyncTCPWriter.9901, fps=14.91, bytes_per_packet=4786570, aggregate_packets=750
+stats: seq=162, ts=57668.481, component=AsyncTCPPCReader#3.0, fps=14.77, fps_dropped=0.00, receive_ms=7, receive_bandwidth=79379948, bytes_per_packet=5375244, aggregate_packets=734
+stats: seq=163, ts=57668.486, component=AsyncPCNullDecoder#1, fps=14.77, fps_dropped=0.00, points_per_cloud=335950, decoder_queue_ms=0, decoder_ms=4.76, decoded_queue_ms=0, aggregate_packets=734
+stats: seq=164, ts=57668.537, component=AsyncAutoReader, fps=14.92, points_per_cloud=299245, avg_pointsize=0, fps_dropped=0.00, selfdrop_fps=0.00,  encoder_queue_ms=0, downsample_ms=0.00, pc_timestamp=1707922868468, aggregate_packets=793
+stats: seq=165, ts=57668.543, component=AsyncPCNullEncoder, fps=14.91, fps_dropped=0.00, encoder_ms=2.59, transmitter_queue_ms=0, aggregate_packets=793
+stats: seq=166, ts=57668.646, component=PointCloudRenderer#4, fps=14.80, latency_ms=65, latency_max_ms=178, fps_display=53.92, points_per_cloud=336089, points_per_display=335961, avg_pointsize=0.002, renderer_queue_ms=0, framenumber=4074,  timestamp=1707922868516
+stats: seq=167, ts=57669.473, component=AsyncTCPReader#2.0, fps=49.97, fps_dropped=0.00, receive_ms=0, receive_bandwidth=191888, bytes_per_packet=3840, aggregate_packets=2504
+stats: seq=168, ts=57678.370, component=AsyncVoicePreparer#4, fps=51.07, fps_dropped=0.00, fps_nodata=1.40, samples_per_frame=960
+stats: seq=169, ts=57678.374, component=AsyncVoiceReader, fps=49.874, record_latency_ms=14, output_queue_ms=24, fps_dropped=0, samples_per_frame=960
+stats: seq=170, ts=57678.374, component=AsyncTCPWriter.9900, fps=49.88, bytes_per_packet=3840, aggregate_packets=3008
+stats: seq=171, ts=57678.375, component=AsyncPointCloudPreparer#5, fps=54.56, fps_dropped=0.00, fps_nodata=39.80, aggregate_packets=938
+stats: seq=172, ts=57678.376, component=AsyncPointCloudPreparer#6, fps=54.54, fps_dropped=0.00, fps_nodata=39.76, aggregate_packets=880
+stats: seq=173, ts=57678.390, component=VoiceReceiver#1, latency_ms=97, fps_output=46.81, fps_zero_inserted=0.50, zero_inserted_percentage=0.36, zero_inserted_samples=1728, voicereceiver_queue_ms=50, samples_per_frame=1024, output_freq=47934.77, timestamp=1707922878285
+stats: seq=174, ts=57678.428, component=PointCloudRenderer#3, fps=14.80, latency_ms=69, latency_max_ms=105, fps_display=54.59, points_per_cloud=302804, points_per_display=302739, avg_pointsize=0.002, renderer_queue_ms=0, framenumber=4608,  timestamp=1707922878346
+stats: seq=175, ts=57678.488, component=AsyncTCPWriter.9901, fps=14.78, bytes_per_packet=4844952, aggregate_packets=898
+stats: seq=176, ts=57678.526, component=AsyncTCPPCReader#3.0, fps=14.83, fps_dropped=0.00, receive_ms=7, receive_bandwidth=79731011, bytes_per_packet=5375471, aggregate_packets=883
+stats: seq=177, ts=57678.530, component=AsyncPCNullDecoder#1, fps=14.83, fps_dropped=0.00, points_per_cloud=335964, decoder_queue_ms=0, decoder_ms=4.38, decoded_queue_ms=0, aggregate_packets=883
+stats: seq=178, ts=57678.552, component=AsyncAutoReader, fps=14.78, points_per_cloud=302808, avg_pointsize=0, fps_dropped=0.00, selfdrop_fps=0.00,  encoder_queue_ms=0, downsample_ms=0.00, pc_timestamp=1707922878484, aggregate_packets=941
+stats: seq=179, ts=57678.556, component=AsyncPCNullEncoder, fps=14.78, fps_dropped=0.00, encoder_ms=2.89, transmitter_queue_ms=0, aggregate_packets=941
+stats: seq=180, ts=57678.676, component=PointCloudRenderer#4, fps=14.85, latency_ms=81, latency_max_ms=169, fps_display=54.53, points_per_cloud=336113, points_per_display=336047, avg_pointsize=0.002, renderer_queue_ms=0, framenumber=4621,  timestamp=1707922878569
+stats: seq=181, ts=57679.511, component=AsyncTCPReader#2.0, fps=49.81, fps_dropped=0.00, receive_ms=0, receive_bandwidth=191284, bytes_per_packet=3840, aggregate_packets=3004
+stats: seq=182, ts=57688.374, component=AsyncVoicePreparer#4, fps=50.38, fps_dropped=0.00, fps_nodata=0.40, samples_per_frame=960
+stats: seq=183, ts=57688.376, component=AsyncPointCloudPreparer#6, fps=54.40, fps_dropped=0.00, fps_nodata=39.50, aggregate_packets=1029
+stats: seq=184, ts=57688.388, component=AsyncVoiceReader, fps=50.127, record_latency_ms=13, output_queue_ms=24, fps_dropped=0, samples_per_frame=960
+stats: seq=185, ts=57688.388, component=AsyncTCPWriter.9900, fps=50.13, bytes_per_packet=3840, aggregate_packets=3510
+stats: seq=186, ts=57688.388, component=AsyncPointCloudPreparer#5, fps=54.43, fps_dropped=0.00, fps_nodata=39.55, aggregate_packets=1087
+stats: seq=187, ts=57688.391, component=VoiceReceiver#1, latency_ms=102, fps_output=46.80, fps_zero_inserted=0.10, zero_inserted_percentage=0.08, zero_inserted_samples=384, voicereceiver_queue_ms=54, samples_per_frame=1024, output_freq=47918.68, timestamp=1707922888264
+stats: seq=188, ts=57688.443, component=PointCloudRenderer#3, fps=14.88, latency_ms=70, latency_max_ms=108, fps_display=54.42, points_per_cloud=301568, points_per_display=301614, avg_pointsize=0.002, renderer_queue_ms=0, framenumber=5153,  timestamp=1707922888351
+stats: seq=189, ts=57688.490, component=AsyncTCPWriter.9901, fps=14.90, bytes_per_packet=4823719, aggregate_packets=1047
+stats: seq=190, ts=57688.547, component=AsyncTCPPCReader#3.0, fps=14.87, fps_dropped=0.00, receive_ms=7, receive_bandwidth=78891593, bytes_per_packet=5305651, aggregate_packets=1032
+stats: seq=191, ts=57688.553, component=AsyncPCNullDecoder#1, fps=14.87, fps_dropped=0.00, points_per_cloud=331601, decoder_queue_ms=0, decoder_ms=4.36, decoded_queue_ms=0, aggregate_packets=1032
+stats: seq=192, ts=57688.555, component=AsyncAutoReader, fps=14.90, points_per_cloud=301349, avg_pointsize=0, fps_dropped=0.00, selfdrop_fps=0.00,  encoder_queue_ms=0, downsample_ms=0.00, pc_timestamp=1707922888486, aggregate_packets=1090
+stats: seq=193, ts=57688.559, component=AsyncPCNullEncoder, fps=14.89, fps_dropped=0.00, encoder_ms=2.77, transmitter_queue_ms=0, aggregate_packets=1090
+stats: seq=194, ts=57688.679, component=PointCloudRenderer#4, fps=14.90, latency_ms=57, latency_max_ms=171, fps_display=54.59, points_per_cloud=331296, points_per_display=331529, avg_pointsize=0.002, renderer_queue_ms=1, framenumber=5167,  timestamp=1707922888618
+stats: seq=195, ts=57689.525, component=AsyncTCPReader#2.0, fps=50.13, fps_dropped=0.00, receive_ms=0, receive_bandwidth=192491, bytes_per_packet=3840, aggregate_packets=3506
+stats: seq=196, ts=57695.038, component=NetworkTrigger, name=EndOfExerciseImplementation, sessionId=6ea4f7f8-c0e5-4449-81b4-8689cf5825d6
+stats: seq=197, ts=57696.284, component=PointCloudPipelineOther#3, finished=1
+stats: seq=198, ts=57698.591, component=PointCloudPipelineSelf#4, finished=1
+stats: seq=199, ts=57698.638, component=VqegController, scene=Vqeg,confederate=1
+stats: seq=200, ts=57699.692, component=SessionPlayerManager, self=False, userId=cd8e6c27-c108-4378-8a77-ed1957644e03, userName=topinambur
+stats: seq=201, ts=57699.692, component=PointCloudPipelineOther#5, self=0, userid=cd8e6c27-c108-4378-8a77-ed1957644e03
+stats: seq=202, ts=57699.737, component=AsyncTCPReader, pull_thread=AsyncTCPReader#4.0
+stats: seq=203, ts=57699.738, component=AsyncTCPReader#4.0, connected=0, destination=192.168.126.4:9900
+stats: seq=204, ts=57699.738, component=VoiceReceiver#2, encoded=False, reader=AsyncTCPReader#4, decoder=none, preparer=AsyncVoicePreparer#7, synchronizer=none
+stats: seq=205, ts=57699.749, component=SessionPlayerManager, self=True, userId=6181c47e-847b-4a3b-8059-292e59eeee17, userName=fiddlehead
+stats: seq=206, ts=57699.750, component=PointCloudPipelineSelf#6, self=1, userid=6181c47e-847b-4a3b-8059-292e59eeee17, representation=0
+stats: seq=207, ts=57699.751, component=PointCloudPipelineSelf#6, preparer=AsyncPointCloudPreparer#8, renderer=PointCloudRenderer#5
+stats: seq=208, ts=57702.462, component=AsyncTCPWriter, pusher=AsyncTCPWriter.9901, stream=0, port=9901
+stats: seq=209, ts=57702.463, component=PointCloudPipelineSelf#6, reader=AsyncAutoReader, encoder=AsyncPCNullEncoder, writer=AsyncTCPWriter, ntile=1, nquality=1, nStream=1
+stats: seq=210, ts=57702.463, component=AsyncTCPWriter.9901, open=0, listen=1
+stats: seq=211, ts=57702.766, component=AsyncTCPReader#4.0, connected=0, destination=192.168.126.4:9900
+stats: seq=212, ts=57702.991, component=AsyncAutoReader, fps=0.07, points_per_cloud=281161, avg_pointsize=0, fps_dropped=0.00, selfdrop_fps=0.00,  encoder_queue_ms=0, downsample_ms=0.00, pc_timestamp=1707922902968, aggregate_packets=1
+stats: seq=213, ts=57702.993, component=AsyncPCNullEncoder, fps=0.07, fps_dropped=0.00, encoder_ms=0.00, transmitter_queue_ms=0, aggregate_packets=1
+stats: seq=214, ts=57703.480, component=AsyncTCPWriter, pusher=AsyncTCPWriter.9900, stream=0, port=9900
+stats: seq=215, ts=57703.481, component=VoiceSender, encoded=False, samples_per_buffer=960, reader=AsyncVoiceReader, encoder=none, writer=AsyncTCPWriter
+stats: seq=216, ts=57703.481, component=AsyncTCPWriter.9900, open=0, listen=1
+stats: seq=217, ts=57703.481, component=AsyncVoicePreparer#7, fps=0.07, fps_dropped=0.00, fps_nodata=0.07, samples_per_frame=0
+stats: seq=218, ts=57703.487, component=AsyncPointCloudPreparer#8, fps=0.07, fps_dropped=0.00, fps_nodata=0.00, aggregate_packets=1
+stats: seq=219, ts=57703.489, component=HeadRotationPositionSave, logFile=C:/Users/vrtogether/AppData/LocalLow/dis_cwi_nl/VR2Gather/Log_20240214160143.txt,millis=57703488.0924
+stats: seq=220, ts=57703.526, component=AsyncVoiceReader, fps=0.071, record_latency_ms=0, output_queue_ms=0, fps_dropped=0, samples_per_frame=960
+stats: seq=221, ts=57703.532, component=VoiceReceiver#2, latency_ms=0, fps_output=0.07, fps_zero_inserted=0.07, zero_inserted_percentage=100.00, zero_inserted_samples=1024, voicereceiver_queue_ms=0, samples_per_frame=1024, output_freq=73.10, timestamp=1707922903532
+stats: seq=222, ts=57704.793, component=AsyncTCPReader#4.0, connected=1, destination=192.168.126.4:9900
+stats: seq=223, ts=57705.797, component=AsyncTCPWriter.9900, open=1, remote=192.168.126.4:59300
+stats: seq=224, ts=57705.828, component=AsyncTCPWriter.9901, open=1, remote=192.168.126.4:59301
+stats: seq=225, ts=57705.828, component=AsyncTCPWriter.9901, fps=0.06, bytes_per_packet=4431616, aggregate_packets=1
+stats: seq=226, ts=57705.849, component=PointCloudPipelineOther#5, preparer=AsyncPointCloudPreparer#9, renderer=PointCloudRenderer#6, tile=0
+stats: seq=227, ts=57705.850, component=PointCloudPipelineOther#5, tile=0, tile_number=0, decoder=AsyncPCNullDecoder#2
+stats: seq=228, ts=57705.851, component=AsyncTCPPCReader, pull_thread=AsyncTCPPCReader#5.0, tile=0
+stats: seq=229, ts=57705.852, component=PointCloudPipelineOther#5, reader=AsyncTCPPCReader#5, synchronizer=none
+stats: seq=230, ts=57705.852, component=AsyncTCPPCReader#5.0, connected=0, destination=192.168.126.4:9901
+stats: seq=231, ts=57705.853, component=AsyncTCPPCReader#5.0, connected=1, destination=192.168.126.4:9901
+stats: seq=232, ts=57706.880, component=AsyncTCPReader#4.0, fps=0.06, fps_dropped=0.00, receive_ms=0, receive_bandwidth=221, bytes_per_packet=3840, aggregate_packets=1
+stats: seq=233, ts=57713.012, component=AsyncTCPWriter.9900, fps=36.43, bytes_per_packet=3840, aggregate_packets=365
+stats: seq=234, ts=57713.018, component=AsyncAutoReader, fps=14.96, points_per_cloud=278982, avg_pointsize=0, fps_dropped=0.00, selfdrop_fps=0.00,  encoder_queue_ms=0, downsample_ms=0.00, pc_timestamp=1707922912952, aggregate_packets=151
+stats: seq=235, ts=57713.023, component=AsyncPCNullEncoder, fps=14.96, fps_dropped=4.29, encoder_ms=2.50, transmitter_queue_ms=18.0733333333333, aggregate_packets=151
+stats: seq=236, ts=57713.484, component=AsyncVoicePreparer#7, fps=71.08, fps_dropped=0.00, fps_nodata=38.49, samples_per_frame=960
+stats: seq=237, ts=57713.489, component=AsyncPointCloudPreparer#8, fps=54.89, fps_dropped=0.00, fps_nodata=39.29, aggregate_packets=157
+stats: seq=238, ts=57713.502, component=PointCloudRenderer#5, fps=15.77, latency_ms=69, latency_max_ms=529, fps_display=54.99, points_per_cloud=279576, points_per_display=279395, avg_pointsize=0.002, renderer_queue_ms=19, framenumber=6131,  timestamp=1707922913422
+stats: seq=239, ts=57713.528, component=AsyncVoiceReader, fps=49.899, record_latency_ms=13, output_queue_ms=36, fps_dropped=10.9996913486608, samples_per_frame=960
+stats: seq=240, ts=57713.535, component=VoiceReceiver#2, latency_ms=70, fps_output=46.89, fps_zero_inserted=16.70, zero_inserted_percentage=34.51, zero_inserted_samples=165760, voicereceiver_queue_ms=39, samples_per_frame=1024, output_freq=48012.06, timestamp=1707922913419
+stats: seq=241, ts=57715.835, component=AsyncTCPPCReader#5.0, fps=13.59, fps_dropped=0.00, receive_ms=8, receive_bandwidth=75556083, bytes_per_packet=5559655, aggregate_packets=136
+stats: seq=242, ts=57715.838, component=AsyncPointCloudPreparer#9, fps=53.15, fps_dropped=0.00, fps_nodata=39.66, aggregate_packets=135
+stats: seq=243, ts=57715.840, component=AsyncPCNullDecoder#2, fps=13.58, fps_dropped=0.00, points_per_cloud=347476, decoder_queue_ms=0, decoder_ms=4.75, decoded_queue_ms=0, aggregate_packets=136
+stats: seq=244, ts=57715.852, component=AsyncTCPWriter.9901, fps=14.86, bytes_per_packet=4631278, aggregate_packets=150
+stats: seq=245, ts=57715.869, component=PointCloudRenderer#6, fps=13.54, latency_ms=94, latency_max_ms=1348, fps_display=53.08, points_per_cloud=347476, points_per_display=345519, avg_pointsize=0.002, renderer_queue_ms=0, framenumber=6257,  timestamp=1707922915743
+stats: seq=246, ts=57716.887, component=AsyncTCPReader#4.0, fps=49.77, fps_dropped=0.00, receive_ms=0, receive_bandwidth=191104, bytes_per_packet=3840, aggregate_packets=499
+stats: seq=247, ts=57721.877, component=NetworkTrigger, name=QuestionaireManager, sessionId=6ea4f7f8-c0e5-4449-81b4-8689cf5825d6
+stats: seq=248, ts=57723.035, component=AsyncTCPWriter.9900, fps=49.99, bytes_per_packet=3840, aggregate_packets=866
+stats: seq=249, ts=57723.056, component=AsyncAutoReader, fps=14.84, points_per_cloud=307451, avg_pointsize=0, fps_dropped=0.00, selfdrop_fps=0.00,  encoder_queue_ms=0, downsample_ms=0.00, pc_timestamp=1707922922989, aggregate_packets=300
+stats: seq=250, ts=57723.060, component=AsyncPCNullEncoder, fps=14.85, fps_dropped=0.00, encoder_ms=2.74, transmitter_queue_ms=0, aggregate_packets=300
+stats: seq=251, ts=57723.192, component=PointCloudPipelineOther#5, finished=1
+stats: seq=252, ts=57725.531, component=PointCloudPipelineSelf#6, finished=1
+stats: seq=253, ts=57725.562, component=VqegController, scene=ExerciseScene,confederate=1
+stats: seq=254, ts=57726.703, component=SessionPlayerManager, self=False, userId=cd8e6c27-c108-4378-8a77-ed1957644e03, userName=topinambur
+stats: seq=255, ts=57726.703, component=PointCloudPipelineOther#7, self=0, userid=cd8e6c27-c108-4378-8a77-ed1957644e03
+stats: seq=256, ts=57726.744, component=AsyncTCPReader, pull_thread=AsyncTCPReader#6.0
+stats: seq=257, ts=57726.745, component=AsyncTCPReader#6.0, connected=0, destination=192.168.126.4:9900
+stats: seq=258, ts=57726.745, component=VoiceReceiver#3, encoded=False, reader=AsyncTCPReader#6, decoder=none, preparer=AsyncVoicePreparer#10, synchronizer=none
+stats: seq=259, ts=57726.758, component=SessionPlayerManager, self=True, userId=6181c47e-847b-4a3b-8059-292e59eeee17, userName=fiddlehead
+stats: seq=260, ts=57726.758, component=PointCloudPipelineSelf#8, self=1, userid=6181c47e-847b-4a3b-8059-292e59eeee17, representation=0
+stats: seq=261, ts=57726.759, component=PointCloudPipelineSelf#8, preparer=AsyncPointCloudPreparer#11, renderer=PointCloudRenderer#7
+stats: seq=262, ts=57729.476, component=AsyncTCPWriter, pusher=AsyncTCPWriter.9901, stream=0, port=9901
+stats: seq=263, ts=57729.476, component=PointCloudPipelineSelf#8, reader=AsyncAutoReader, encoder=AsyncPCNullEncoder, writer=AsyncTCPWriter, ntile=1, nquality=1, nStream=1
+stats: seq=264, ts=57729.476, component=AsyncTCPWriter.9901, open=0, listen=1
+stats: seq=265, ts=57729.778, component=AsyncTCPReader#6.0, connected=0, destination=192.168.126.4:9900
+stats: seq=266, ts=57730.503, component=AsyncTCPWriter, pusher=AsyncTCPWriter.9900, stream=0, port=9900
+stats: seq=267, ts=57730.504, component=VoiceSender, encoded=False, samples_per_buffer=960, reader=AsyncVoiceReader, encoder=none, writer=AsyncTCPWriter
+stats: seq=268, ts=57730.504, component=AsyncTCPWriter.9900, open=0, listen=1
+stats: seq=269, ts=57730.508, component=HeadRotationPositionSave, logFile=C:/Users/vrtogether/AppData/LocalLow/dis_cwi_nl/VR2Gather/Log_20240214160210.txt,millis=57730507.5063
+stats: seq=270, ts=57732.798, component=AsyncTCPReader#6.0, connected=0, destination=192.168.126.4:9900
+stats: seq=271, ts=57732.798, component=AsyncTCPReader#6.0, connected=1, destination=192.168.126.4:9900
+stats: seq=272, ts=57732.947, component=AsyncTCPWriter.9900, open=1, remote=192.168.126.4:59305
+stats: seq=273, ts=57732.978, component=AsyncTCPWriter.9901, open=1, remote=192.168.126.4:59306
+stats: seq=274, ts=57732.999, component=PointCloudPipelineOther#7, preparer=AsyncPointCloudPreparer#12, renderer=PointCloudRenderer#8, tile=0
+stats: seq=275, ts=57733.000, component=PointCloudPipelineOther#7, tile=0, tile_number=0, decoder=AsyncPCNullDecoder#3
+stats: seq=276, ts=57733.001, component=AsyncTCPPCReader, pull_thread=AsyncTCPPCReader#7.0, tile=0
+stats: seq=277, ts=57733.001, component=PointCloudPipelineOther#7, reader=AsyncTCPPCReader#7, synchronizer=none
+stats: seq=278, ts=57733.002, component=AsyncTCPPCReader#7.0, connected=0, destination=192.168.126.4:9901
+stats: seq=279, ts=57733.002, component=AsyncTCPPCReader#7.0, connected=1, destination=192.168.126.4:9901
+stats: seq=280, ts=57733.063, component=AsyncVoiceReader, fps=12.596, record_latency_ms=13, output_queue_ms=74, fps_dropped=11.5964287637979, samples_per_frame=960
+stats: seq=281, ts=57733.063, component=AsyncTCPWriter.9900, fps=1.00, bytes_per_packet=3840, aggregate_packets=10
+stats: seq=282, ts=57733.064, component=AsyncVoicePreparer#10, fps=27.49, fps_dropped=0.00, fps_nodata=27.49, samples_per_frame=0
+stats: seq=283, ts=57733.064, component=AsyncPointCloudPreparer#11, fps=15.59, fps_dropped=0.00, fps_nodata=10.90, aggregate_packets=47
+stats: seq=284, ts=57733.064, component=AsyncPointCloudPreparer#12, fps=0.40, fps_dropped=0.00, fps_nodata=0.30, aggregate_packets=1
+stats: seq=285, ts=57733.067, component=VoiceReceiver#3, latency_ms=0, fps_output=11.99, fps_zero_inserted=11.99, zero_inserted_percentage=100.00, zero_inserted_samples=122880, voicereceiver_queue_ms=0, samples_per_frame=1024, output_freq=12278.74, timestamp=1707922933067
+stats: seq=286, ts=57733.085, component=AsyncAutoReader, fps=4.79, points_per_cloud=288205, avg_pointsize=0, fps_dropped=0.00, selfdrop_fps=0.00,  encoder_queue_ms=0, downsample_ms=0.00, pc_timestamp=1707922933019, aggregate_packets=48
+stats: seq=287, ts=57733.089, component=PointCloudRenderer#7, fps=4.79, latency_ms=69, latency_max_ms=524, fps_display=15.65, points_per_cloud=288205, points_per_display=290496, avg_pointsize=0.002, renderer_queue_ms=62, framenumber=6804,  timestamp=1707922933019
+stats: seq=288, ts=57733.091, component=AsyncPCNullEncoder, fps=4.79, fps_dropped=4.49, encoder_ms=1.85, transmitter_queue_ms=59.0833333333333, aggregate_packets=48
+stats: seq=289, ts=57733.091, component=AsyncTCPWriter.9901, fps=0.30, bytes_per_packet=4643440, aggregate_packets=3
+stats: seq=290, ts=57734.048, component=AsyncTCPPCReader#7.0, fps=0.18, fps_dropped=0.00, receive_ms=4, receive_bandwidth=992400, bytes_per_packet=5452232, aggregate_packets=2
+stats: seq=291, ts=57734.056, component=AsyncPCNullDecoder#3, fps=0.18, fps_dropped=0.00, points_per_cloud=340762, decoder_queue_ms=0, decoder_ms=5.00, decoded_queue_ms=0, aggregate_packets=2
+stats: seq=292, ts=57734.062, component=AsyncTCPReader#6.0, fps=0.09, fps_dropped=0.00, receive_ms=0, receive_bandwidth=349, bytes_per_packet=3840, aggregate_packets=1
+stats: seq=293, ts=57734.062, component=PointCloudRenderer#8, fps=0.18, latency_ms=493, latency_max_ms=1451, fps_display=5.54, points_per_cloud=340762, points_per_display=329114, avg_pointsize=0.002, renderer_queue_ms=0, framenumber=6860,  timestamp=1707922932611
+stats: seq=294, ts=57743.067, component=VoiceReceiver#3, latency_ms=92, fps_output=46.90, fps_zero_inserted=8.50, zero_inserted_percentage=16.56, zero_inserted_samples=79552, voicereceiver_queue_ms=33, samples_per_frame=1024, output_freq=48025.55, timestamp=1707922942896
+stats: seq=295, ts=57743.082, component=AsyncVoiceReader, fps=49.905, record_latency_ms=13, output_queue_ms=24, fps_dropped=0, samples_per_frame=960
+stats: seq=296, ts=57743.082, component=AsyncTCPWriter.9900, fps=49.91, bytes_per_packet=3840, aggregate_packets=510
+stats: seq=297, ts=57743.082, component=AsyncVoicePreparer#10, fps=62.59, fps_dropped=0.00, fps_nodata=20.76, samples_per_frame=960
+stats: seq=298, ts=57743.083, component=AsyncPointCloudPreparer#11, fps=53.70, fps_dropped=0.00, fps_nodata=38.93, aggregate_packets=195
+stats: seq=299, ts=57743.085, component=AsyncPointCloudPreparer#12, fps=53.69, fps_dropped=0.00, fps_nodata=40.61, aggregate_packets=132
+stats: seq=300, ts=57743.125, component=AsyncAutoReader, fps=14.74, points_per_cloud=280557, avg_pointsize=0, fps_dropped=0.00, selfdrop_fps=0.00,  encoder_queue_ms=0, downsample_ms=0.00, pc_timestamp=1707922943057, aggregate_packets=196
+stats: seq=301, ts=57743.129, component=AsyncTCPWriter.9901, fps=14.74, bytes_per_packet=4488946, aggregate_packets=151
+stats: seq=302, ts=57743.129, component=AsyncPCNullEncoder, fps=14.74, fps_dropped=0.00, encoder_ms=2.33, transmitter_queue_ms=0, aggregate_packets=196
+stats: seq=303, ts=57743.129, component=PointCloudRenderer#7, fps=14.74, latency_ms=69, latency_max_ms=111, fps_display=53.68, points_per_cloud=280557, points_per_display=280607, avg_pointsize=0.002, renderer_queue_ms=0, framenumber=7343,  timestamp=1707922943057
+stats: seq=304, ts=57744.302, component=AsyncTCPReader#6.0, fps=44.24, fps_dropped=0.00, receive_ms=0, receive_bandwidth=169876, bytes_per_packet=3840, aggregate_packets=454
+stats: seq=305, ts=57744.304, component=AsyncTCPPCReader#7.0, fps=13.16, fps_dropped=0.00, receive_ms=8, receive_bandwidth=68763445, bytes_per_packet=5224123, aggregate_packets=137
+stats: seq=306, ts=57744.304, component=AsyncPCNullDecoder#3, fps=13.17, fps_dropped=0.00, points_per_cloud=326505, decoder_queue_ms=0, decoder_ms=4.35, decoded_queue_ms=2, aggregate_packets=137
+stats: seq=307, ts=57744.308, component=PointCloudRenderer#8, fps=13.08, latency_ms=91, latency_max_ms=1145, fps_display=48.12, points_per_cloud=328923, points_per_display=329927, avg_pointsize=0.002, renderer_queue_ms=2, framenumber=7353,  timestamp=1707922943495
+stats: seq=308, ts=57753.068, component=VoiceReceiver#3, latency_ms=185, fps_output=46.89, fps_zero_inserted=20.50, zero_inserted_percentage=39.65, zero_inserted_samples=190400, voicereceiver_queue_ms=43, samples_per_frame=1024, output_freq=48019.84, timestamp=1707922952886
+stats: seq=309, ts=57753.089, component=AsyncVoicePreparer#10, fps=51.96, fps_dropped=0.00, fps_nodata=21.78, samples_per_frame=960
+stats: seq=310, ts=57753.252, component=AsyncVoiceReader, fps=48.965, record_latency_ms=126, output_queue_ms=67, fps_dropped=18.8779449028693, samples_per_frame=960
+stats: seq=311, ts=57753.252, component=AsyncTCPWriter.9900, fps=30.09, bytes_per_packet=3840, aggregate_packets=816
+stats: seq=312, ts=57753.253, component=AsyncAutoReader, fps=5.33, points_per_cloud=158613, avg_pointsize=0, fps_dropped=0.00, selfdrop_fps=0.00,  encoder_queue_ms=0, downsample_ms=0.00, pc_timestamp=1707922952738, aggregate_packets=250
+stats: seq=313, ts=57753.253, component=AsyncPointCloudPreparer#11, fps=4.52, fps_dropped=0.00, fps_nodata=0.59, aggregate_packets=235
+stats: seq=314, ts=57753.253, component=PointCloudRenderer#7, fps=3.85, latency_ms=94, latency_max_ms=4519, fps_display=4.35, points_per_cloud=194085, points_per_display=205990, avg_pointsize=0.002, renderer_queue_ms=2746, framenumber=7387,  timestamp=1707922948833
+stats: seq=315, ts=57753.253, component=AsyncPointCloudPreparer#12, fps=4.52, fps_dropped=0.00, fps_nodata=0.79, aggregate_packets=170
+stats: seq=316, ts=57753.255, component=AsyncPCNullEncoder, fps=5.33, fps_dropped=0.00, encoder_ms=1.09, transmitter_queue_ms=0, aggregate_packets=250
+stats: seq=317, ts=57753.255, component=AsyncTCPWriter.9901, fps=5.33, bytes_per_packet=2537850, aggregate_packets=205
+stats: seq=318, ts=57754.311, component=AsyncTCPReader#6.0, fps=30.57, fps_dropped=0.00, receive_ms=0, receive_bandwidth=117400, bytes_per_packet=3840, aggregate_packets=760
+stats: seq=319, ts=57754.322, component=PointCloudRenderer#8, fps=3.79, latency_ms=803, latency_max_ms=837, fps_display=3.79, points_per_cloud=65, points_per_display=65, avg_pointsize=0.002, renderer_queue_ms=6, framenumber=7391,  timestamp=1707922953493
+stats: seq=320, ts=57754.368, component=AsyncTCPPCReader#7.0, fps=3.78, fps_dropped=0.00, receive_ms=49, receive_bandwidth=120, bytes_per_packet=32, aggregate_packets=175
+stats: seq=321, ts=57754.368, component=AsyncPCNullDecoder#3, fps=3.78, fps_dropped=0.00, points_per_cloud=0, decoder_queue_ms=0, decoder_ms=0.00, decoded_queue_ms=6, aggregate_packets=175
+stats: seq=322, ts=57755.191, component=VRTInitializer, quitting=1
+stats: seq=323, ts=57756.185, component=PointCloudPipelineOther#7, finished=1
+stats: seq=324, ts=57758.486, component=PointCloudPipelineSelf#8, finished=1
+stats: seq=325, ts=57758.488, component=OrchestratorController, stopping=1, sessionId=6ea4f7f8-c0e5-4449-81b4-8689cf5825d6
