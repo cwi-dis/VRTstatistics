@@ -1,0 +1,17 @@
+{
+    "sap.local": {
+        "statPath": "Library/Application\\ Support/dis_cwi_nl/VR2Gather/VQEG_Experiment.txt",
+        "logPath": "Library/Logs/dis_cwi_nl/VR2Gather/Player.log",
+        "exePath": "src/VRTogether/VR2Gather/VRTApp-Development-built.app/Contents/MacOS/VRTApp-Development",
+        "user": "jack",
+        "useSsh": true
+    },
+    "beelzebub.local": {
+        "statPath": "AppData/LocalLow/dis_cwi_nl/VR2Gather/VQEG_Experiment.txt",
+        "logPath": "AppData/LocalLow/dis_cwi_nl/VR2Gather/Player.log",
+        "exePath": "C:/Users/dis/VRTogether/VR2Gather/VRTApp-Development-built/VRTApp-Development.exe",
+        "user": "dis",
+        "host": "beelzebub.local",
+        "useSsh": true
+    }
+}
