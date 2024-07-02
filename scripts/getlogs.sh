@@ -5,26 +5,29 @@ set -e
 # Expects a .venv python virtualenv in the scripts directory
 #
 # CWI
-#SENDER_SSH_ID=vrtogether@vrbig.local
-#SENDER_SSH_ID=vr-together@vrsmall.local
-#RECEIVER_SSH_ID=vrtogether@scallion.local
-# Jack home
+SENDER_SSH_ID=dis@fiddlehead.local
+RECEIVER_SSH_ID=dis@topinambur.local
+SENDER_STATS_PATH="AppData/LocalLow/dis_cwi_nl/VR2Gather/VQEG_Experiment.txt"
+RECEIVER_STATS_PATH="AppData/LocalLow/dis_cwi_nl/VR2Gather/VQEG_Experiment.txt"
+# Jack work overrides for testing
 SENDER_SSH_ID=vrtogether@vrtiny.local
-RECEIVER_SSH_ID=dis@valkenburg-win10.local
+RECEIVER_SSH_ID=jack@flauwte.local
+RECEIVER_STATS_PATH="Library/Application Support/dis_cwi_nl/VR2Gather/VQEG_Experiment.txt"
 
 # Find script directory and python
 scriptdir=`dirname $0`
-scriptdir=`(cd $scriptdir ; pwd)`
-#if [ -f $scriptdir/.venv/bin/activate ]; then
-#	. $scriptdir/.venv/bin/activate
+topdir=`dirname "${scriptdir}"`
+topdir=`(cd "$topdir" ; pwd)`
+#if [ -f $topdir/.venv/bin/activate ]; then
+#	. $topdir/.venv/bin/activate
 #else
-#	. $scriptdir/.venv/Scripts/activate
+#	. $topdir/.venv/Scripts/activate
 #fi
 
 set -x
 # Get datafiles
-scp ${SENDER_SSH_ID}:AppData/LocalLow/i2Cat/VRTogether/statistics.log sender.log
-scp ${RECEIVER_SSH_ID}:AppData/LocalLow/i2Cat/VRTogether/statistics.log receiver.log
+scp "${SENDER_SSH_ID}:${SENDER_STATS_PATH}" sender.log
+scp "${RECEIVER_SSH_ID}:${RECEIVER_STATS_PATH}" receiver.log
 # convert to json
 python $scriptdir/stats2json.py sender.log sender.json
 python $scriptdir/stats2json.py receiver.log receiver.json

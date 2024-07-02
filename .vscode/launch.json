@@ -5,26 +5,26 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: mmsys-analyze",
-            "type": "python",
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
             "request": "launch",
-            "program": "/Users/jack/src/VRTogether/mmsys-pipeline-measurements/mmsys-analyze.py",
+            "program": "${file}",
             "console": "integratedTerminal",
-            "cwd" : "/Users/jack/src/VRTogether/mmsys-pipeline-measurements/measurements/03-tcp-compressed-tiled"
+            "cwd" : "${workspaceFolder}/data"
         },
         {
-            "name": "Python: Module",
+            "name": "Python: Module ingest",
             "type": "python",
             "request": "launch",
-            "module": "VRTstatistics.scripts.plot",
+            "module": "VRTstatistics.scripts.ingest",
             "args": [
-                "-d",
-                "combined.json",
-                "--predicate",
-                "\"component_role\" in component and \"receiver.pc.renderer\" in component_role",
-                "points_per_cloud"
+                "--nolog",
+                "--norusage",
+                "--annotator", "latency",
+                "flauwte.local",
+                "vrtiny.local"
             ],
-            "cwd": "/Users/jack/src/VRTogether/stats-jitterbuf/tcp-loot-audiouncompressed-untiled-uncompressed-single-10fps-run"
+            "cwd" : "${workspaceFolder}/vqeg_data"
         }
     ]
 }

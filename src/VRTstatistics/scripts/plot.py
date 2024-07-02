@@ -2,7 +2,7 @@ import argparse
 import sys
 import matplotlib.pyplot as pyplot
 from ..datastore import DataStore
-from ..analyze import plot_simple
+from ..plots import plot_simple
 
 def main():
     parser = argparse.ArgumentParser(description="Plot datastore or CSV file")
