@@ -1,17 +1,17 @@
 import sys
-import urllib.parse
 import subprocess
 import requests
 import threading
 import socket
-from typing import Optional, List
+import json
+from typing import Optional, List, Any, cast, Union
 
 from .runnerconfig import defaultRunnerConfig
 
 __all__ = ["Runner", "RunnerServerPort"]
 
 RunnerServerPort = 5001
-RunnerArgs = dict
+RunnerArgs = dict[str, Any]
 
 
 class Runner:
@@ -22,29 +22,36 @@ class Runner:
     exePath: str
     exeArgs : List[str]
     useSsh : bool
+    running : Any
     verbose = True
-    runnerConfig = defaultRunnerConfig
+    runnerConfig : dict[str, dict[str, Union[str, bool]]] = defaultRunnerConfig
     mdnsWorkaround = True
 
     @classmethod
     def load_config(cls, filename : str) -> None:
-        assert False
+        cls.runnerConfig = json.load(open(filename))
 
     def __init__(self, machine: str, config: Optional[RunnerArgs] = None) -> None:
         self.host = machine
         if not config:
-            config = self.runnerConfig[self.host]
+            config = self.runnerConfig.get(self.host)
+            if not config:
+                raise RuntimeError(f"Host key '{self.host}' not found in VRTstatistics configuration")
         self.user = config["user"]
         if "host" in config:
             self.host = config["host"]
         if self.mdnsWorkaround and ".local" in self.host:
-            ip = socket.gethostbyname(self.host)
+            try:
+                ip = socket.gethostbyname(self.host)
+            except socket.gaierror:
+                print(f"Cannot lookup '{self.host}'")
+                raise
             if self.verbose:
                 print(f'+ lookup {self.host} -> {ip}')
                 self.host = ip
         self.statPath = config["statPath"]
         self.logPath = config["logPath"]
-        self.exePath = config.get("exePath")
+        self.exePath = cast(str, config.get("exePath"))
         self.exeArgs = config.get("exeArgs", [])
         self.useSsh = config.get("useSsh", False)
         self.running = None
@@ -82,21 +89,21 @@ class Runner:
         if self.verbose:
             print(f"- GET {url} filename={filename} size={len(result)}")
 
-    def put_file(self, filename : str, data : str) -> None:
+    def put_file(self, filename : str, data : str) -> str:
         if self.useSsh:
             raise RuntimeError("put_file not implemented over ssh")
         url = f"http://{self.host}:{RunnerServerPort}/putfile"
         if self.verbose:
             print(f"+ POST {url} filename={filename} data=...", file=sys.stderr)
-        data = {'filename' : filename, 'data' : data}
-        r = requests.post(url, json=data)
+        request_arg = {'filename' : filename, 'data' : data}
+        r = requests.post(url, json=request_arg)
         rv = r.json()
         if self.verbose:
             print(f'- POST {url} -> {rv}')
         return rv['fullpath']
 
     def run(self, additionalArgs : Optional[List[str]] = None) -> None:
-        assert not self.running
+        assert self.running == None
         if self.useSsh:
             self.running = self._run_ssh(additionalArgs)
         else:
@@ -104,7 +111,7 @@ class Runner:
             self.running.start()
 
     def wait(self) -> int:
-        assert self.running
+        assert self.running != None
         if self.useSsh:
             rv = self.running.wait()
         else:
