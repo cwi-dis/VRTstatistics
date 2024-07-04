@@ -22,3 +22,10 @@ Follow the steps here to try it.
 
 ### Running a test
 
+- Ensure the test machines have `VRTstatistics-runserver` running. Ensure they don't have too many other applications running that could influence performance. Specifically: you should probably not run Remote Desktop or anything like that.
+- On the controlling machine, create a directory to store the results. Something like `results-yymmdd-hhmmss`.
+- On the controlling machine, start the session with something like
+
+```
+VRTstatistics-ingest --destdir results-20240604-1330/ --vrtconfig config.json --config VRTstatistics-config.json --run flauwte.local vrtiny.local
+```
