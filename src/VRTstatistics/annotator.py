@@ -163,7 +163,7 @@ class LatencySenderAnnotator(Annotator):
         self.send_voice_encoder = None
         self.send_voice_writer = None
         try:
-            r = self.datastore.find_first_record('"VoiceSender" in component', "sender voice pipeline")
+            r = self.datastore.find_first_record('"VoicePipelineSelf" in component', "sender voice pipeline")
             self.send_voice_pipeline = r['component']
             send_voice_writer_umbrella = r['writer']
             self.send_voice_grabber = r["reader"]
@@ -222,7 +222,7 @@ class LatencyReceiverAnnotator(Annotator):
         #
         # Find names of receiver side pc components
         #
-        r = self.datastore.find_first_record('"PointCloudPipeline" in component and self == 0', "receiver pc pipeline")
+        r = self.datastore.find_first_record('"PointCloudPipelineOther" in component and "self" in record and self == 0', "receiver pc pipeline")
         self.recv_pc_pipeline = r['component']
         r = self.datastore.find_first_record(f'component == "{self.recv_pc_pipeline}" and "reader" in record', "receiver pc reader umbrella")
         recv_pc_reader_umbrella = r["reader"]
@@ -263,7 +263,7 @@ class LatencyReceiverAnnotator(Annotator):
         self.recv_voice_preparer = None
         self.recv_voice_renderer = None
         try:
-            r = self.datastore.find_first_record('"VoiceReceiver" in component and "reader" in record', "receiver voice reader umbrella")
+            r = self.datastore.find_first_record('"VoicePipelineOther" in component and "reader" in record', "receiver voice reader umbrella")
             self.recv_voice_pipeline = r["component"]
             self.recv_voice_renderer = r["component"] # same
             self.recv_voice_preparer = r["preparer"]

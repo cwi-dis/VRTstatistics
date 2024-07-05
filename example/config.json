@@ -13,7 +13,7 @@
         "autoLogin": true,
         "autoCreate": false,
         "autoJoin": false,
-        "autoCreateForUser": "sap",
+        "autoCreateForUser": "flauwte",
         "sessionName": "vrtstatistics-test-session",
         "sessionScenario": "Pilot 0",
         "sessionTransportProtocol": "socketio",

@@ -33,7 +33,7 @@ This directory contains the files needed to gather some statistics from a two-ma
 - On the controlling machine, start the session with something like
 
 ```
-VRTstatistics-ingest --destdir results-20240704-2252/ --vrtconfig config.json --config VRTstatistics-config.json --run sap.local beelzebub.local
+VRTstatistics-ingest --destdir results-20240705-1155/ --vrtconfig config.json --config VRTstatistics-config.json --run --annotator latency flauwte.local vrtiny.local
 ```
 
 - This should run the session at the two test machines. For the first (or first few) runs it is probably a good idea to be able to see the screens of the test machines, allowing you to see what is happening.
@@ -57,13 +57,13 @@ There is also the file `combined.json` which contains all data from the previous
 This file can always we re-created from the logfiles by running 
 
 ```
-VRTstatistics-ingest --destdir results-20240704-2252/ --nofetch sap.local beelzebub.local
+VRTstatistics-ingest --destdir results-20240705-1155/ --nofetch flauwte.local vrtiny.local
 ```
 
 The results database can also be re-created using a different annotator, in case you are interested in different data from the raw data:
 
 ```
-VRTstatistics-ingest --destdir results-20240704-2252/ --nofetch --annotator latency sap.local beelzebub.local
+VRTstatistics-ingest --destdir results-20240705-1155/ --nofetch --annotator vqeg flauwte.local vrtiny.local
 ```
 
 ## Analysing the data
