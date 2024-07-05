@@ -28,8 +28,7 @@ def main():
         sys.exit(0)
     if args.config:
         Runner.load_config(args.config)
-    sender = Runner(args.sender)
-    receiver = Runner(args.receiver)
+
     if args.destdir:
         destdir = args.destdir
     else:
@@ -38,7 +37,15 @@ def main():
     if not os.path.exists(destdir):
         os.mkdir(destdir)
     
+    sender = None
+    receiver = None
+    if args.run or not args.nofetch:
+        sender = Runner(args.sender)
+        receiver = Runner(args.receiver)
+
     if args.run:
+        assert sender
+        assert receiver
         if args.vrtconfig:
             sender.run_with_config(args.vrtconfig)
             receiver.run_with_config(args.vrtconfig)
@@ -63,6 +70,8 @@ def main():
     receiver_logfile = os.path.join(destdir, "receiver-unity-log.txt")
    
     if not args.nofetch:
+        assert sender
+        assert receiver
         if not args.nolog:
             sender.get_log(sender_logfile)
             receiver.get_log(receiver_logfile)

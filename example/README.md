@@ -1,8 +1,8 @@
 # VRTstatistics example
 
-This directory contains the files needed to gather some statistics from a two-machine VR2Gather run.
+This directory contains the files needed to gather some statistics from a two-machine VR2Gather run. It also contains the output files from a test run, so you don't have to do an experiment if you only want to look at the data analysis tools. 
 
-Follow the steps here to try it.
+## Preparing and running an experiment
 
 ### Preparing the test machines
 
@@ -33,7 +33,7 @@ Follow the steps here to try it.
 - On the controlling machine, start the session with something like
 
 ```
-VRTstatistics-ingest --destdir results-20240604-1330/ --vrtconfig config.json --config VRTstatistics-config.json --run flauwte.local vrtiny.local
+VRTstatistics-ingest --destdir results-20240704-2252/ --vrtconfig config.json --config VRTstatistics-config.json --run sap.local beelzebub.local
 ```
 
 - This should run the session at the two test machines. For the first (or first few) runs it is probably a good idea to be able to see the screens of the test machines, allowing you to see what is happening.
@@ -48,6 +48,17 @@ For each of the two machines you should get:
 
 - the unity logs `sender-unity-log.txt` and `receiver-unity-log.txt`(which you need only for debugging in case things went wrong), 
 - the statistics files `sender.log` and `receiver.log` which contain most of the interesting data in raw form,
-- the resource usage files `sender-rusage.log` and `receiver-rusage.log`, which are in the same form as the statistics files, but measured completely different: they contain overall system CPU, bandwidth and memory usage data,
-- and finally the file `combined.json` which contains all data from the previous 4 files.
+- the resource usage files `sender-rusage.log` and `receiver-rusage.log`, which are in the same form as the statistics files, but measured completely different: they contain overall system CPU, bandwidth and memory usage data.
+
+### Results database
+
+There is also the file `combined.json` which contains all data from the previous 4 `.log` files. This is the database that will be used by the analysis tools, below.
+
+This file can always we re-created from the logfiles by running 
+
+```
+VRTstatistics-ingest --destdir results-20240704-2252/ --nofetch sap.local beelzebub.local
+```
+
+## Analysing the data
 
