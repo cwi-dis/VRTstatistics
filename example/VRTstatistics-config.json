@@ -1,12 +1,12 @@
 {
-    "sap.local": {
+    "flauwte.local": {
         "statPath": "/Users/jack/Library/Application Support/nl.cwi.dis.VR2Gather.VRTApp-Develop/VRTstatistics-example.txt",
         "logPath": "/Users/jack/Library/Logs/dis.cwi.nl/VR2Gather/Player.log",
         "exePath": "/Users/jack/src/VRTogether/VRTApp-Develop-built.app/Contents/MacOS/VR2Gather",
         "user": "jack",
         "useSsh": false
     },
-    "beelzebub.local": {
+    "vrtiny.local": {
         "statPath": "C:/Users/dis/AppData/LocalLow/dis_cwi_nl/VR2Gather/VRTstatistics-example.txt",
         "logPath": "C:/Users/dis/AppData/LocalLow/dis.cwi.nl/VR2Gather/Player.log",
         "exePath": "C:/Users/dis/VRTogether/VRTApp-Develop-built/VR2Gather.exe",

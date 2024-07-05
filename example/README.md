@@ -60,5 +60,11 @@ This file can always we re-created from the logfiles by running
 VRTstatistics-ingest --destdir results-20240704-2252/ --nofetch sap.local beelzebub.local
 ```
 
+The results database can also be re-created using a different annotator, in case you are interested in different data from the raw data:
+
+```
+VRTstatistics-ingest --destdir results-20240704-2252/ --nofetch --annotator latency sap.local beelzebub.local
+```
+
 ## Analysing the data
 
