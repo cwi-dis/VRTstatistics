@@ -16,13 +16,22 @@ python -m venv .venv
 pip install -e .
 ```
 
-For Windows `CMD` or `PowerShell`:
+For Windows `CMD`:
 
 ```
 python -m venv .venv
 .venv\Scripts\activate.bat
 pip install -e .
 ```
+
+For Windows PowerShell:
+
+```
+python -m venv .venv
+& .venv\Scripts\Activate.ps1
+pip install -e .
+```
+
 
 > Note: you should not try to use `bash` on Windows, this will not work because the `activate` script doesn't know how to modify `PATH` correctly.
 
