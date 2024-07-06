@@ -63,8 +63,17 @@ VRTstatistics-ingest --destdir results-20240705-1155/ --nofetch flauwte.local vr
 The results database can also be re-created using a different annotator, in case you are interested in different data from the raw data:
 
 ```
-VRTstatistics-ingest --destdir results-20240705-1155/ --nofetch --annotator vqeg flauwte.local vrtiny.local
+VRTstatistics-ingest --destdir results-20240705-1155/ --nofetch --annotator latency flauwte.local vrtiny.local
 ```
+
+The `latency` annotator will measure latencies of voice and point cloud data flowing from the `sender` to the `receiver` (so uni-directionally).
 
 ## Analysing the data
 
+A first quick way to visualize one-way latencies is the following command:
+
+```
+VRTstatistics-plot --datastore results-20240705-1155/combined.json --predicate '"latency_ms" in record and component_role' component_role=latency_ms
+```
+
+This will select all records that contain a `latency_ms` field, and also have a non-empty `component_role` field. These latencies are then plotted.

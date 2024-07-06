@@ -11,7 +11,7 @@ __all__ = ["DataStoreRecord", "DataStore", "DataStoreError", "combine"]
 class DataStoreError(RuntimeError):
     pass
 
-DataStoreRecord = dict
+DataStoreRecord = dict[str, Any]
 
 
 class DataStore:
