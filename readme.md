@@ -41,7 +41,13 @@ After having done this once, you can use the scripts and utilities from any dire
 . .../VRTstatistics/.venv/bin/activate
 ```
 
+## Getting started
+
+Check the `example` directory and the [example/README.md](example/README.md) file to get started.
+
 ## Gathering data
+
+> Note this section is incorrect at the moment (at least mostly incorrect). See the example.
 
 ### Creating your configuration
 
