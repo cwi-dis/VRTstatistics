@@ -5,12 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python Debugger: Attach using Process Id",
+            "type": "debugpy",
+            "request": "attach",
+            "processId": "${command:pickProcess}"
+        },
+        {
             "name": "Python Debugger: Current File",
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "cwd" : "${workspaceFolder}/data"
+            "cwd": "${workspaceFolder}/data"
         },
         {
             "name": "Python: Module ingest",
@@ -20,11 +26,12 @@
             "args": [
                 "--nolog",
                 "--norusage",
-                "--annotator", "latency",
+                "--annotator",
+                "latency",
                 "flauwte.local",
                 "vrtiny.local"
             ],
-            "cwd" : "${workspaceFolder}/vqeg_data"
+            "cwd": "${workspaceFolder}/vqeg_data"
         }
     ]
 }

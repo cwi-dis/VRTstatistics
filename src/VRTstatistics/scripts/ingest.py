@@ -20,9 +20,14 @@ def main():
     parser.add_argument("--nofetch", action="store_true", help="Don't fetch log file but reuse earlier ones")
     parser.add_argument("-c", "--config", metavar="FILE", help="Use host configuration from FILE (json)")
     parser.add_argument("--writeconfig", metavar="FILE", help="Save default host configuration to FILE (json) and exit")
+    parser.add_argument("--pausefordebug", action="store_true", help="Wait for a newline after start (so you can attach a debugger)")
     parser.add_argument("sender", help="Sender hostname")
     parser.add_argument("receiver", help="Receiver hostname")
     args = parser.parse_args()
+    if args.pausefordebug:
+        sys.stderr.write("Press return to continue - ")
+        sys.stderr.flush()
+        sys.stdin.readline()
     if args.writeconfig:
         json.dump(Runner.runnerConfig, open(args.writeconfig, "w"), indent=4)
         sys.exit(0)
