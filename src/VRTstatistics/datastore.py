@@ -1,12 +1,11 @@
 from __future__ import annotations
-from runpy import run_module
 import sys
 import json
-from typing import Optional, List, Callable, Any
+from typing import Optional, List, Callable, Any, cast, Dict
 from .parser import StatsFileParser
 import pandas
 
-__all__ = ["DataStoreRecord", "DataStore", "DataStoreError", "combine"]
+__all__ = ["DataStoreRecord", "DataStore", "DataStoreError"]
 
 class DataStoreError(RuntimeError):
     pass
@@ -17,7 +16,7 @@ DataStoreRecord = dict[str, Any]
 class DataStore:
     debug = True
 
-    filename: str
+    filename: Optional[str]
     data: list[DataStoreRecord]
     annotator : Any
    
@@ -40,6 +39,7 @@ class DataStore:
             raise DataStoreError(f"Don't know how to load {self.filename}")
 
     def load_json(self) -> None:
+        assert self.filename
         data = json.load(open(self.filename, "r"))
         metadata = None
         if type(data) != type([]):
@@ -50,20 +50,22 @@ class DataStore:
             from .annotator import deserialize
             self.annotator = deserialize(self, metadata)
 
-    def load_log(self, nocheck=False) -> None:
+    def load_log(self, nocheck : bool=False) -> None:
+        assert self.filename
         parser = StatsFileParser(self.filename)
         self.data = parser.parse()
         if not nocheck:
             parser.check()
 
     def load_csv(self) -> None:
-        dataframe : pandas.DataFrame = pandas.read_csv(self.filename)
+        dataframe : pandas.DataFrame = pandas.read_csv(self.filename) # type: ignore
         self.load_data(dataframe)
         
     def load_data(self, data : List[DataStoreRecord] | pandas.DataFrame) -> None:
         if hasattr(data, 'to_dict'):
-            data = data.to_dict('records')
-        self.data = data
+            df : pandas.DataFrame = cast(pandas.DataFrame, data)
+            data = df.to_dict('records') # type: ignore
+        self.data = cast(List[DataStoreRecord],data)
 
     def get_dataframe(
         self, predicate: Any = None, fields: Optional[List[str]] = None
@@ -90,7 +92,7 @@ class DataStore:
         rv.load_data(data)
         return rv
 
-    def _filter_data(self, predicate: Any, fields: List[str]) -> List[DataStoreRecord]:
+    def _filter_data(self, predicate: Any, fields: Optional[List[str]]) -> List[DataStoreRecord]:
         """
         Inputdata is a list of dictionaries, they are filtered and the resulting list of dictionaries is returned.
         predicate is a Python expression returning True or False, if True the record is output.
@@ -103,7 +105,7 @@ class DataStore:
             nsrecord["record"] = nsrecord
             if predicate == None or eval(predicate, nsrecord):
                 if fields:
-                    entry = dict()
+                    entry : Dict[Any, Any] = dict()
                     for k in fields:
                         if "=" in k:
                             newk, oldk = k.split("=")

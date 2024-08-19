@@ -1,9 +1,9 @@
 import sys
 import time
 import datetime
-from typing import Mapping, Optional, Tuple, Type, Union
+from typing import Mapping, Optional, Tuple, Type, Union, Dict, Any
 
-from .datastore import DataStore, DataStoreError
+from .datastore import DataStore, DataStoreError, DataStoreRecord
 
 __all__ = ["Annotator", "combine", "deserialize"]
 
@@ -14,14 +14,14 @@ class Annotator:
     session_start_time : float
     desync : float
     desync_uncertainty : float
-    user_name : str
+    user_name : Optional[str]
 
     def __init__(self, datastore : DataStore, role : str) -> None:
         self.datastore = datastore
         self.datastore.annotator = self
         self.role = role
     
-    def to_dict(self) -> dict:
+    def to_dict(self) -> DataStoreRecord:
         rv = dict(
             type=type(self).__name__,
             role=self.role,
@@ -50,7 +50,7 @@ class Annotator:
         
     def _adjust_time_and_role(self, starttime: float, role: str) -> None:
         self.session_start_time = starttime
-        rv = []
+        rv : list[DataStoreRecord] = []
         for r in self.datastore.data:
             newrecord = dict(r)
             if "orchtime" in r:
@@ -65,8 +65,8 @@ class Annotator:
         return f"captured: {time.ctime(self.session_start_time)}\nrole: {self.role}\nsession_id: {self.session_id}\nusername: {self.user_name}"
 
 class CombinedAnnotator(Annotator):
-    sender : str
-    receiver : str
+    sender : Optional[str]
+    receiver : Optional[str]
 
     def collect(self) -> None:
         super().collect()
@@ -140,7 +140,7 @@ class LatencySenderAnnotator(Annotator):
 
         # Hack: SocketIO uses a single writer to push all streams.
         if self.protocol == "socketio":
-            self.send_pc_writers = {send_pc_writer_umbrella : "all" }
+            self.send_pc_writers = {send_pc_writer_umbrella : "all" } # type: ignore
         else:
             rr = self.datastore.find_all_records(f'component == "{send_pc_writer_umbrella}" and "pusher" in record', "sender pc writer")
             self.send_pc_writers = {}
@@ -319,7 +319,7 @@ class LatencyCombinedAnnotator(CombinedAnnotator):
         self.nQualities = sender_annotator.nQualities
         self.compressed = sender_annotator.compressed
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> DataStoreRecord:
         rv = super().to_dict()
         rv["protocol"] = self.protocol
         rv["nTiles"] = self.nTiles
@@ -427,7 +427,7 @@ def combine(
         print(f"Session:\n{annotate_combined.description()}\n\n")
     return True
 
-def deserialize(datastore : DataStore, d : dict) -> Annotator:
+def deserialize(datastore : DataStore, d : Dict[Any, Any]) -> Annotator:
     klass = globals()[d["type"]]
     ann = klass(datastore, d["role"])
     for k, v in d.items():
