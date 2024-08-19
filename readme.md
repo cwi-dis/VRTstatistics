@@ -45,6 +45,20 @@ After having done this once, you can use the scripts and utilities from any dire
 
 Check the `example` directory and the [example/README.md](example/README.md) file to get started.
 
+## Debugging VRTstatistics
+
+Many things can go wrong, especially because of the origin of this package (initially meant for one project, for one task).
+For now, here is a way to see why things are going wrong:
+
+- Run the venv initialization sequnce, above.
+- Open `vscode` in this directory. Ensure you have all the right plugins for Python installed.
+- Open a terminal in vscode. It should automatically find the `.venv` and load it.
+- Run whatever tool is giving you problems with (for example) `VRTstatistics-plot --pausefordebug ...`.
+- In vscode, goto debugger, select "Python: Attach using Process ID", select the process.
+- Type `Y` to the tool.
+
+
+
 ## Gathering data
 
 > Note this section is incorrect at the moment (at least mostly incorrect). See the example.
