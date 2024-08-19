@@ -1,21 +1,22 @@
-import sys
 import os
 import json
 import time
-from typing import TextIO
+from typing import TextIO, List, Any, cast, Dict
 
 __all__ = ["StatsFileParser"]
 
+StatsRecord = Dict[str, Any]
+StatsList = List[StatsRecord]
 
 class StatsFileParser:
     filename: str
-    data: list
+    data: StatsList
 
     def __init__(self, filename: str) -> None:
         self.filename = filename
         self.data = []
 
-    def parse(self) -> None:
+    def parse(self) -> StatsList:
         self.data = self._extractstats(open(self.filename))
         return self.data
 
@@ -27,8 +28,8 @@ class StatsFileParser:
             statsfile = os.path.join(statsfile, fn + ".json")
         json.dump(self.data, open(statsfile, "w"), indent="\t")
 
-    def _extractstats(self, ifp: TextIO) -> list:
-        rv = []
+    def _extractstats(self, ifp: TextIO) -> StatsList:
+        rv : StatsList = []
         localtime_epoch = None
         orchtime_epoch = None
         linenum = 0
@@ -43,7 +44,7 @@ class StatsFileParser:
             # See if we have info to allow conversion of timestamps already
             #
             if "orchestrator_ntptime_ms" in entry:
-                orch_time = entry["orchestrator_ntptime_ms"] / 1000.0
+                orch_time = cast(float, entry["orchestrator_ntptime_ms"] / 1000.0)
                 orch_gmtime = time.gmtime(orch_time)
                 orch_midnight_gmtime = time.struct_time(
                     (
@@ -68,9 +69,9 @@ class StatsFileParser:
             rv.append(entry)
         return rv
 
-    def _extractstats_single_new(self, line):
+    def _extractstats_single_new(self, line : str) -> StatsRecord:
         """Extract new-style statistics from a single line"""
-        entry = {}
+        entry : StatsRecord = {}
         fields = line.split(",")
         for field in fields:
             field = field.strip()
