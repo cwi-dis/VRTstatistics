@@ -8,6 +8,7 @@ from .datastore import DataStore, DataStoreError, DataStoreRecord
 __all__ = ["Annotator", "combine", "deserialize"]
 
 class Annotator:
+    verbose = True
     datastore : DataStore
     role : str
     session_id : str
@@ -34,16 +35,22 @@ class Annotator:
         return rv
 
     def collect(self) -> None:
-        r = self.datastore.find_first_record('"starting" in record and component == "OrchestratorController"', "session start")
+        r = self.datastore.find_first_record('"starting" in record and component == "OrchestratorController"', f"{self.role} session start")
         self.session_id = r["sessionId"]
-
-        r = self.datastore.find_first_record('component == "SessionPlayerManager"', "session start time")
+        if self.verbose:
+            print(f"{self.role}: session_id={self.session_id} (from seq={r['seq']})")
+        
+        r = self.datastore.find_first_record('component == "SessionPlayerManager"', f"{self.role} session start time")
         self.session_start_time = r["orchtime"]
-        r = self.datastore.find_first_record('"localtime_behind_ms" in record and component == "OrchestratorController"', "session time synchronization")
+        if self.verbose:
+            print(f"{self.role}: session_start_time={self.session_start_time} (from seq={r['seq']})")
+        r = self.datastore.find_first_record('"localtime_behind_ms" in record and component == "OrchestratorController"', f"{self.role} session time synchronization")
         self.desync = r["localtime_behind_ms"] / 1000.0
         self.desync_uncertainty = r["uncertainty_interval_ms"] / 1000.0
-        r = self.datastore.find_first_record('component == "SessionPlayerManager" and "userName" in record and self == "True"', "user name")
+        r = self.datastore.find_first_record('component == "SessionPlayerManager" and "userName" in record and self == "True"', f"{self.role} user name")
         self.user_name = r["userName"]
+        if self.verbose:
+            print(f"{self.role}: user_name={self.user_name} (from seq={r['seq']})")
         
     def annotate(self) -> None:
         self._adjust_time_and_role(self.session_start_time, self.role)
@@ -120,20 +127,26 @@ class LatencySenderAnnotator(Annotator):
         #
         # Find protocol used
         #
-        recs = self.datastore.find_all_records('"proto" in record', "protocol used")
+        recs = self.datastore.find_all_records('"proto" in record', f"{self.role} protocol used")
         self.protocol = recs[0]["proto"]
         for r in recs:
             assert r["proto"] == self.protocol
         #
         # Find names of sender side PC components
         #
-        r = self.datastore.find_first_record('"PointCloudPipelineSelf" in component and "self" in record and self == 1', "sender pc pipeline")
+        r = self.datastore.find_first_record('"PointCloudPipelineSelf" in component and "self" in record and self == 1', f"{self.role} pc pipeline")
         self.send_pc_pipeline = r['component']
+        if self.verbose:
+            print(f"{self.role}: send_pc_pipeline={self.send_pc_pipeline} (from seq={r['seq']})")
 
-        r = self.datastore.find_first_record(f'component == "{self.send_pc_pipeline}" and "writer" in record', "sender pc writer umbrella")
+        r = self.datastore.find_first_record(f'component == "{self.send_pc_pipeline}" and "writer" in record', f"{self.role} pc writer umbrella")
         self.send_pc_grabber = r["reader"]
         self.send_pc_encoder = r["encoder"]
         send_pc_writer_umbrella = r["writer"]
+        if self.verbose:
+            print(f"{self.role}: send_pc_grabber={self.send_pc_grabber} (from seq={r['seq']})")
+            print(f"{self.role}: send_pc_encoder={self.send_pc_encoder} (from seq={r['seq']})")
+            print(f"{self.role}: send_pc_writer_umbrella={send_pc_writer_umbrella} (from seq={r['seq']})")
         self.compressed = "PCEncoder" in self.send_pc_encoder
         self.nTiles = r["ntile"]
         self.nQualities = r["nquality"]
@@ -142,7 +155,7 @@ class LatencySenderAnnotator(Annotator):
         if self.protocol == "socketio":
             self.send_pc_writers = {send_pc_writer_umbrella : "all" } # type: ignore
         else:
-            rr = self.datastore.find_all_records(f'component == "{send_pc_writer_umbrella}" and "pusher" in record', "sender pc writer")
+            rr = self.datastore.find_all_records(f'component == "{send_pc_writer_umbrella}" and "pusher" in record', f"{self.role} pc writer")
             self.send_pc_writers = {}
             for r in rr:
                 pusher = r["pusher"]
@@ -163,11 +176,16 @@ class LatencySenderAnnotator(Annotator):
         self.send_voice_encoder = None
         self.send_voice_writer = None
         try:
-            r = self.datastore.find_first_record('"VoicePipelineSelf" in component and "writer" in record', "sender voice pipeline")
+            r = self.datastore.find_first_record('"VoicePipelineSelf" in component and "writer" in record', f"{self.role} sender voice pipeline")
             self.send_voice_pipeline = r['component']
             self.send_voice_writer = r['writer']
             self.send_voice_grabber = r["reader"]
             self.send_voice_encoder = r["encoder"]
+            if self.verbose:
+                print(f"{self.role}: send_voice_pipeline={self.send_voice_pipeline} (from seq={r['seq']})")
+                print(f"{self.role}: send_voice_writer={self.send_voice_writer} (from seq={r['seq']})")
+                print(f"{self.role}: send_voice_grabber={self.send_voice_grabber} (from seq={r['seq']})")
+                print(f"{self.role}: send_voice_encoder={self.send_voice_encoder} (from seq={r['seq']})")
         except DataStoreError:
             print("Warning: no voice VoicePipelineSelf record found, no sender voice pipeline")
         self._check()
@@ -221,17 +239,22 @@ class LatencyReceiverAnnotator(Annotator):
         #
         # Find names of receiver side pc components
         #
-        r = self.datastore.find_first_record('"PointCloudPipelineOther" in component and "self" in record and self == 0', "receiver pc pipeline")
+        r = self.datastore.find_first_record('"PointCloudPipelineOther" in component and "self" in record and self == 0', f"{self.role} pc pipeline")
         self.recv_pc_pipeline = r['component']
-        r = self.datastore.find_first_record(f'component == "{self.recv_pc_pipeline}" and "reader" in record', "receiver pc reader umbrella")
+        if self.verbose:
+            print(f"{self.role}: recv_pc_pipeline={self.recv_pc_pipeline} (from seq={r['seq']})")
+        r = self.datastore.find_first_record(f'component == "{self.recv_pc_pipeline}" and "reader" in record', f"{self.role} pc reader umbrella")
         recv_pc_reader_umbrella = r["reader"]
         self.recv_synchronizer = r["synchronizer"]
+        if self.verbose:
+            print(f"{self.role}: recv_pc_reader_umbrella={recv_pc_reader_umbrella} (from seq={r['seq']})")
+            print(f"{self.role}: recv_synchronizer={self.recv_synchronizer} (from seq={r['seq']})")
         # Hack - SocketIO uses a single reader to read all streams.
         if "SocketIOReader" in recv_pc_reader_umbrella:
             self.recv_pc_readers = { recv_pc_reader_umbrella : "all"}
         else:
             self.recv_pc_readers = {}
-            rr = self.datastore.find_all_records(f'component == "{recv_pc_reader_umbrella}" and "pull_thread" in record', "receiver pc readers")
+            rr = self.datastore.find_all_records(f'component == "{recv_pc_reader_umbrella}" and "pull_thread" in record', f"{self.role} pc readers")
             for r in rr:
                 tile = r["tile"]
                 # Grrr, need to subtract one, at least for PCSubReader
@@ -242,12 +265,12 @@ class LatencyReceiverAnnotator(Annotator):
         self.recv_pc_preparers = {}
         self.recv_pc_renderers = {}
         self.recv_pc_decoders = {}
-        rr = self.datastore.find_all_records(f'component == "{self.recv_pc_pipeline}" and "decoder" in record', "receiver pc preparers and renderers")
+        rr = self.datastore.find_all_records(f'component == "{self.recv_pc_pipeline}" and "decoder" in record', f"{self.role} pc preparers and renderers")
         for r in rr:
             tile = r["tile"]
             decoder = r["decoder"]
             self.recv_pc_decoders[decoder] = tile
-        rr = self.datastore.find_all_records(f'component == "{self.recv_pc_pipeline}" and "renderer" in record', "receiver pc preparers and renderers")
+        rr = self.datastore.find_all_records(f'component == "{self.recv_pc_pipeline}" and "renderer" in record', f"{self.role} pc preparers and renderers")
         for r in rr:
             tile = r["tile"]
             preparer = r["preparer"]
@@ -262,15 +285,20 @@ class LatencyReceiverAnnotator(Annotator):
         self.recv_voice_preparer = None
         self.recv_voice_renderer = None
         try:
-            r = self.datastore.find_first_record('"VoicePipelineOther" in component and "reader" in record', "receiver voice reader umbrella")
+            r = self.datastore.find_first_record('"VoicePipelineOther" in component and "reader" in record', f"{self.role} voice reader umbrella")
             self.recv_voice_pipeline = r["component"]
             self.recv_voice_renderer = r["component"] # same
             self.recv_voice_preparer = r["preparer"]
             synchronizer = r["synchronizer"]
+            if self.verbose:
+                print(f"{self.role}: recv_voice_pipeline={self.recv_voice_pipeline} (from seq={r['seq']})")
+                print(f"{self.role}: recv_voice_renderer={self.recv_voice_renderer} (from seq={r['seq']})")
+                print(f"{self.role}: recv_voice_preparer={self.recv_voice_preparer} (from seq={r['seq']})")
+                print(f"{self.role}: synchronizer={synchronizer} (from seq={r['seq']})")
             if synchronizer != "none" and synchronizer != self.recv_synchronizer:
                 print("Warning: mismatched synchronizer, was {self.recv_synchronizer} record {r}")
 #            recv_voice_reader_umbrella = r["reader"]
-#            r = self.datastore.find_first_record(f'component == "{recv_voice_reader_umbrella}" and "pull_thread" in record', "receiver voice reader umbrella")
+#            r = self.datastore.find_first_record(f'component == "{recv_voice_reader_umbrella}" and "pull_thread" in record', f"{self.role} voice reader umbrella")
 #            self.recv_voice_reader = r["pull_thread"]
         except DataStoreError:
             print("Warning: no voice VoicePipelineOther record found, no receiver voice pipeline")
