@@ -34,7 +34,12 @@ def main():
     parser.add_argument(
         "fields", default=None, nargs="*", metavar="FIELD", help="Field mappings to plot (default: all)"
     )
+    parser.add_argument("--pausefordebug", action="store_true", help="Wait for a newline after start (so you can attach a debugger)")
     args = parser.parse_args()
+    if args.pausefordebug:
+        sys.stderr.write("Press return to continue - ")
+        sys.stderr.flush()
+        sys.stdin.readline()
     predicate = None
     datastore = DataStore(args.datastore)
     datastore.load()
