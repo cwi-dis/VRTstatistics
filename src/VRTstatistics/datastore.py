@@ -1,7 +1,8 @@
 from __future__ import annotations
 import sys
 import json
-from typing import Optional, List, Callable, Any, cast, Dict
+from typing import Optional, List, Callable, Any, cast, Dict, Union
+from types import CodeType
 from .parser import StatsFileParser
 import pandas
 
@@ -99,7 +100,7 @@ class DataStore:
         fields is a list of fieldnames to include in the output,
         use namefield=field to obtain field name from namefield
         """
-        rv = []
+        rv : List[DataStoreRecord] = []
         for record in self.data:
             nsrecord = dict(record) # shallow copy
             nsrecord["record"] = nsrecord
@@ -152,40 +153,41 @@ class DataStore:
             metadata=self.annotator.to_dict(),
             data=self.data
         )
+        assert self.filename
         json.dump(data, open(self.filename, "w"), indent="\t")
 
     def save_csv(self) -> None:
         pd = self.get_dataframe()
         pd.to_csv(self.filename, index=False)
 
-    def find_first_record(self, predicate : Any, descr : str) -> DataStoreRecord:
+    def find_first_record(self, predicate : Union[str, CodeType], descr : str) -> DataStoreRecord:
         if not self.data:
             raise DataStoreError("DataStore is empty")
-        if type(predicate) == type(str)and not self.debug:
+        if type(predicate) == str and not self.debug:
             predicate = compile(predicate, "<string>", "eval")
         for record in self.data:
             nsrecord = dict(record) # shallow copy
             nsrecord["record"] = nsrecord
-            if predicate == None or eval(predicate, nsrecord):
+            if eval(predicate, nsrecord):
                 return record
-        raise DataStoreError(f"missing {descr}, predicate: {repr(predicate)}")
+        raise DataStoreError(f"missing {descr}. No record found for predicate: {repr(predicate)}")
         
-    def find_all_records(self, predicate : Any, descr : str) -> List[DataStoreRecord]:
+    def find_all_records(self, predicate : Union[str, CodeType], descr : str) -> List[DataStoreRecord]:
         if not self.data:
             raise DataStoreError("DataStore is empty")
-        if type(predicate) == type(str) and not self.debug:
+        if type(predicate) == str and not self.debug:
             predicate = compile(predicate, "<string>", "eval")
-        rv = []
+        rv : List[DataStoreRecord] = []
         for record in self.data:
             nsrecord = dict(record) # shallow copy
             nsrecord["record"] = nsrecord
-            if predicate == None or eval(predicate, nsrecord):
+            if eval(predicate, nsrecord):
                 rv.append(record)
         if not rv:
-            raise DataStoreError(f"missing {descr}")
+            raise DataStoreError(f"missing {descr}. No record found for predicate: {predicate}.")
         return rv
 
-    def sort(self, key: Callable) -> None:
+    def sort(self, key: Any) -> None:
         if not self.data:
             raise DataStoreError("DataStore is empty")
         self.data.sort(key=key)
