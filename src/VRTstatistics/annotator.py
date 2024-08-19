@@ -1,7 +1,7 @@
 import sys
 import time
 import datetime
-from typing import Mapping, Optional, Tuple, Type
+from typing import Mapping, Optional, Tuple, Type, Union
 
 from .datastore import DataStore, DataStoreError
 
@@ -118,6 +118,13 @@ class LatencySenderAnnotator(Annotator):
     def collect(self) -> None:
         super().collect()
         #
+        # Find protocol used
+        #
+        recs = self.datastore.find_all_records('"proto" in record', "protocol used")
+        self.protocol = recs[0]["proto"]
+        for r in recs:
+            assert r["proto"] == self.protocol
+        #
         # Find names of sender side PC components
         #
         r = self.datastore.find_first_record('"PointCloudPipelineSelf" in component and "self" in record and self == 1', "sender pc pipeline")
@@ -132,16 +139,9 @@ class LatencySenderAnnotator(Annotator):
         self.nQualities = r["nquality"]
 
         # Hack: SocketIO uses a single writer to push all streams.
-        if "SocketIOWriter" in send_pc_writer_umbrella:
+        if self.protocol == "socketio":
             self.send_pc_writers = {send_pc_writer_umbrella : "all" }
-            self.protocol = "socketio"
         else:
-            if "TCPWriter" in send_pc_writer_umbrella:
-                self.protocol = "tcp"
-            elif "B2DWriter" in send_pc_writer_umbrella:
-                self.protocol = "dash"
-            else:
-                raise DataStoreError(f"Unknown protocol for writer {send_pc_writer_umbrella}")
             rr = self.datastore.find_all_records(f'component == "{send_pc_writer_umbrella}" and "pusher" in record', "sender pc writer")
             self.send_pc_writers = {}
             for r in rr:
@@ -163,15 +163,13 @@ class LatencySenderAnnotator(Annotator):
         self.send_voice_encoder = None
         self.send_voice_writer = None
         try:
-            r = self.datastore.find_first_record('"VoiceSender" in component', "sender voice pipeline")
+            r = self.datastore.find_first_record('"VoicePipelineSelf" in component and "writer" in record', "sender voice pipeline")
             self.send_voice_pipeline = r['component']
-            send_voice_writer_umbrella = r['writer']
+            self.send_voice_writer = r['writer']
             self.send_voice_grabber = r["reader"]
             self.send_voice_encoder = r["encoder"]
-            r = self.datastore.find_first_record(f'component == "{send_voice_writer_umbrella}" and "pusher" in record', "sender voice writer")
-            self.send_voice_writer = r['pusher']
         except DataStoreError:
-            pass # It's not an error to have a session without audio
+            print("Warning: no voice VoicePipelineSelf record found, no sender voice pipeline")
         self._check()
 
     def annotate(self) -> None:
@@ -198,7 +196,7 @@ class LatencyReceiverAnnotator(Annotator):
     recv_synchronizer : str
 
     recv_pc_pipeline : str
-    recv_pc_readers : Mapping[str, int]
+    recv_pc_readers : Mapping[str, Union[int, str]]
     recv_pc_decoders : Mapping[str, int]
     recv_pc_preparers : Mapping[str, int]
     recv_pc_renderers : Mapping[str, int]
@@ -219,10 +217,11 @@ class LatencyReceiverAnnotator(Annotator):
 
     def collect(self) -> None:
         super().collect()
+        assert self.datastore
         #
         # Find names of receiver side pc components
         #
-        r = self.datastore.find_first_record('"PointCloudPipeline" in component and self == 0', "receiver pc pipeline")
+        r = self.datastore.find_first_record('"PointCloudPipelineOther" in component and "self" in record and self == 0', "receiver pc pipeline")
         self.recv_pc_pipeline = r['component']
         r = self.datastore.find_first_record(f'component == "{self.recv_pc_pipeline}" and "reader" in record', "receiver pc reader umbrella")
         recv_pc_reader_umbrella = r["reader"]
@@ -263,18 +262,18 @@ class LatencyReceiverAnnotator(Annotator):
         self.recv_voice_preparer = None
         self.recv_voice_renderer = None
         try:
-            r = self.datastore.find_first_record('"VoiceReceiver" in component and "reader" in record', "receiver voice reader umbrella")
+            r = self.datastore.find_first_record('"VoicePipelineOther" in component and "reader" in record', "receiver voice reader umbrella")
             self.recv_voice_pipeline = r["component"]
             self.recv_voice_renderer = r["component"] # same
             self.recv_voice_preparer = r["preparer"]
             synchronizer = r["synchronizer"]
             if synchronizer != "none" and synchronizer != self.recv_synchronizer:
                 print("Warning: mismatched synchronizer, was {self.recv_synchronizer} record {r}")
-            recv_voice_reader_umbrella = r["reader"]
-            r = self.datastore.find_first_record(f'component == "{recv_voice_reader_umbrella}" and "pull_thread" in record', "receiver voice reader umbrella")
-            self.recv_voice_reader = r["pull_thread"]
+#            recv_voice_reader_umbrella = r["reader"]
+#            r = self.datastore.find_first_record(f'component == "{recv_voice_reader_umbrella}" and "pull_thread" in record', "receiver voice reader umbrella")
+#            self.recv_voice_reader = r["pull_thread"]
         except DataStoreError:
-            pass # it is not an error to have a sesion without audio
+            print("Warning: no voice VoicePipelineOther record found, no receiver voice pipeline")
         self._check()
       
     def annotate(self) -> None:

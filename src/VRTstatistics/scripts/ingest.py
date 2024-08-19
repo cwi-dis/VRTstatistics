@@ -1,8 +1,9 @@
 import sys
 import os
 import argparse
+import json
 
-from ..datastore import DataStore, DataStoreRecord
+from ..datastore import DataStore
 from ..annotator import combine
 from ..runner import Runner
 
@@ -16,15 +17,23 @@ def main():
     parser.add_argument("-C", "--vrtconfig", action="store", metavar="CONFIGFILE", help="Upload and use CONFIGFILE when running")
     parser.add_argument("--norusage", action="store_true", help="Do not try to get resource usage statistics logfiles")
     parser.add_argument("--nolog", action="store_true", help="Do not try to get Unity Player logfiles")
-    parser.add_argument("--nofetch", action="store_true", help="Don't fetch log file but reuse rearlier ones")
-    parser.add_argument("-c", "--config", metavar="FILE", help="Use host configuration from FILE")
+    parser.add_argument("--nofetch", action="store_true", help="Don't fetch log file but reuse earlier ones")
+    parser.add_argument("-c", "--config", metavar="FILE", help="Use host configuration from FILE (json)")
+    parser.add_argument("--writeconfig", metavar="FILE", help="Save default host configuration to FILE (json) and exit")
+    parser.add_argument("--pausefordebug", action="store_true", help="Wait for a newline after start (so you can attach a debugger)")
     parser.add_argument("sender", help="Sender hostname")
     parser.add_argument("receiver", help="Receiver hostname")
     args = parser.parse_args()
+    if args.pausefordebug:
+        sys.stderr.write("Press return to continue - ")
+        sys.stderr.flush()
+        sys.stdin.readline()
+    if args.writeconfig:
+        json.dump(Runner.runnerConfig, open(args.writeconfig, "w"), indent=4)
+        sys.exit(0)
     if args.config:
         Runner.load_config(args.config)
-    sender = Runner(args.sender)
-    receiver = Runner(args.receiver)
+
     if args.destdir:
         destdir = args.destdir
     else:
@@ -33,7 +42,15 @@ def main():
     if not os.path.exists(destdir):
         os.mkdir(destdir)
     
+    sender = None
+    receiver = None
+    if args.run or not args.nofetch:
+        sender = Runner(args.sender)
+        receiver = Runner(args.receiver)
+
     if args.run:
+        assert sender
+        assert receiver
         if args.vrtconfig:
             sender.run_with_config(args.vrtconfig)
             receiver.run_with_config(args.vrtconfig)
@@ -58,6 +75,8 @@ def main():
     receiver_logfile = os.path.join(destdir, "receiver-unity-log.txt")
    
     if not args.nofetch:
+        assert sender
+        assert receiver
         if not args.nolog:
             sender.get_log(sender_logfile)
             receiver.get_log(receiver_logfile)

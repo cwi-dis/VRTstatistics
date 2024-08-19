@@ -1,0 +1,1050 @@
+Mono path[0] = '/Users/jack/src/VRTogether/VRTApp-Develop-built.app/Contents/Resources/Data/Managed'
+Mono config path = '/Users/jack/src/VRTogether/VRTApp-Develop-built.app/Contents/MonoBleedingEdge/etc'
+[Physics::Module] Initialized MultithreadedJobDispatcher with 23 workers.
+New input system (experimental) initialized
+Initialize engine version: 2022.3.21f1 (bf09ca542b87)
+[Subsystems] Discovering subsystems at path /Users/jack/src/VRTogether/VRTApp-Develop-built.app/Contents/Resources/Data/UnitySubsystems
+[Subsystems] No descriptors matched for  examples in UnitySubsystems/OculusXRPlugin/UnitySubsystemsManifest.json.
+[Subsystems] 1 'inputs' descriptors matched in UnitySubsystems/OculusXRPlugin/UnitySubsystemsManifest.json
+[Subsystems] 1 'displays' descriptors matched in UnitySubsystems/OculusXRPlugin/UnitySubsystemsManifest.json
+[Subsystems] No descriptors matched for  meshings in UnitySubsystems/OculusXRPlugin/UnitySubsystemsManifest.json.
+[Subsystems] No descriptors matched for  examples in UnitySubsystems/UnityOpenXR/UnitySubsystemsManifest.json.
+[Subsystems] 1 'inputs' descriptors matched in UnitySubsystems/UnityOpenXR/UnitySubsystemsManifest.json
+[Subsystems] 1 'displays' descriptors matched in UnitySubsystems/UnityOpenXR/UnitySubsystemsManifest.json
+[Subsystems] No descriptors matched for  meshings in UnitySubsystems/UnityOpenXR/UnitySubsystemsManifest.json.
+GfxDevice: creating device client; threaded=1; jobified=0
+DELL 2407WFP preferred device: NVIDIA GeForce GTX 680 (high power)
+Metal devices available: 1
+0: NVIDIA GeForce GTX 680 (high power)
+Using device NVIDIA GeForce GTX 680 (high power)
+Initializing Metal device caps: NVIDIA GeForce GTX 680
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  0.219 seconds
+- Finished resetting the current domain, in  0.004 seconds
+XRGeneral Settings awakening...
+[Subsystems] OpenXR XR Plugin successfully registered Provider for OpenXR Display
+[Subsystems] OpenXR XR Plugin successfully registered Provider for OpenXR Input
+[Subsystems] OpenXR XR Plugin successfully registered Provider for OpenXR Display
+Failed to load openxr runtime loader.
+[XR] [0x7ff855d8ae40] [16:26:24.734][Info   ] 
+
+==== Start Unity OpenXR Diagnostic Report ====
+
+
+[XR] [0x7ff855d8ae40] [16:26:24.734][Info   ] ==== Report Reason: System Shutdown ====
+
+
+[XR] [0x7ff855d8ae40] [16:26:24.734][Info   ] ==== Last 20 Events ====
+[XR] [0x7ff855d8ae40] [16:26:24.734][Info   ] 
+
+==== End Unity OpenXR Diagnostic Report ====
+
+
+UnloadTime: 0.871759 ms
+Color primaries is unknown or unsupported by AVFoundationVideoMedia. Falling back to default may result in color shift. /var/folders/9m/44wf18xj0wd0v11mpv1nn__r0000gn/T//Unity_AVClip_fnIqdQ.mov
+LoginController: Awake.
+VRTInitializer: Registering transport protocols
+TransportProtocol: Registered socketio
+TransportProtocol: Registered dash
+TransportProtocol: Registered tcp
+TransportProtocol: Registered tcpreflector
+VRTInitializer: Registering pipelines
+BasePipeline: register Pipeline constructor for PointCloud, self=True
+BasePipeline: register Pipeline constructor for PointCloud, self=False
+BasePipeline: register Pipeline constructor for VideoAvatar, self=True
+BasePipeline: register Pipeline constructor for VideoAvatar, self=False
+VRTConfig: override settings from /Users/jack/src/VRTogether/VRTstatistics/tmp/curconfig.json
+stats: ts=59187.193, component=stats, starting=1, wallClock=20240705-1626, statsFilename=/Users/jack/Library/Application Support/nl.cwi.dis.VR2Gather.VRTApp-Develop/VRTstatistics-example.txt
+VRTNativeLoader: Init() called
+VRTNativeLoader: path = DLLs
+VRTNativeLoader: path = DLLs/mac-x64
+PlayerControllerSelf: XR not active, set default camera transform
+VRTInitializer: Start
+VRTInitializer: XR was not enabled
+Calling OnConnect
+Orchestration Service: 2.5.0
+OrchestratorLogin: load UserData from /Users/jack/src/VRTogether/VRTApp-Develop-built.app/Contents/config-user.json
+OrchestratorLogin: uploaded UserData to orchestrator
+AsyncPointCloudPreparer#0: starting thread
+AsyncPointCloudPreparer#0: thread started
+Fallback handler could not load library /Users/jack/src/VRTogether/VRTApp-Develop-built.app/Contents/Frameworks/MonoEmbedRuntime/osx/cwipc_util
+cwipc._load_cwipc_util: loaded cwipc_synthetic from cwipc_util at 0x11933051272
+cwipc._load_cwipc_util: loaded cwipc_synthetic from __Internal at 0x11933051272
+AsyncSyntheticReader: starting thread
+{Name()}: Started.
+AsyncSyntheticReader: thread started
+PlayerControllerSelf: XR not active, set default camera transform
+xxxjack OrchestratorLogin: UpdateUsersSession: 1 users in session
+xxxjack OrchestratorLogin: UpdateUsersSession: 2 users in session
+LoginController: OnUserMessageReceived: START_{"scenarioName":"Pilot 0","scenarioVariant":"","protocolType":"socketio","videoCodec":"h264","pointCloudCodec":"cwi1","voiceCodec":"VR2A"}
+LoginController: Fading out for transition to Pilot0
+LoginController: Loading new scene Pilot0
+Unloading 6 Unused Serialized files (Serialized files now loaded: 0)
+AsyncSyntheticReader: stopping thread
+AsyncSyntheticReader: joining thread
+QueueThreadSafe#PCPreparerQueue: Enqueue on closed queue PCPreparerQueue
+AsyncSyntheticReader: thread preparing to stop
+AsyncSyntheticReader: thread stopped
+AsyncSyntheticReader: Stopped.
+AsyncSyntheticReader: thread stopped
+AsyncSyntheticReader: thread stopped and joined
+AsyncPointCloudPreparer#0: stopping thread
+AsyncPointCloudPreparer#0: joining thread
+AsyncPointCloudPreparer#0: thread preparing to stop
+AsyncPointCloudPreparer#0: thread stopped
+AsyncPointCloudPreparer#0: thread stopped
+AsyncPointCloudPreparer#0: thread stopped and joined
+UnloadTime: 64.788771 ms
+Pilot0Controller: Awake.
+TilingConfigDistributor: Awake
+Unloading 41 unused Assets to reduce memory usage. Loaded Objects now: 4022.
+Total: 4.312887 ms (FindLiveObjects: 0.279758 ms CreateObjectMapping: 0.176514 ms MarkObjects: 3.714187 ms  DeleteObjects: 0.142048 ms)
+
+SyncConfigDistributor: Started
+Pilot0Controller: Started.
+TilingConfigDistributor: Started
+AsyncPointCloudPreparer#1: starting thread
+AsyncPointCloudPreparer#1: thread started
+AsyncSyntheticReader: starting thread
+{Name()}: Started.
+AsyncSyntheticReader: thread started
+PointCloudPipelineSelf#1: tiling sender: minTileNum=0, nTile=1, nQuality=1, nStream=1
+Fallback handler could not load library /Users/jack/src/VRTogether/VRTApp-Develop-built.app/Contents/Frameworks/MonoEmbedRuntime/osx/cwipc_codec
+cwipc._load_cwipc_codec: loaded cwipc_new_decoder from cwipc_codec at 0x11157509753
+cwipc._load_cwipc_codec: loaded cwipc_new_decoder from __Internal at 0x11157509753
+AsyncPCEncoder: starting thread
+AsyncPCEncoder: thread started
+AsyncSocketIOWriter#0: starting thread
+AsyncSocketIOWriter#0: Started.
+AsyncSocketIOWriter#0: thread started
+AsyncVoiceEncoder: starting thread
+AsyncVoiceEncoder: thread started
+xxxjack AsyncVoiceReader: NoUpdateCallsNeeded()
+VoiceDspController: changed to sampleRate=48000, dspBufferSize=960, speakerMode=Mono
+AsyncVoiceReader: Using HD Pro Webcam C920  Channels 1 Frequency 48000 bufferLength 960 IsRecording True
+AsyncVoiceReader: Started with bufferLength 960 samples
+AsyncVoiceReader: starting thread
+AsyncVoiceReader: thread started
+AsyncSocketIOWriter#1: starting thread
+AsyncSocketIOWriter#1: Started.
+AsyncSocketIOWriter#1: thread started
+PlayerControllerSelf: XR not active, set default camera transform
+SessionPlayersManager: Initialize player cad7d9f7-e590-43e0-9de1-eb3bac275048 to location cfe3c8b0-188e-4d74-bbf0-e04eca56228f.
+PointCloudPipelineOther#2: No tileselector for user 3261636f-033e-4b51-86d2-ef2db81def36
+PointCloudPipelineOther#2: delay _InitForOtherUser until tiling information received
+VoicePipelineOther#1: No synchronizer for user 3261636f-033e-4b51-86d2-ef2db81def36
+VoiceDspController: unchanged: sampleRate=48000, dspBufferSize=960, speakerMode=Mono
+AsyncVoiceDecoder: starting thread
+AsyncVoiceDecoder: thread started
+xxxjack AsyncSocketIOReader: NoUpdateCallsNeeded()
+AsyncSocketIOReader:  RegisterForDataStream 0: 3261636f-033e-4b51-86d2-ef2db81def36.audio#0 from 3261636f-033e-4b51-86d2-ef2db81def36
+AsyncSocketIOReader: starting thread
+AsyncSocketIOReader: Started .audio
+AsyncSocketIOReader: thread started
+xxxjack AsyncVoicePreparer#2: NoUpdateCallsNeeded()
+AsyncVoicePreparer#2: Started.
+AsyncVoicePreparer#2: starting thread
+AsyncVoicePreparer#2: thread started
+SessionPlayersManager: Initialize player 3261636f-033e-4b51-86d2-ef2db81def36 to location b94fd1d7-4f51-4389-b8b6-860394369a5f.
+SessionPlayersManager: OnPlayerLocationDataRequest: reply to 3261636f-033e-4b51-86d2-ef2db81def36
+SyncConfigDistributor: received sync information from user 3261636f-033e-4b51-86d2-ef2db81def36
+TilingConfigDistributor: xxxjack received tiling info from 3261636f-033e-4b51-86d2-ef2db81def36
+TilingConfigDistributor: xxxjack forwarding because we are master
+TilingConfigDistributor: received tiling information from user 3261636f-033e-4b51-86d2-ef2db81def36 with 1 tiles
+PointCloudPipelineOther#2: received tilingConfig with 1 tiles
+PointCloudPipelineOther#2: xxxjack tile 0: #qualities: 1
+PointCloudPipelineOther#2: xxxjack tile 0 quality: representation 0.45 bandwidth 729
+AsyncPointCloudPreparer#3: starting thread
+AsyncPointCloudPreparer#3: thread started
+AsyncPCDecoder#0: starting thread
+AsyncPCDecoder#0 Inited
+AsyncPCDecoder#0: thread started
+xxxjack AsyncSocketIOReader: NoUpdateCallsNeeded()
+AsyncSocketIOReader:  RegisterForDataStream 0: 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0 from 3261636f-033e-4b51-86d2-ef2db81def36
+AsyncSocketIOReader: starting thread
+AsyncSocketIOReader: Started .pointcloud
+AsyncSocketIOReader: thread started
+PointCloudPipelineSelf#1: GetSyncConfig: visual 0=0, audio 0=0
+SyncConfigDistributor: sending sync information for user cad7d9f7-e590-43e0-9de1-eb3bac275048
+TilingConfigDistributor: sending tiling information for user cad7d9f7-e590-43e0-9de1-eb3bac275048 with 1 tiles to receivers
+SessionPlayersManager: OnPlayerLocationData: we are not master
+VRTSynchronizer#1: First synchronized frame produced
+SyncConfigDistributor: received sync information from user 3261636f-033e-4b51-86d2-ef2db81def36
+PointCloudPipelineOther#2: SetSyncConfig: visual 0=0, audio 0=0
+TilingConfigDistributor: xxxjack received tiling info from 3261636f-033e-4b51-86d2-ef2db81def36
+TilingConfigDistributor: xxxjack forwarding because we are master
+TilingConfigDistributor: received tiling information from user 3261636f-033e-4b51-86d2-ef2db81def36 with 1 tiles
+PointCloudPipelineOther#2: SetTilingConfig: ignoring second tilingConfig
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+PointCloudPipelineSelf#1: GetSyncConfig: visual 0=0, audio 0=0
+SyncConfigDistributor: sending sync information for user cad7d9f7-e590-43e0-9de1-eb3bac275048
+TilingConfigDistributor: sending tiling information for user cad7d9f7-e590-43e0-9de1-eb3bac275048 with 1 tiles to receivers
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189608944, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189609146, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189609282, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189609485, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189609619, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189609822, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189609957, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+SyncConfigDistributor: received sync information from user 3261636f-033e-4b51-86d2-ef2db81def36
+PointCloudPipelineOther#2: SetSyncConfig: visual 0=0, audio 0=0
+TilingConfigDistributor: xxxjack received tiling info from 3261636f-033e-4b51-86d2-ef2db81def36
+TilingConfigDistributor: xxxjack forwarding because we are master
+TilingConfigDistributor: received tiling information from user 3261636f-033e-4b51-86d2-ef2db81def36 with 1 tiles
+PointCloudPipelineOther#2: SetTilingConfig: ignoring second tilingConfig
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189610161, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189610296, queuelength is 10
+PointCloudPipelineSelf#1: GetSyncConfig: visual 0=0, audio 0=0
+SyncConfigDistributor: sending sync information for user cad7d9f7-e590-43e0-9de1-eb3bac275048
+TilingConfigDistributor: sending tiling information for user cad7d9f7-e590-43e0-9de1-eb3bac275048 with 1 tiles to receivers
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189610431, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189610565, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189610767, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189610902, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189611036, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189611169, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189611373, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189611510, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189611713, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189611848, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189611983, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189612185, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189612321, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189612523, queuelength is 10
+PING
+PoNG
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189612657, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189612862, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189612997, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189613132, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189613267, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189613400, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189613603, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189613737, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189613873, queuelength is 10
+SyncConfigDistributor: received sync information from user 3261636f-033e-4b51-86d2-ef2db81def36
+PointCloudPipelineOther#2: SetSyncConfig: visual 0=0, audio 0=0
+TilingConfigDistributor: xxxjack received tiling info from 3261636f-033e-4b51-86d2-ef2db81def36
+TilingConfigDistributor: xxxjack forwarding because we are master
+TilingConfigDistributor: received tiling information from user 3261636f-033e-4b51-86d2-ef2db81def36 with 1 tiles
+PointCloudPipelineOther#2: SetTilingConfig: ignoring second tilingConfig
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189614075, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189614210, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+PointCloudPipelineSelf#1: GetSyncConfig: visual 0=0, audio 0=0
+SyncConfigDistributor: sending sync information for user cad7d9f7-e590-43e0-9de1-eb3bac275048
+TilingConfigDistributor: sending tiling information for user cad7d9f7-e590-43e0-9de1-eb3bac275048 with 1 tiles to receivers
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189614346, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189614481, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189614686, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189614822, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189615025, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189615160, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189615363, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189615430, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189615633, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189615767, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189615902, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189616037, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189616171, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189616373, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189616508, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189616644, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189616846, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189616980, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189617115, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189617250, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189617386, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189617589, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189617725, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189617861, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189618128, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189618196, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189618400, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189618536, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189618670, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189618872, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189619009, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189619144, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189619350, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189619418, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189619620, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189619756, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189619890, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189620025, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189620229, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189620364, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189620566, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189620634, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189620837, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189620972, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189621174, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189621309, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189621444, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189621578, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189621714, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189621850, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189621986, queuelength is 10
+SyncConfigDistributor: received sync information from user 3261636f-033e-4b51-86d2-ef2db81def36
+PointCloudPipelineOther#2: SetSyncConfig: visual 0=0, audio 0=0
+TilingConfigDistributor: xxxjack received tiling info from 3261636f-033e-4b51-86d2-ef2db81def36
+TilingConfigDistributor: xxxjack forwarding because we are master
+TilingConfigDistributor: received tiling information from user 3261636f-033e-4b51-86d2-ef2db81def36 with 1 tiles
+PointCloudPipelineOther#2: SetTilingConfig: ignoring second tilingConfig
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189622188, queuelength is 10
+PointCloudPipelineSelf#1: GetSyncConfig: visual 0=0, audio 0=0
+SyncConfigDistributor: sending sync information for user cad7d9f7-e590-43e0-9de1-eb3bac275048
+TilingConfigDistributor: sending tiling information for user cad7d9f7-e590-43e0-9de1-eb3bac275048 with 1 tiles to receivers
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189622324, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189622459, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189622595, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189622798, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189623001, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189623071, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189623205, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189623409, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189623542, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189623746, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189623813, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189624014, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189624150, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189624284, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189624556, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189624691, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189624825, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189624961, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189625164, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189625298, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189625432, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189625567, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189625702, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189625837, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189626040, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189626176, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189626310, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189626513, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189626649, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189626782, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189626918, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189627053, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189627255, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189627390, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189627525, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189627728, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189627863, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189627997, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189628132, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189628268, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189628403, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189628539, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189628674, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189628878, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189629012, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189629148, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189629349, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189629484, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189629687, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189629820, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189629953, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189630088, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189630223, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189630359, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189630495, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189630700, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189630767, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189630969, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189631103, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189631238, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189631440, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189631575, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189631778, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189631913, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189631980, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189632183, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189632318, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189632454, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189632589, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189632791, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189632926, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189633128, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189633331, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189633466, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189633534, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189633736, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189633872, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189634007, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189634142, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189634344, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189634411, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189634614, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189634749, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189634885, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189635019, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189635223, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189635358, queuelength is 10
+AsyncSyntheticReader: excessive dropped frames. Set LocalUser.PCSelfConfig.frameRate <= 0.00  in config.json.
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189635494, queuelength is 10
+AsyncSocketIOReader: dropped packet for 3261636f-033e-4b51-86d2-ef2db81def36.pointcloud#0, ts=1720189635630, queuelength is 10
+SessionController: user left session: 3261636f-033e-4b51-86d2-ef2db81def36
+AsyncSocketIOReader: stopping thread
+AsyncSocketIOReader: joining thread
+AsyncSocketIOReader: thread preparing to stop
+AsyncSocketIOReader: thread stopped
+AsyncSocketIOReader: thread stopped
+AsyncSocketIOReader: thread stopped and joined
+AsyncPCDecoder#0: stopping thread
+AsyncPCDecoder#0: joining thread
+AsyncPCDecoder#0: thread preparing to stop
+AsyncPCDecoder#0: thread stopped
+AsyncPCDecoder#0 Stopped
+AsyncPCDecoder#0: thread stopped
+AsyncPCDecoder#0: thread stopped and joined
+AsyncPointCloudPreparer#3: stopping thread
+AsyncPointCloudPreparer#3: joining thread
+AsyncPointCloudPreparer#3: thread preparing to stop
+AsyncPointCloudPreparer#3: thread stopped
+AsyncPointCloudPreparer#3: thread stopped
+AsyncPointCloudPreparer#3: thread stopped and joined
+AsyncSocketIOReader: stopping thread
+AsyncSocketIOReader: joining thread
+AsyncSocketIOReader: thread preparing to stop
+AsyncSocketIOReader: thread stopped
+AsyncSocketIOReader: thread stopped
+AsyncSocketIOReader: thread stopped and joined
+AsyncVoiceDecoder: stopping thread
+AsyncVoiceDecoder: joining thread
+AsyncVoiceDecoder: thread preparing to stop
+AsyncVoiceDecoder: thread stopped
+AsyncVoiceDecoder: thread stopped
+AsyncVoiceDecoder: thread stopped and joined
+AsyncVoicePreparer#2: stopping thread
+AsyncVoicePreparer#2: joining thread
+AsyncVoicePreparer#2: thread preparing to stop
+AsyncVoicePreparer#2: thread stopped
+AsyncVoicePreparer#2: Stopped
+AsyncVoicePreparer#2: thread stopped
+AsyncVoicePreparer#2: thread stopped and joined
+SessionController: left session, loading LoginManager scene
+Pilot0Controller: Fading out for transition to VRTLoginManager
+BaseMemoryChunkReferences: 194 TotalRefCount pending:
+BaseMemoryChunkReferences: [0] --> Cwipc.cwipc+source
+BaseMemoryChunkReferences: [1] --> Cwipc.cwipc+encodergroup
+BaseMemoryChunkReferences: [2] --> Cwipc.cwipc+encoder
+BaseMemoryChunkReferences: [3] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [4] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [5] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [6] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [7] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [8] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [9] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [10] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [11] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [12] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [13] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [14] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [15] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [16] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [17] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [18] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [19] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [20] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [21] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [22] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [23] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [24] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [25] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [26] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [27] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [28] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [29] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [30] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [31] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [32] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [33] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [34] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [35] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [36] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [37] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [38] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [39] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [40] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [41] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [42] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [43] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [44] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [45] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [46] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [47] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [48] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [49] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [50] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [51] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [52] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [53] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [54] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [55] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [56] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [57] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [58] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [59] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [60] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [61] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [62] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [63] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [64] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [65] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [66] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [67] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [68] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [69] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [70] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [71] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [72] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [73] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [74] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [75] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [76] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [77] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [78] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [79] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [80] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [81] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [82] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [83] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [84] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [85] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [86] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [87] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [88] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [89] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [90] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [91] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [92] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [93] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [94] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [95] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [96] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [97] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [98] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [99] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [100] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [101] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [102] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [103] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [104] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [105] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [106] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [107] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [108] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [109] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [110] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [111] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [112] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [113] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [114] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [115] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [116] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [117] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [118] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [119] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [120] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [121] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [122] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [123] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [124] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [125] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [126] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [127] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [128] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [129] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [130] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [131] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [132] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [133] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [134] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [135] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [136] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [137] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [138] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [139] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [140] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [141] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [142] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [143] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [144] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [145] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [146] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [147] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [148] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [149] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [150] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [151] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [152] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [153] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [154] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [155] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [156] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [157] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [158] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [159] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [160] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [161] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [162] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [163] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [164] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [165] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [166] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [167] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [168] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [169] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [170] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [171] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [172] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [173] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [174] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [175] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [176] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [177] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [178] --> VRT.Core.FloatMemoryChunk
+BaseMemoryChunkReferences: [179] --> VRT.Core.FloatMemoryChunk
+BaseMemoryChunkReferences: [180] --> VRT.Core.FloatMemoryChunk
+BaseMemoryChunkReferences: [181] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [182] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [183] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [184] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [185] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [186] --> VRT.Core.FloatMemoryChunk
+BaseMemoryChunkReferences: [187] --> VRT.Core.FloatMemoryChunk
+BaseMemoryChunkReferences: [188] --> VRT.Core.FloatMemoryChunk
+BaseMemoryChunkReferences: [189] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [190] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [191] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [192] --> Cwipc.NativeMemoryChunk
+BaseMemoryChunkReferences: [193] --> Cwipc.cwipc+pointcloud
+Pilot0Controller: OnApplicationQuit: Leaving session.
+Tool_OrchestratorController_keep: OrchestratorController.OnDestroy() called. Will close orchestrator connection. 
+DISCONNECT called
+AsyncSyntheticReader: stopping thread
+AsyncSyntheticReader: joining thread
+QueueThreadSafe#PCPreparerQueue: Enqueue on closed queue PCPreparerQueue
+AsyncSyntheticReader: thread preparing to stop
+AsyncSyntheticReader: thread stopped
+AsyncSyntheticReader: Stopped.
+AsyncSyntheticReader: thread stopped
+AsyncSyntheticReader: thread stopped and joined
+AsyncPCEncoder: stopping thread
+AsyncPCEncoder: joining thread
+AsyncPCEncoder: thread preparing to stop
+AsyncPCEncoder: thread stopped
+AsyncPCEncoder: Stopped
+AsyncPCEncoder: thread stopped
+AsyncPCEncoder: thread stopped and joined
+AsyncSocketIOWriter#0: stopping thread
+AsyncSocketIOWriter#0: joining thread
+AsyncSocketIOWriter#0: thread preparing to stop
+AsyncSocketIOWriter#0: thread stopped
+[FPA] AsyncSocketIOWriter#0: Stopped.
+AsyncSocketIOWriter#0: thread stopped
+AsyncSocketIOWriter#0: thread stopped and joined
+AsyncPointCloudPreparer#1: stopping thread
+AsyncPointCloudPreparer#1: joining thread
+AsyncPointCloudPreparer#1: thread preparing to stop
+AsyncPointCloudPreparer#1: thread stopped
+AsyncPointCloudPreparer#1: thread stopped
+AsyncPointCloudPreparer#1: thread stopped and joined
+AsyncVoiceReader: stopping thread
+AsyncVoiceEncoder: stopping thread
+AsyncSocketIOWriter#1: stopping thread
+AsyncSocketIOWriter#1: thread preparing to stop
+AsyncVoiceEncoder: thread preparing to stop
+AsyncSocketIOWriter#1: thread stopped
+[FPA] AsyncSocketIOWriter#1: Stopped.
+AsyncSocketIOWriter#1: thread stopped
+AsyncVoiceEncoder: thread stopped
+QueueThreadSafe#VoiceSenderSender: Close() on closed queue VoiceSenderSender
+AsyncVoiceEncoder: thread stopped
+AsyncVoiceReader: thread preparing to stop
+AsyncVoiceReader: thread stopped
+QueueThreadSafe#VoiceSenderEncoder: Close() on closed queue VoiceSenderEncoder
+AsyncVoiceReader: thread stopped
+Memory Statistics:
+[ALLOC_TEMP_TLS] TLS Allocator
+  StackAllocators : 
+    [ALLOC_TEMP_MAIN]
+      Peak usage frame count: [2.0 KB-4.0 KB]: 2007 frames, [4.0 KB-8.0 KB]: 6 frames, [8.0 KB-16.0 KB]: 546 frames, [16.0 KB-32.0 KB]: 5 frames, [32.0 KB-64.0 KB]: 1 frames, [256.0 KB-0.5 MB]: 2 frames, [0.5 MB-1.0 MB]: 2 frames, [2.0 MB-4.0 MB]: 1 frames
+      Initial Block Size 4.0 MB
+      Current Block Size 4.0 MB
+      Peak Allocated Bytes 2.1 MB
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.worker 4]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Loading.PreloadManager]
+      Initial Block Size 256.0 KB
+      Current Block Size 496.0 KB
+      Peak Allocated Bytes 488.6 KB
+      Overflow Count 19
+    [ALLOC_TEMP_Background Job.worker 3]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.worker 11]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 16]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.worker 7]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.worker 6]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_CloudJob.worker 0]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 5.3 KB
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 19]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.worker 12]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.worker 2]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 138 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.worker 10]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.worker 15]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 5]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 20]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.worker 8]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.worker 13]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_AssetGarbageCollectorHelper] x 23
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_OSX HID Input]
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.worker 0]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 6]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 8]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.worker 14]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_BatchDeleteObjects]
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 11]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 15]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.worker 9]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 0]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 14]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 4]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 13]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.worker 1]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 0.7 KB
+      Overflow Count 0
+    [ALLOC_TEMP_EnlightenWorker] x 12
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 1]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 26.9 KB
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 21]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 3]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 25.0 KB
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.worker 5]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 12]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_UnityGfxDeviceWorker]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 448 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 22]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 2]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 26.9 KB
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 10]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 7]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 17]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 9]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.worker 18]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Loading.AsyncRead]
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 178 B
+      Overflow Count 0
+[ALLOC_DEFAULT] Dual Thread Allocator
+  Peak main deferred allocation count 519
+    [ALLOC_BUCKET]
+      Large Block size 4.0 MB
+      Used Block count 1
+      Peak Allocated bytes 2.8 MB
+    [ALLOC_DEFAULT_MAIN]
+      Peak usage frame count: [16.0 MB-32.0 MB]: 2570 frames
+      Requested Block Size 16.0 MB
+      Peak Block count 2
+      Peak Allocated memory 29.2 MB
+      Peak Large allocation bytes 8.0 MB
+    [ALLOC_DEFAULT_THREAD]
+      Peak usage frame count: [8.0 MB-16.0 MB]: 878 frames, [16.0 MB-32.0 MB]: 1692 frames
+      Requested Block Size 16.0 MB
+      Peak Block count 2
+      Peak Allocated memory 26.2 MB
+      Peak Large allocation bytes 0 B
+[ALLOC_TEMP_JOB_1_FRAME]
+  Initial Block Size 2.0 MB
+  Used Block Count 0
+  Overflow Count (too large) 0
+  Overflow Count (full) 0
+[ALLOC_TEMP_JOB_2_FRAMES]
+  Initial Block Size 2.0 MB
+  Used Block Count 0
+  Overflow Count (too large) 0
+  Overflow Count (full) 0
+[ALLOC_TEMP_JOB_4_FRAMES (JobTemp)]
+  Initial Block Size 2.0 MB
+  Used Block Count 1
+  Overflow Count (too large) 0
+  Overflow Count (full) 0
+[ALLOC_TEMP_JOB_ASYNC (Background)]
+  Initial Block Size 1.0 MB
+  Used Block Count 1
+  Overflow Count (too large) 0
+  Overflow Count (full) 0
+[ALLOC_GFX] Dual Thread Allocator
+  Peak main deferred allocation count 2
+    [ALLOC_BUCKET]
+      Large Block size 4.0 MB
+      Used Block count 1
+      Peak Allocated bytes 2.8 MB
+    [ALLOC_GFX_MAIN]
+      Peak usage frame count: [64.0 KB-128.0 KB]: 1838 frames, [128.0 KB-256.0 KB]: 728 frames, [256.0 KB-0.5 MB]: 4 frames
+      Requested Block Size 16.0 MB
+      Peak Block count 1
+      Peak Allocated memory 428.1 KB
+      Peak Large allocation bytes 0 B
+    [ALLOC_GFX_THREAD]
+      Peak usage frame count: [4.0 MB-8.0 MB]: 2570 frames
+      Requested Block Size 16.0 MB
+      Peak Block count 1
+      Peak Allocated memory 5.3 MB
+      Peak Large allocation bytes 0 B
+[ALLOC_CACHEOBJECTS] Dual Thread Allocator
+  Peak main deferred allocation count 34
+    [ALLOC_BUCKET]
+      Large Block size 4.0 MB
+      Used Block count 1
+      Peak Allocated bytes 2.8 MB
+    [ALLOC_CACHEOBJECTS_MAIN]
+      Peak usage frame count: [1.0 MB-2.0 MB]: 2570 frames
+      Requested Block Size 4.0 MB
+      Peak Block count 1
+      Peak Allocated memory 1.7 MB
+      Peak Large allocation bytes 0 B
+    [ALLOC_CACHEOBJECTS_THREAD]
+      Peak usage frame count: [8.0 MB-16.0 MB]: 2568 frames, [16.0 MB-32.0 MB]: 2 frames
+      Requested Block Size 4.0 MB
+      Peak Block count 5
+      Peak Allocated memory 26.8 MB
+      Peak Large allocation bytes 8.5 MB
+[ALLOC_TYPETREE] Dual Thread Allocator
+  Peak main deferred allocation count 0
+    [ALLOC_BUCKET]
+      Large Block size 4.0 MB
+      Used Block count 1
+      Peak Allocated bytes 2.8 MB
+    [ALLOC_TYPETREE_MAIN]
+      Peak usage frame count: [0-1.0 KB]: 819 frames, [1.0 KB-2.0 KB]: 1751 frames
+      Requested Block Size 2.0 MB
+      Peak Block count 1
+      Peak Allocated memory 1.1 KB
+      Peak Large allocation bytes 0 B
+    [ALLOC_TYPETREE_THREAD]
+      Peak usage frame count: [16.0 KB-32.0 KB]: 2570 frames
+      Requested Block Size 2.0 MB
+      Peak Block count 1
+      Peak Allocated memory 24.0 KB
+      Peak Large allocation bytes 0 B

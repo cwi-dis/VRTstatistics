@@ -8,13 +8,32 @@ This is a set of modules and scripts to collect and analyse the `stats:` output 
 
 ## Installation
 
-Install python in a virtual environment and install the needed packages (only needed for plot, right now):
+Install python in a virtual environment and install the needed packages. For Mac or Linux:
 
 ```
 python -m venv .venv
-. .venv/bin/activate # On windows use Scripts in stead of bin
+. .venv/bin/activate
 pip install -e .
 ```
+
+For Windows `CMD`:
+
+```
+python -m venv .venv
+.venv\Scripts\activate.bat
+pip install -e .
+```
+
+For Windows PowerShell:
+
+```
+python -m venv .venv
+& .venv\Scripts\Activate.ps1
+pip install -e .
+```
+
+
+> Note: you should not try to use `bash` on Windows, this will not work because the `activate` script doesn't know how to modify `PATH` correctly.
 
 After having done this once, you can use the scripts and utilities from any directory, by calling
 
@@ -22,7 +41,13 @@ After having done this once, you can use the scripts and utilities from any dire
 . .../VRTstatistics/.venv/bin/activate
 ```
 
+## Getting started
+
+Check the `example` directory and the [example/README.md](example/README.md) file to get started.
+
 ## Gathering data
+
+> Note this section is incorrect at the moment (at least mostly incorrect). See the example.
 
 ### Creating your configuration
 
