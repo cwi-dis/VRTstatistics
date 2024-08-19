@@ -35,19 +35,19 @@ defaultRunnerConfig = {
         host="beelzebub.local",
         useSsh=True,
     ),
-    "fiddlehead.local": dict(
+    "fiddlehead.huiskamer.private": dict(
         statPath="AppData/LocalLow/dis_cwi_nl/VR2Gather/VQEG_Experiment.txt", 
         logPath="AppData/LocalLow/dis_cwi_nl/VR2Gather/Player.log", 
         user="vrtogether",
-        host="fiddlehead.local",
-        useSsh=True,
+        host="fiddlehead.huiskamer.private",
+        useSsh=False,
     ),
-    "topinambur.local": dict(
+    "topinambur.huiskamer.private": dict(
         statPath="AppData/LocalLow/dis_cwi_nl/VR2Gather/VQEG_Experiment.txt", 
         logPath="AppData/LocalLow/dis_cwi_nl/VR2Gather/Player.log", 
         user="dis",
-        host="topinambur.local",
-        useSsh=True,
+        host="topinambur.huiskamer.private",
+        useSsh=False,
     ),
 
 }
