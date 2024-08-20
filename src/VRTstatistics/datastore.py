@@ -16,6 +16,7 @@ DataStoreRecord = dict[str, Any]
 
 class DataStore:
     debug = True
+    verbose = True
 
     filename: Optional[str]
     data: list[DataStoreRecord]
@@ -135,6 +136,8 @@ class DataStore:
                 else:
                     entry = record
                 rv.append(entry)
+        if len(rv) == 0:
+            print(f"_filter_data: Warning: empty dataset for fields={fields}, predicate: {predicate}")
         return rv
 
     def save(self) -> None:
