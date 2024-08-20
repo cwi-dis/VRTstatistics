@@ -1,5 +1,6 @@
 import argparse
 import sys
+import os
 import matplotlib.pyplot as pyplot
 from ..datastore import DataStore
 from ..plots import plot_simple
@@ -37,7 +38,7 @@ def main():
     parser.add_argument("--pausefordebug", action="store_true", help="Wait for a newline after start (so you can attach a debugger)")
     args = parser.parse_args()
     if args.pausefordebug:
-        sys.stderr.write("Press return to continue - ")
+        sys.stderr.write(f"Attach debugger to pid={os.getpid()}. Press return to continue - ")
         sys.stderr.flush()
         sys.stdin.readline()
     predicate = None
