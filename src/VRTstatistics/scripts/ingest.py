@@ -25,7 +25,7 @@ def main():
     parser.add_argument("receiver", help="Receiver hostname")
     args = parser.parse_args()
     if args.pausefordebug:
-        sys.stderr.write("Press return to continue - ")
+        sys.stderr.write(f"Attach debugger to pid={os.getpid()}. Press return to continue - ")
         sys.stderr.flush()
         sys.stdin.readline()
     if args.writeconfig:
