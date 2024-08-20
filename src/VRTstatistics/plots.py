@@ -6,7 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as pyplot
 from matplotlib.backends.backend_pdf import PdfPages
 
-from .datastore import DataStore
+from .datastore import DataStore, DataStoreError
 from .analyze import TileCombiner, SessionTimeFilter, dataframe_to_pcindex_latencies_for_tile
 
 __all__ = [
@@ -48,6 +48,8 @@ def plot_simple(datastore : DataStore, *, predicate=None, title=None, noshow=Fal
     return plot_dataframe(dataframe, title=title, noshow=noshow, x=x, fields=fields_to_plot, descr=descr, plotargs=plotargs)
 
 def plot_dataframe(dataframe : pd.DataFrame, *, title=None, noshow=False, x=None, fields=None, descr=None, plotargs={}, interpolate='linear') -> pyplot.Axes:
+    if dataframe.empty:
+        raise DataStoreError("dataframe is empty, nothing to plot")
     if fields:
         plot = dataframe.interpolate(method=interpolate).plot(x=x, y=fields, **plotargs)
     else:
