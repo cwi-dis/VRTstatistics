@@ -53,11 +53,11 @@ For now, here is a way to see why things are going wrong:
 - Run the venv initialization sequnce, above.
 - Open `vscode` in this directory. Ensure you have all the right plugins for Python installed.
 - Open a terminal in vscode. It should automatically find the `.venv` and load it.
+- Now add the toplevel directory with your measurements with _File_ -> _Add Folder To Workspace..._
+- You can now navigate all files and edit them.
 - Run whatever tool is giving you problems with (for example) `VRTstatistics-plot --pausefordebug ...`.
 - In vscode, goto debugger, select "Python: Attach using Process ID", select the process.
-- Type `Y` to the tool.
-
-
+- You can now set breakpoints, whatever. When you type a _return_ in the terminal window the tool will start running under the debugger.
 
 ## Gathering data
 
