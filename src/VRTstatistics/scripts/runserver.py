@@ -3,8 +3,12 @@ import time
 import subprocess
 import datetime
 from flask import Flask, request, Response, jsonify
+import platform
 import psutil
 from ..runner import RunnerServerPort
+
+if platform.system() == "Windows":
+    import WinTmp
 
 app = Flask(__name__)
 
@@ -16,6 +20,7 @@ class RUsageCollector:
         self.net_bytes_recv = 0
         self.net_bytes_sent = 0
         self._get_bandwidth()
+        self.plt = platform.system()
 
     def close(self):
         self.fp.close()
@@ -37,7 +42,11 @@ class RUsageCollector:
         vms = mem.vms
         net = psutil.net_io_counters()
         recv, sent = self._get_bandwidth()
-        print(f'stats: component=ResourceConsumption, ts={ts:.3f}, cpu={cpu}, cpu_max={maxcpu}, mem={vms}, recv_bandwidth={recv:.0f}, sent_bandwidth={sent:.0f}', file=self.fp)
+        stats_log = f'stats: component=ResourceConsumption, ts={ts:.3f}, cpu={cpu}, cpu_max={maxcpu}, mem={vms}, recv_bandwidth={recv:.0f}, sent_bandwidth={sent:.0f}'
+        if self.plt == "Windows":
+            temperature = WinTmp.CPU_Temp()
+            stats_log += f', temperature={temperature}'
+        print(stats_log, file=self.fp)
 
     def _get_bandwidth(self):
         net = psutil.net_io_counters()
