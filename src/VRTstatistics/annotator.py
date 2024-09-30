@@ -152,7 +152,7 @@ class LatencySenderAnnotator(Annotator):
         self.nQualities = r["nquality"]
 
         # Hack: SocketIO uses a single writer to push all streams.
-        if self.protocol == "socketio":
+        if self.protocol == "socketio" or self.protocol == "tcpreflector":
             self.send_pc_writers = {send_pc_writer_umbrella : "all" } # type: ignore
         else:
             rr = self.datastore.find_all_records(f'component == "{send_pc_writer_umbrella}" and "pusher" in record', f"{self.role} pc writer")
@@ -250,7 +250,7 @@ class LatencyReceiverAnnotator(Annotator):
             print(f"{self.role}: recv_pc_reader_umbrella={recv_pc_reader_umbrella} (from seq={r['seq']})")
             print(f"{self.role}: recv_synchronizer={self.recv_synchronizer} (from seq={r['seq']})")
         # Hack - SocketIO uses a single reader to read all streams.
-        if "SocketIOReader" in recv_pc_reader_umbrella:
+        if "SocketIOReader" in recv_pc_reader_umbrella or "TCPReflectorReader" in recv_pc_reader_umbrella:
             self.recv_pc_readers = { recv_pc_reader_umbrella : "all"}
         else:
             self.recv_pc_readers = {}
