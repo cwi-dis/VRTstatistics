@@ -31,6 +31,8 @@ def main():
     if args.writeconfig:
         json.dump(Runner.runnerConfig, open(args.writeconfig, "w"), indent=4)
         sys.exit(0)
+    sys.stdout.write(f"working dir: {os.getcwd()}\n")
+    sys.stdout.write(f"command line: {' '.join(sys.argv)}\n")
     if args.config:
         Runner.load_config(args.config)
 
