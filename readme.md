@@ -20,7 +20,7 @@ For Windows `CMD`:
 
 ```
 python -m venv .venv
-.venv\Scripts\activate.bat
+".venv\Scripts\activate.bat" 
 pip install -e .
 ```
 
@@ -38,7 +38,7 @@ pip install -e .
 After having done this once, you can use the scripts and utilities from any directory, by calling
 
 ```
-. .../VRTstatistics/.venv/bin/activate
+. .../VRTstatistics/.venv/Scripts/activate
 ```
 
 ## Getting started
