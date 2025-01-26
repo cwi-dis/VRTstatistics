@@ -6,11 +6,10 @@ import socket
 import json
 from typing import Optional, List, Any, cast, Union
 
-from .runnerconfig import defaultRunnerConfig
-
 __all__ = ["Runner", "RunnerServerPort"]
 
-RunnerServerPort = 5001
+RunnerServerPort = 5002
+
 RunnerArgs = dict[str, Any]
 
 
@@ -24,7 +23,7 @@ class Runner:
     useSsh : bool
     running : Any
     verbose = True
-    runnerConfig : dict[str, dict[str, Union[str, bool]]] = defaultRunnerConfig
+    runnerConfig : dict[str, dict[str, Union[str, bool]]] = {}
     mdnsWorkaround = True
 
     @classmethod

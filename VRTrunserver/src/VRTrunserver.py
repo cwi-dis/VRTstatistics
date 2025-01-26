@@ -5,7 +5,8 @@ import datetime
 from flask import Flask, request, Response, jsonify
 import platform
 import psutil
-from ..runner import RunnerServerPort
+
+RunnerServerPort = 5002
 
 if platform.system() == "Windows":
     import WinTmp

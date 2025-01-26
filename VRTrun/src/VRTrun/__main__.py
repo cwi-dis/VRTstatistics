@@ -3,16 +3,13 @@ import os
 import argparse
 import json
 
-from ..datastore import DataStore
-from ..annotator import combine
-from VRTrun import Runner
+from . import Runner
 
 verbose = True
 
 def main():
-    parser = argparse.ArgumentParser(description="Run a test, or ingest results")
+    parser = argparse.ArgumentParser(description="Run a VR2Gather player session")
     parser.add_argument("-d", "--destdir", help="directory to store results (default: current directory)")
-    parser.add_argument("-a", "--annotator", metavar="ANN", help="Annotator to use for symbolic naming of records")
     parser.add_argument("-r", "--run", action="store_true", help="Run the test (default: only ingest data from an earlier run)")
     parser.add_argument("-C", "--vrtconfig", action="store", metavar="CONFIGFILE", help="Upload and use CONFIGFILE when running")
     parser.add_argument("--norusage", action="store_true", help="Do not try to get resource usage statistics logfiles")
@@ -97,18 +94,7 @@ def main():
             #
             open(sender_stats, 'a').write(open(sender_rusagefile).read())
             open(receiver_stats, 'a').write(open(receiver_rusagefile).read())
-
-    senderdata = DataStore(sender_stats)
-    receiverdata = DataStore(receiver_stats)
-
-    senderdata.load()
-    receiverdata.load()
-
-    outputdata = DataStore(combined)
-    ok = combine(args.annotator, senderdata, receiverdata, outputdata)
-    outputdata.save()
-    sys.exit(0 if ok else 1)
-
+    return 0
 
 if __name__ == "__main__":
     main()
