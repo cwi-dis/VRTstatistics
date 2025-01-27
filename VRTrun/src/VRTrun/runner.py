@@ -15,7 +15,6 @@ RunnerArgs = dict[str, Any]
 
 class Runner:
     host: str
-    user: str
     statPath: str
     logPath: str
     exePath: str
@@ -35,7 +34,6 @@ class Runner:
             config = self.runnerConfig.get(self.host)
             if not config:
                 raise RuntimeError(f"Host key '{self.host}' not found in VRTstatistics configuration")
-        self.user = config["user"]
         if "host" in config:
             self.host = config["host"]
         if self.mdnsWorkaround and ".local" in self.host:
