@@ -13,6 +13,14 @@ if platform.system() == "Windows":
 
 app = Flask(__name__)
 
+class Settings:
+    def __init__(self):
+        self.executable = "/Users/jack/src/VRTogether/VRTApp-Develop-built.app/Contents/MacOS/VR2Gather"
+        self.topworkdir = "/Users/jack/tmp/VRTrunserver"
+        self.workdir = None
+
+SETTINGS = Settings()
+
 class RUsageCollector:
     def __init__(self, filename : str, proc : psutil.Process) -> None:
         self.fp = open(filename, 'w')
@@ -64,21 +72,35 @@ class RUsageCollector:
 def about():
     return "<p>Hello world!</p>"
 
-@app.route("/runold", methods=["POST"])
-def run():
-    command = request.json
-    print(f"run: command={command}")
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    stdout_data, stderr_data = process.communicate()
-    process.wait()
-    return Response(stdout_data, mimetype="text/plain")
+@app.route("/start", methods=["POST"])
+def start():
+    args = request.json
+    print(f"start: {args}")
+    SETTINGS.workdir = os.path.join(SETTINGS.topworkdir, args["workdir"])
+    os.makedirs(SETTINGS.workdir, exist_ok=True)
+    return Response("OK", mimetype="text/plain")
 
-@app.route("/run", methods=["POST"])
-def runwithusage():
-    command = request.json
-    print(f"run: command={command}")
+@app.route("/stop", methods=["GET", "POST"])
+def stop():
+    if SETTINGS.workdir == None:
+        print("stop: start not called")
+        return Response("400: stop: start not called", status=400)
+    print("stop")
+    SETTINGS.workdir = None
+    return Response("OK", mimetype="text/plain")
+
+@app.route("/run", methods=["GET", "POST"])
+def run():
+    if SETTINGS.workdir == None:
+        print("run: start not called")
+        return Response("400: run: start not called", status=400)
+    command = [SETTINGS.executable]
+    
+    print(f"run: command={command.join(' ')}")
+    
     process = psutil.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    usage_collector = RUsageCollector('rusage.log', process)
+    usage_file = os.path.join(SETTINGS.workdir, 'rusage.log')
+    usage_collector = RUsageCollector(usage_file, process)
     while process.poll() == None:
         time.sleep(0.1)
         usage_collector.step()
@@ -89,11 +111,14 @@ def runwithusage():
 
 @app.route("/putfile", methods=["POST"])
 def putfile():
+    if SETTINGS.workdir == None:
+        print("putfile: start not called")
+        return Response("400: putfile: start not called", status=400)
     args = request.json
-    filename = args['filename']
+    filename = os.path.join(SETTINGS.workdir, args['filename'])
     data = args['data']
     print(f"put: {filename}, {len(data)} bytes")
-    open(filename, 'w').write(data)
+    open(filename, 'wb').write(data)
     full_filename = os.path.abspath(filename)
     print(f"put: return fullpath {full_filename}")
     rv = {"fullpath" : full_filename}
@@ -101,20 +126,36 @@ def putfile():
 
 @app.route("/getfile")
 def getfile():
+    if SETTINGS.workdir == None:
+        print("getfile: start not called")
+        return Response("400: getfile: start not called", status=400)
     args = request.json
-    filename = args["fullpath"]
-    if not os.path.isabs(filename):
-        # Not an absolute path. If it contains directories it is relative to HOME else in working directory.
-        if os.path.dirname(filename):
-            filename = os.path.join(os.path.expanduser("~"), filename)
+    filename = os.path.join(SETTINGS.workdir, args['filename'])
     
     print(f"get: {filename}")
     try:
-        file_data = open(filename, 'r').read()
+        file_data = open(filename, 'rb').read()
     except FileNotFoundError:
         print("failed")
         return Response(status=404)
     return Response(file_data, mimetype="text/plain")
+
+@app.route("/listdir")
+def listdir():
+    if SETTINGS.workdir == None:
+        print("listdir: start not called")
+        return Response("400: listdir: start not called", status=400)
+    files = []
+    try:
+        for dirpath, dirnames, filenames in os.walk(SETTINGS.workdir):
+            files = []
+            for filename in filenames:
+                files.append(os.path.join(dirpath, filename))
+    except FileNotFoundError:
+        print("listdir: failed")
+        return Response(status=404)
+    print(f"listdir: {len(files)} files")
+    return jsonify(files)
 
 def main():
     print("WARNING: this is a dangerous server that allows executing anything on this machine.")
