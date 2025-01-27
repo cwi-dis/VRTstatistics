@@ -20,7 +20,6 @@ class Runner:
     logPath: str
     exePath: str
     exeArgs : List[str]
-    useSsh : bool
     running : Any
     verbose = True
     runnerConfig : dict[str, dict[str, Union[str, bool]]] = {}
@@ -52,7 +51,6 @@ class Runner:
         self.logPath = config["logPath"]
         self.exePath = cast(str, config.get("exePath"))
         self.exeArgs = config.get("exeArgs", [])
-        self.useSsh = config.get("useSsh", False)
         self.running = None
 
     def get_log(self, filename : str) -> None:
@@ -62,20 +60,8 @@ class Runner:
         self.get_remotefile(self.statPath, filename)
 
     def get_remotefile(self, remotepath : str, filename : str) -> None:
-        if self.useSsh:
-            self._get_remotefile_ssh(remotepath, filename)
-        else:
-            self._get_remotefile_server(remotepath, filename)
+        self._get_remotefile_server(remotepath, filename)
 
-    def _get_remotefile_ssh(self, remotepath : str, filename : str) -> None:
-        if self.user:
-            scpPath = f"{self.user}@{self.host}:{remotepath}"
-        else:
-            scpPath = f"{self.host}:{remotepath}"
-        cmd = ["scp", scpPath, filename]
-        if self.verbose:
-            print("+", " ".join(cmd), file=sys.stderr)
-        subprocess.run(cmd)
 
     def _get_remotefile_server(self, remotepath : str, filename : str) -> None:
         url = f"http://{self.host}:{RunnerServerPort}/getfile"
@@ -89,8 +75,6 @@ class Runner:
             print(f"- GET {url} filename={filename} size={len(result)}")
 
     def put_file(self, filename : str, data : str) -> str:
-        if self.useSsh:
-            raise RuntimeError("put_file not implemented over ssh")
         url = f"http://{self.host}:{RunnerServerPort}/putfile"
         if self.verbose:
             print(f"+ POST {url} filename={filename} data=...", file=sys.stderr)
@@ -103,35 +87,15 @@ class Runner:
 
     def run(self, additionalArgs : Optional[List[str]] = None) -> None:
         assert self.running == None
-        if self.useSsh:
-            self.running = self._run_ssh(additionalArgs)
-        else:
-            self.running = threading.Thread(target=self._run_server_thread, args=(additionalArgs,))
-            self.running.start()
+        self.running = threading.Thread(target=self._run_server_thread, args=(additionalArgs,))
+        self.running.start()
 
     def wait(self) -> int:
         assert self.running != None
-        if self.useSsh:
-            rv = self.running.wait()
-        else:
-            self.running.join()
-            rv = self.status_code
+        self.running.join()
+        rv = self.status_code
         return rv
 
-    def _run_ssh(self, additionalArgs : Optional[List[str]] = None) -> subprocess.Popen:
-        if not self.exePath:
-            raise RuntimeError(f"No exePath for {self.host}")
-        if self.user:
-            sshHost = f"{self.user}@{self.host}"
-        else:
-            sshHost = self.host
-        cmd = ["ssh", sshHost, self.exePath] + self.exeArgs
-        if additionalArgs:
-            cmd += additionalArgs
-        if self.verbose:
-            print("+", " ".join(cmd), file=sys.stderr)
-        return subprocess.Popen(cmd)
-    
     def _run_server_thread(self, additionalArgs : Optional[List[str]] = None):
         if not self.exePath:
             raise RuntimeError(f"No exePath for {self.host}")
