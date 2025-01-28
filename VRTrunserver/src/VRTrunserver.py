@@ -1,6 +1,7 @@
 import os
 import time
 import subprocess
+import shutil
 from typing import Dict, Optional, List
 import datetime
 from flask import Flask, request, Response, jsonify, send_file
@@ -114,9 +115,28 @@ def run():
     usage_collector.close()
     stdout_data, stderr_data = process.communicate()
     process.wait()
+    #
+    # Find the statsfilename and copy that file to the workdir
+    #
+    copy_stats_file(logfile, SETTINGS.workdir)
     if stderr_data:
         stdout_data += b"\n" + stderr_data
     return Response(stdout_data, mimetype="text/plain")
+
+def copy_stats_file(logfile : str, workdir : str):
+    # See if we can find the stats file
+    stats_filename = None
+    for line in open(logfile):
+        if line.startswith("stats:"):
+            fields = line.split(",")
+            for field in fields:
+                field = field.strip()
+                key, value = field.split("=")
+                if key == "statsFilename":
+                    stats_filename = value
+                    break
+    if stats_filename:
+        shutil.copy(stats_filename, workdir)
 
 @app.route("/putfile", methods=["POST"])
 def putfile():
