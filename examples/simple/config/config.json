@@ -1,0 +1,114 @@
+{
+    "_orchestratorURL": "http://sap.local:8090/",
+    "targetFrameRate": -1,
+    "ntpSyncThreshold": 0.10000000149011612,
+    "statsInterval": 10.0,
+    "statsOutputFile": "stats.log",
+    "statsOutputFileAppend": false,
+    "ffmpegDLLDir": "../ffmpeg/x64",
+    "ScreenshotTool": {
+        "takeScreenshot": false,
+        "screenshotTargetDirectory": ""
+    },
+    "AutoStart": {
+        "autoLogin": true,
+        "autoCreate": false,
+        "autoJoin": false,
+        "autoCreateForUser": "sap",
+        "sessionName": "jack-vrtrun-test",
+        "sessionScenario": "Pilot 0",
+        "sessionTransportProtocol": "socketio",
+        "sessionUncompressed": false,
+        "sessionUncompressedAudio": false,
+        "autoStartWith": 1,
+        "autoLeaveAfter": 20.0,
+        "autoStopAfterLeave": true,
+        "autoDelay": 1.0
+    },
+    "TransportDash": {
+        "segmentSize": 1000,
+        "segmentLife": 16000
+    },
+    "TransportWebRTC": {
+        "peerExecutablePath": "",
+        "peerInWindow": false,
+        "peerWindowDontClose": false,
+        "peerUDPPort": 8000,
+        "peerIPAddress": "127.0.0.1",
+        "logFileDirectory": "",
+        "debugLevel": 0
+    },
+    "PCs": {
+        "Codec": "cwi1",
+        "defaultCellSize": 0.0020000000949949028,
+        "cellSizeFactor": 1.0,
+        "debugColorize": false,
+        "timeoutBeforeGhosting": 5.0,
+        "decoderQueueSizeOverride": 0,
+        "preparerQueueSizeOverride": 0,
+        "encoderParallelism": 0,
+        "decoderParallelism": 0,
+        "preparerQueueSize": 0
+    },
+    "Voice": {
+        "audioFps": 50,
+        "maxPlayoutLatency": 0.06599999964237213,
+        "maxPlayoutAhead": 0.06599999964237213,
+        "preparerQueueSize": 0,
+        "ignoreSynchronizer": true
+    },
+    "Synchronizer": {
+        "debugSynchronizer": false,
+        "debugJitterBuffer": false,
+        "minLatency": 100,
+        "maxLatency": 5000,
+        "latencyMaxDecrease": 1,
+        "latencyMaxIncrease": 33,
+        "acceptDesyncOnDataUnavailable": false
+    },
+    "TileSelector": {
+        "algorithm": "",
+        "debugDecisions": false,
+        "bitrateBudget": 0
+    },
+    "VQEGLatencies": [],
+    "temp": 0,
+    "LocalUser": {
+        "orchestratorConfigFilename": "config-user.json",
+        "PCSelfConfig": {
+            "capturerType": 4,
+            "capturerTypeName": "",
+            "CameraReaderConfig": {
+                "configFilename": ""
+            },
+            "RemoteCameraReaderConfig": {
+                "url": "",
+                "isCompressed": false
+            },
+            "ProxyReaderConfig": {
+                "localIP": "",
+                "port": 9335
+            },
+            "SynthReaderConfig": {
+                "nPoints": 16000
+            },
+            "PrerecordedReaderConfig": {
+                "folder": "../cwipc_test/Samples/loot-150K-4tiles"
+            },
+            "voxelSize": 0.0,
+            "frameRate": 15.0,
+            "tiled": false,
+            "Encoders": [
+                {
+                    "octreeBits": 9
+                }
+            ]
+        },
+        "PositionTracker": {
+            "outputFile": "",
+            "outputIntervalOverride": 0,
+            "inputFile": ""
+        }
+    },
+    "configOverrideFilename": ""
+}
