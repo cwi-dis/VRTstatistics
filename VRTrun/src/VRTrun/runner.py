@@ -15,6 +15,7 @@ RunnerArgs = dict[str, Any]
 
 class Runner:
     host: str
+    role : str
     statPath: str
     logPath: str
     exePath: str
@@ -28,8 +29,11 @@ class Runner:
     def load_config(cls, filename : str) -> None:
         cls.runnerConfig = json.load(open(filename))
 
-    def __init__(self, machine: str, config: Optional[RunnerArgs] = None) -> None:
-        self.host = machine
+    def __init__(self, host: str, role : str, config: Optional[RunnerArgs] = None) -> None:
+        self.host = host
+        self.role = role
+        self.running = None
+        return
         if not config:
             config = self.runnerConfig.get(self.host)
             if not config:
@@ -49,7 +53,22 @@ class Runner:
         self.logPath = config["logPath"]
         self.exePath = cast(str, config.get("exePath"))
         self.exeArgs = config.get("exeArgs", [])
-        self.running = None
+
+    def start(self, workdirname : str) -> None:
+        url = f"http://{self.host}:{RunnerServerPort}/start"
+        if self.verbose:
+            print(f"+ POST {url} workdir={workdirname}")
+        r = requests.post(url, json={'workdir' : workdirname})
+        r.raise_for_status()
+        
+    def load_config_dir(self, configdir : str) -> None:
+        pass
+
+    def send_config(self) -> None:
+        pass
+
+    def receive_results(self) -> None:
+        pass
 
     def get_log(self, filename : str) -> None:
         self.get_remotefile(self.logPath, filename)
@@ -83,9 +102,9 @@ class Runner:
             print(f'- POST {url} -> {rv}')
         return rv['fullpath']
 
-    def run(self, additionalArgs : Optional[List[str]] = None) -> None:
+    def run(self) -> None:
         assert self.running == None
-        self.running = threading.Thread(target=self._run_server_thread, args=(additionalArgs,))
+        self.running = threading.Thread(target=self._run_server_thread)
         self.running.start()
 
     def wait(self) -> int:
@@ -94,20 +113,10 @@ class Runner:
         rv = self.status_code
         return rv
 
-    def _run_server_thread(self, additionalArgs : Optional[List[str]] = None):
-        if not self.exePath:
-            raise RuntimeError(f"No exePath for {self.host}")
-        cmd = [self.exePath] + self.exeArgs
-        if additionalArgs:
-            cmd += additionalArgs
+    def _run_server_thread(self):
         url = f"http://{self.host}:{RunnerServerPort}/run"
         if self.verbose:
-            print(f"+ POST {url} {cmd}", file=sys.stderr)
-        response = requests.post(url, json=cmd)
+            print(f"+ POST {url}", file=sys.stderr)
+        response = requests.post(url)
         print(response.text)
         self.status_code = response.status_code if response.status_code != 200 else 0
-
-    def run_with_config(self, configfile : str) -> None:
-        configdata = open(configfile).read()
-        remotepath = self.put_file("curconfig.json", configdata)
-        self.run(["-vrt-config", remotepath])

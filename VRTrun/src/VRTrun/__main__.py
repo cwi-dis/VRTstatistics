@@ -2,7 +2,8 @@ import sys
 import os
 import argparse
 import json
-
+from typing import List
+from datetime import datetime
 from . import Runner
 
 verbose = True
@@ -17,9 +18,9 @@ def main():
     parser.add_argument("--nofetch", action="store_true", help="Don't fetch log file but reuse earlier ones")
     parser.add_argument("-c", "--config", metavar="FILE", help="Use host configuration from FILE (json)")
     parser.add_argument("--writeconfig", metavar="FILE", help="Save default host configuration to FILE (json) and exit")
-    parser.add_argument("--pausefordebug", action="store_true", help="Wait for a newline after start (so you can attach a debugger)")
-    parser.add_argument("sender", help="Sender hostname")
-    parser.add_argument("receiver", help="Receiver hostname")
+    parser.add_argument("--pausefordebug", action="store_true", help="Pause before starting to allow attaching a debugger")
+    # xxxjack add machines
+    
     args = parser.parse_args()
     if args.pausefordebug:
         sys.stderr.write(f"Attach debugger to pid={os.getpid()}. Press return to continue - ")
@@ -40,32 +41,53 @@ def main():
 
     if not os.path.exists(destdir):
         os.mkdir(destdir)
-    
-    sender = None
-    receiver = None
-    if args.run or not args.nofetch:
-        sender = Runner(args.sender)
-        receiver = Runner(args.receiver)
 
-    if args.run:
-        assert sender
-        assert receiver
-        if args.vrtconfig:
-            sender.run_with_config(args.vrtconfig)
-            receiver.run_with_config(args.vrtconfig)
+    configdir = "./config"
+    workdirname = datetime.now().strftime("run-%Y%m%d-%H%M")
+    machines = json.load(open(os.path.join(configdir, "runconfig.json")))
+    runners : List[Runner] = []
+    if verbose:
+        print("Creating processes...", file=sys.stderr)
+    for machine in machines:
+        if type(machine) == str:
+            machine_role = machine
+            machine_address = machine
         else:
-            sender.run()
-            receiver.run()
-        if verbose:
-            print("Waiting for processes to finish...", file=sys.stderr)
-        sender_sts = sender.wait()
-        if sender_sts != 0:
-            print(f"Sender returned exit status {sender_sts}")
-        receiver_sts = receiver.wait()
-        if receiver_sts != 0:
-            print(f"Receiver returned exit status {receiver_sts}")
-        if sender_sts != 0 or receiver_sts != 0:
-            sys.exit(1)
+            machine_role = machine["role"]
+            machine_address = machine["address"]
+        runner = Runner(machine_address, machine_role)
+        runners.append(runner)
+
+    if verbose:
+        print("Loading configurations...", file=sys.stderr)
+    for runner in runners:
+        runner.start(workdirname)
+        runner.load_config_dir(os.path.join(configdir, "default"))
+        runner.load_config_dir(os.path.join(configdir, runner.role))
+        runner.send_config()
+
+    if verbose:
+        print("Starting processes...", file=sys.stderr)
+    for runner in runners:
+        runner.run()
+
+    if verbose:
+        print("Waiting for processes to finish...", file=sys.stderr)
+    # xxxjack it would be good to be able to abort the runners with control-C
+    all_status = 0
+    for runner in runners:
+        sts = runner.wait()
+        if verbose or sts != 0:
+            print(f"Runner {runner.role} returned {sts}", file=sys.stderr)
+        if sts != 0:
+            all_status = sts
+
+    if verbose:
+        print("Fetching results...", file=sys.stderr)
+    for runner in runners:
+        runner.receive_results()
+
+    return all_status
        
     sender_stats = os.path.join(destdir, "sender.log")
     receiver_stats = os.path.join(destdir, "receiver.log")

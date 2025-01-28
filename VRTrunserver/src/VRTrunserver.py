@@ -96,7 +96,7 @@ def run():
         return Response("400: run: start not called", status=400)
     command = [SETTINGS.executable]
     
-    print(f"run: command={command.join(' ')}")
+    print(f"run: command={' '.join(command)}")
     
     process = psutil.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     usage_file = os.path.join(SETTINGS.workdir, 'rusage.log')
