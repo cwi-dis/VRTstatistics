@@ -4,7 +4,7 @@ import argparse
 import json
 from typing import List
 from datetime import datetime
-from . import Runner
+from . import Runner, Session
 
 verbose = True
 
@@ -12,7 +12,6 @@ def main():
     parser = argparse.ArgumentParser(description="Run a VR2Gather player session")
     parser.add_argument("-d", "--destdir", help="directory to store results (default: current directory)")
     parser.add_argument("-r", "--run", action="store_true", help="Run the test (default: only ingest data from an earlier run)")
-    parser.add_argument("-C", "--vrtconfig", action="store", metavar="CONFIGFILE", help="Upload and use CONFIGFILE when running")
     parser.add_argument("--norusage", action="store_true", help="Do not try to get resource usage statistics logfiles")
     parser.add_argument("--nolog", action="store_true", help="Do not try to get Unity Player logfiles")
     parser.add_argument("--nofetch", action="store_true", help="Don't fetch log file but reuse earlier ones")
@@ -45,49 +44,19 @@ def main():
     configdir = "./config"
     workdirname = datetime.now().strftime("run-%Y%m%d-%H%M")
     machines = json.load(open(os.path.join(configdir, "runconfig.json")))
-    runners : List[Runner] = []
-    if verbose:
-        print("Creating processes...", file=sys.stderr)
-    for machine in machines:
-        if type(machine) == str:
-            machine_role = machine
-            machine_address = machine
-        else:
-            machine_role = machine["role"]
-            machine_address = machine["address"]
-        runner = Runner(machine_address, machine_role)
-        runners.append(runner)
 
-    if verbose:
-        print("Loading configurations...", file=sys.stderr)
-    for runner in runners:
-        runner.start(workdirname)
-        runner.load_config_dir(os.path.join(configdir, "default"))
-        runner.load_config_dir(os.path.join(configdir, runner.role))
-        runner.send_config()
+    session = Session(machines, configdir, workdirname, verbose=verbose)
 
-    if verbose:
-        print("Starting processes...", file=sys.stderr)
-    for runner in runners:
-        runner.run()
+    session.start()
 
-    if verbose:
-        print("Waiting for processes to finish...", file=sys.stderr)
-    # xxxjack it would be good to be able to abort the runners with control-C
-    all_status = 0
-    for runner in runners:
-        sts = runner.wait()
-        if verbose or sts != 0:
-            print(f"Runner {runner.role} returned {sts}", file=sys.stderr)
-        if sts != 0:
-            all_status = sts
+    session.run()
 
-    if verbose:
-        print("Fetching results...", file=sys.stderr)
-    for runner in runners:
-        runner.receive_results()
+    sts = session.wait()
 
-    return all_status
+    session.receive_results()
+
+    return sts
+
        
     sender_stats = os.path.join(destdir, "sender.log")
     receiver_stats = os.path.join(destdir, "receiver.log")

@@ -1,6 +1,7 @@
 import os
 import time
 import subprocess
+from typing import Dict, Optional, List
 import datetime
 from flask import Flask, request, Response, jsonify
 import platform
@@ -17,7 +18,7 @@ class Settings:
     def __init__(self):
         self.executable = "/Users/jack/src/VRTogether/VRTApp-Develop-built.app/Contents/MacOS/VR2Gather"
         self.topworkdir = "/Users/jack/tmp/VRTrunserver"
-        self.workdir = None
+        self.workdir : Optional[str] = None
 
 SETTINGS = Settings()
 
@@ -74,7 +75,7 @@ def about():
 
 @app.route("/start", methods=["POST"])
 def start():
-    args = request.json
+    args : Dict[str, str] = request.json
     print(f"start: {args}")
     SETTINGS.workdir = os.path.join(SETTINGS.topworkdir, args["workdir"])
     os.makedirs(SETTINGS.workdir, exist_ok=True)
@@ -94,8 +95,14 @@ def run():
     if SETTINGS.workdir == None:
         print("run: start not called")
         return Response("400: run: start not called", status=400)
-    command = [SETTINGS.executable]
-    
+    logfile = os.path.join(SETTINGS.workdir, 'unity.log')
+    command = [
+        SETTINGS.executable,
+        "-logFile", logfile
+        ]
+    configfile = os.path.join(SETTINGS.workdir, 'config.json')
+    if os.path.exists(configfile):
+        command += ["-vrt-config", configfile]    
     print(f"run: command={' '.join(command)}")
     
     process = psutil.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -107,6 +114,8 @@ def run():
     usage_collector.close()
     stdout_data, stderr_data = process.communicate()
     process.wait()
+    if stderr_data:
+        stdout_data += b"\n" + stderr_data
     return Response(stdout_data, mimetype="text/plain")
 
 @app.route("/putfile", methods=["POST"])
@@ -114,11 +123,15 @@ def putfile():
     if SETTINGS.workdir == None:
         print("putfile: start not called")
         return Response("400: putfile: start not called", status=400)
-    args = request.json
-    filename = os.path.join(SETTINGS.workdir, args['filename'])
-    data = args['data']
-    print(f"put: {filename}, {len(data)} bytes")
-    open(filename, 'wb').write(data)
+    file = request.files['file']
+    filename = file.filename
+    if not filename:
+        return Response("400: putfile: no filename", status=400)
+    filename = os.path.join(SETTINGS.workdir, filename)
+    dirname = os.path.dirname(filename)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+    file.save(filename)
     full_filename = os.path.abspath(filename)
     print(f"put: return fullpath {full_filename}")
     rv = {"fullpath" : full_filename}
@@ -147,8 +160,8 @@ def listdir():
         return Response("400: listdir: start not called", status=400)
     files = []
     try:
-        for dirpath, dirnames, filenames in os.walk(SETTINGS.workdir):
-            files = []
+        for dirpath, _, filenames in os.walk(SETTINGS.workdir):
+            files : List[str] = []
             for filename in filenames:
                 files.append(os.path.join(dirpath, filename))
     except FileNotFoundError:

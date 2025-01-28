@@ -1,5 +1,5 @@
 import sys
-import subprocess
+import os
 import requests
 import threading
 import socket
@@ -61,8 +61,25 @@ class Runner:
         r = requests.post(url, json={'workdir' : workdirname})
         r.raise_for_status()
         
-    def load_config_dir(self, configdir : str) -> None:
-        pass
+    def upload_config_dir(self, configdir : str, recursive : bool) -> None:
+        if not os.path.exists(configdir):
+            return
+        for root, _, files in os.walk(configdir):
+            for file in files:
+                if not recursive:
+                    if root != configdir:
+                        continue
+                fullpath = os.path.join(root, file)
+                relpath = os.path.relpath(fullpath, configdir)
+                self.upload_config_file(fullpath, relpath)
+
+    def upload_config_file(self, fullpath : str, relpath : str) -> None:
+        url = f"http://{self.host}:{RunnerServerPort}/putfile"
+        if self.verbose:
+            print(f"+ POST {url} fullpath={fullpath} relpath={relpath}")
+        files = {'file' : (relpath, open(fullpath, 'rb'), 'application/octet-stream')}
+        r = requests.post(url, files=files)
+        r.raise_for_status()
 
     def send_config(self) -> None:
         pass
