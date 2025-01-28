@@ -3,7 +3,7 @@ import time
 import subprocess
 from typing import Dict, Optional, List
 import datetime
-from flask import Flask, request, Response, jsonify
+from flask import Flask, request, Response, jsonify, send_file
 import platform
 import psutil
 
@@ -137,21 +137,19 @@ def putfile():
     rv = {"fullpath" : full_filename}
     return jsonify(rv)
 
-@app.route("/getfile")
-def getfile():
+@app.route("/get/<path:filename>")
+def getfile(filename : str):
     if SETTINGS.workdir == None:
         print("getfile: start not called")
         return Response("400: getfile: start not called", status=400)
-    args = request.json
-    filename = os.path.join(SETTINGS.workdir, args['filename'])
     
     print(f"get: {filename}")
     try:
-        file_data = open(filename, 'rb').read()
+        file = open(os.path.join(SETTINGS.topworkdir, filename), 'rb')
     except FileNotFoundError:
         print("failed")
         return Response(status=404)
-    return Response(file_data, mimetype="text/plain")
+    return send_file(file, mimetype="application/binary", download_name=filename, as_attachment=True)
 
 @app.route("/listdir")
 def listdir():
@@ -163,11 +161,12 @@ def listdir():
         for dirpath, _, filenames in os.walk(SETTINGS.workdir):
             files : List[str] = []
             for filename in filenames:
-                files.append(os.path.join(dirpath, filename))
+                relpath = os.path.relpath(os.path.join(dirpath, filename), SETTINGS.topworkdir)
+                files.append(relpath)
     except FileNotFoundError:
         print("listdir: failed")
         return Response(status=404)
-    print(f"listdir: {len(files)} files")
+    print(f"listdir: {len(files)} files: {files}")
     return jsonify(files)
 
 def main():

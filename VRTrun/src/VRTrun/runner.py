@@ -84,8 +84,29 @@ class Runner:
     def send_config(self) -> None:
         pass
 
-    def receive_results(self) -> None:
-        pass
+    def get_result_filenames(self) -> List[str]:
+        url = f"http://{self.host}:{RunnerServerPort}/listdir"
+        if self.verbose:
+            print(f"+ GET {url}")
+        r = requests.get(url)
+        r.raise_for_status()
+        return r.json()
+    
+    def receive_results(self, remote_dirname : str, dirname : str) -> None:
+        filenames = self.get_result_filenames()
+        if not remote_dirname.endswith('/'):
+            remote_dirname += '/'
+        for filename in filenames:
+            local_filename = filename
+            if local_filename.startswith(remote_dirname):
+                local_filename = local_filename[len(remote_dirname):]
+            else:
+                print(f"Warning: Filename {filename} does not start with {remote_dirname}")
+            local_filename = os.path.join(dirname, local_filename)
+            local_dirname = os.path.dirname(local_filename)
+            if not os.path.exists(local_dirname):
+                os.makedirs(local_dirname)
+            self.get_remotefile(filename, local_filename)
 
     def get_log(self, filename : str) -> None:
         self.get_remotefile(self.logPath, filename)
@@ -94,19 +115,21 @@ class Runner:
         self.get_remotefile(self.statPath, filename)
 
     def get_remotefile(self, remotepath : str, filename : str) -> None:
-        self._get_remotefile_server(remotepath, filename)
-
-
-    def _get_remotefile_server(self, remotepath : str, filename : str) -> None:
-        url = f"http://{self.host}:{RunnerServerPort}/getfile"
+        url = f"http://{self.host}:{RunnerServerPort}/get/{remotepath}"
         if self.verbose:
-            print(f"+ GET {url} fullpath={remotepath}")
-        r = requests.get(url, json={'fullpath' : remotepath})
+            print(f"+ GET {url}")
+        r = requests.get(url, stream=True)
+        dirname = os.path.dirname(filename)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+        size = 0
+        with open(filename, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                size += len(chunk)
+                f.write(chunk)
         r.raise_for_status()
-        result = r.text
-        open(filename, 'w').write(result)
         if self.verbose:
-            print(f"- GET {url} filename={filename} size={len(result)}")
+            print(f"- GET {url} filename={filename} size={size}")
 
     def put_file(self, filename : str, data : str) -> str:
         url = f"http://{self.host}:{RunnerServerPort}/putfile"

@@ -42,10 +42,10 @@ def main():
         os.mkdir(destdir)
 
     configdir = "./config"
-    workdirname = datetime.now().strftime("run-%Y%m%d-%H%M")
+    workdir = datetime.now().strftime("run-%Y%m%d-%H%M")
     machines = json.load(open(os.path.join(configdir, "runconfig.json")))
 
-    session = Session(machines, configdir, workdirname, verbose=verbose)
+    session = Session(machines, configdir, workdir, verbose=verbose)
 
     session.start()
 

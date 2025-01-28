@@ -4,10 +4,10 @@ from .runner import Runner
 from typing import List, Dict
 
 class Session:
-    def __init__(self, machines : List[str] | Dict[str, str], configdir : str, workdirname : str, verbose : bool = False):
+    def __init__(self, machines : List[str] | Dict[str, str], configdir : str, workdir : str, verbose : bool = False):
         self.machines = machines
         self.configdir = configdir
-        self.workdirname = workdirname
+        self.workdir = workdir
         self.verbose = verbose
         self.runners : List[Runner] = []
 
@@ -27,12 +27,10 @@ class Session:
         if self.verbose:
             print("Loading configurations...", file=sys.stderr)
         for runner in self.runners:
-            runner.start(self.workdirname)
+            runner.start(self.workdir)
             runner.upload_config_dir(self.configdir, recursive=False)
             runner.upload_config_dir(os.path.join(self.configdir, runner.role), recursive=True)
             runner.send_config()
-
-
 
     def run(self) -> None:
         if self.verbose:
@@ -57,5 +55,6 @@ class Session:
         if self.verbose:
             print("Fetching results...", file=sys.stderr)
         for runner in self.runners:
-            runner.receive_results()
+            dirname = os.path.join(self.workdir, runner.role)
+            runner.receive_results(self.workdir, dirname)
         pass
