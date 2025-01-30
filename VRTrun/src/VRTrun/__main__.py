@@ -10,8 +10,8 @@ verbose = True
 
 def main():
     parser = argparse.ArgumentParser(description="Run a VR2Gather player session")
-    parser.add_argument("-c", "--config", metavar="DIR", help="Config directory to use (default: ./config)")
-    parser.add_argument("-h", "--host", action="+", metavar="HOST", help="Don't use config but simply run on HOST. May be repeated")
+    parser.add_argument("--config", metavar="DIR", default="./config", help="Config directory to use (default: ./config)")
+    parser.add_argument("--host", action="append", metavar="HOST", help="Don't use config but simply run on HOST. May be repeated")
     parser.add_argument("--pausefordebug", action="store_true", help="Pause before starting to allow attaching a debugger")
     # xxxjack add machines
     
@@ -20,25 +20,21 @@ def main():
         sys.stderr.write(f"Attach debugger to pid={os.getpid()}. Press return to continue - ")
         sys.stderr.flush()
         sys.stdin.readline()
-    if args.writeconfig:
-        json.dump(Runner.runnerConfig, open(args.writeconfig, "w"), indent=4)
-        sys.exit(0)
-    sys.stdout.write(f"working dir: {os.getcwd()}\n")
-    sys.stdout.write(f"command line: {' '.join(sys.argv)}\n")
-    if args.config:
-        Runner.load_config(args.config)
-
-    if args.destdir:
-        destdir = args.destdir
+    # Check that we have either a config or hosts
+    if args.host:
+        if os.path.exists(args.config):
+            print(f"{parser.prog}: Error: don't use --host if a config directory exists", file=sys.stderr)
+            sys.exit(1)
+        configdir = None
+        machines = args.host
     else:
-        destdir = os.getcwd()
+        if not os.path.exists(args.config):
+            print(f"{parser.prog}: Error: config directory {args.config} does not exist", file=sys.stderr)
+            sys.exit(1)
+        configdir = args.config
+        machines = json.load(open(os.path.join(configdir, "runconfig.json")))
 
-    if not os.path.exists(destdir):
-        os.mkdir(destdir)
-
-    configdir = "./config"
     workdir = datetime.now().strftime("run-%Y%m%d-%H%M")
-    machines = json.load(open(os.path.join(configdir, "runconfig.json")))
 
     session = Session(machines, configdir, workdir, verbose=verbose)
 

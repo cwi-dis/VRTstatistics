@@ -1,10 +1,10 @@
 import sys
 import os
 from .runner import Runner
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 class Session:
-    def __init__(self, machines : List[str] | Dict[str, str], configdir : str, workdir : str, verbose : bool = False):
+    def __init__(self, machines : List[str] | Dict[str, str], configdir : Optional[str], workdir : str, verbose : bool = False):
         self.machines = machines
         self.configdir = configdir
         self.workdir = workdir
@@ -28,8 +28,9 @@ class Session:
             print("Loading configurations...", file=sys.stderr)
         for runner in self.runners:
             runner.start(self.workdir)
-            runner.upload_config_dir(self.configdir, recursive=False)
-            runner.upload_config_dir(os.path.join(self.configdir, runner.role), recursive=True)
+            if self.configdir:
+                runner.upload_config_dir(self.configdir, recursive=False)
+                runner.upload_config_dir(os.path.join(self.configdir, runner.role), recursive=True)
             runner.send_config()
 
     def run(self) -> None:
