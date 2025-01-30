@@ -160,10 +160,13 @@ def copy_stats_file(logfile : str, workdir : str):
             fields = line.split(",")
             for field in fields:
                 field = field.strip()
-                key, value = field.split("=")
-                if key == "statsFilename":
-                    stats_filename = value
-                    break
+                try:
+                    key, value = field.split("=")
+                    if key == "statsFilename":
+                        stats_filename = value
+                        break
+                except ValueError:
+                    print(f"WARNING: parse error in stats: line: {line}")
     if stats_filename:
         shutil.copy(stats_filename, workdir)
 
@@ -211,7 +214,7 @@ def listdir():
             files : List[str] = []
             for filename in filenames:
                 relpath = os.path.relpath(os.path.join(dirpath, filename), SETTINGS.topworkdir)
-                relpath.replace("\\", "/")
+                relpath = relpath.replace("\\", "/")
                 files.append(relpath)
     except FileNotFoundError:
         print("listdir: failed")
@@ -225,7 +228,12 @@ def main():
     parser = argparse.ArgumentParser(description="Run a VR2Gather player server")
     parser.add_argument("--executable", metavar="EXE", default=SETTINGS.executable, help="Executable to run (default: %(default)s)")
     parser.add_argument("--topworkdir", metavar="DIR", default=SETTINGS.topworkdir, help="Top work directory (default: %(default)s)")
+    parser.add_argument("--pausefordebug", action="store_true", help="Pause before starting to allow attaching a debugger")
     args = parser.parse_args()
+    if args.pausefordebug:
+        sys.stderr.write(f"Attach debugger to pid={os.getpid()}. Press return to continue - ")
+        sys.stderr.flush()
+        sys.stdin.readline()
     SETTINGS.executable = args.executable
     SETTINGS.topworkdir = args.topworkdir
     SETTINGS.check_defaults()
