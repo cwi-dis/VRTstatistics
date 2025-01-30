@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import subprocess
 import shutil
@@ -7,6 +8,7 @@ import datetime
 from flask import Flask, request, Response, jsonify, send_file
 import platform
 import psutil
+import argparse
 
 RunnerServerPort = 5002
 
@@ -20,6 +22,33 @@ class Settings:
         self.executable = "/Users/jack/src/VRTogether/VRTApp-Develop-built.app/Contents/MacOS/VR2Gather"
         self.topworkdir = "/Users/jack/tmp/VRTrunserver"
         self.workdir : Optional[str] = None
+
+    def init_defaults(self):
+        my_path = os.path.join(os.getcwd(), sys.argv[0])
+        my_topdir = os.path.dirname(my_path)
+        if sys.platform == "darwin":
+            # On MacOS the VRTrunserver lives in the bundle where the VR2Gather executable is.
+            # We create a temporary workdir in the same directory as the VR2Gather app.
+            self.executable = os.path.join(my_topdir, "VR2Gather")
+            app_dir = os.path.dirname(my_topdir) # Contents
+            app_dir = os.path.dirname(app_dir) # VRTApp-Develop-built.app
+            app_dir = os.path.dirname(app_dir) # Where the .app lives
+            self.topworkdir = os.path.join(app_dir, "VRTrunserver-workdir")
+        elif sys.platform == "win32":
+            # On other platforms the VRTrunserver lives in the same directory as the VR2Gather executable.
+            # We create a temporary workdir in the same directory as the VR2Gather executable.
+            self.executable = os.path.join(my_topdir, "VR2Gather.exe")
+            self.topworkdir = os.path.join(my_topdir, "VRTrunserver-workdir")
+        else:
+            raise Exception(f"Unsupported platform {sys.platform}")
+        
+    def check_defaults(self):
+        if not os.path.exists(self.executable):
+            raise Exception(f"Executable {self.executable} does not exist")
+        if not os.path.exists(self.topworkdir):
+            os.makedirs(self.topworkdir)
+        print(f"VRTrunserver: executable={self.executable}")
+        print(f"VRTRunserver: topworkdir={self.topworkdir}")
 
 SETTINGS = Settings()
 
@@ -191,6 +220,14 @@ def listdir():
 
 def main():
     print("WARNING: this is a dangerous server that allows executing anything on this machine.")
+    SETTINGS.init_defaults()
+    parser = argparse.ArgumentParser(description="Run a VR2Gather player server")
+    parser.add_argument("--executable", metavar="EXE", default=SETTINGS.executable, help="Executable to run (default: %(default)s)")
+    parser.add_argument("--topworkdir", metavar="DIR", default=SETTINGS.topworkdir, help="Top work directory (default: %(default)s)")
+    args = parser.parse_args()
+    SETTINGS.executable = args.executable
+    SETTINGS.topworkdir = args.topworkdir
+    SETTINGS.check_defaults()
     app.run(host='0.0.0.0', port=RunnerServerPort)
 
 if __name__ == '__main__':
