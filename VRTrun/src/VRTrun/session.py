@@ -1,10 +1,22 @@
 import sys
 import os
+import json
+from datetime import datetime
 from .runner import Runner
 from typing import List, Dict, Optional
 
 class Session:
-    def __init__(self, machines : List[str | Dict[str, str]], configdir : Optional[str], workdir : str, verbose : bool = False):
+    Config = List[str | Dict[str, str]]
+
+    @staticmethod
+    def invent_workdir() -> str:
+        return datetime.now().strftime("run-%Y%m%d-%H%M")
+    
+    @staticmethod
+    def load_config(configdir : str) -> Config:
+        return json.load(open(os.path.join(configdir, "runconfig.json")))
+    
+    def __init__(self, machines : Config, configdir : Optional[str], workdir : str, verbose : bool = False):
         self.machines = machines
         self.configdir = configdir
         self.workdir = workdir

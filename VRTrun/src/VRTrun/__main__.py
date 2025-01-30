@@ -2,7 +2,6 @@ import sys
 import os
 import argparse
 import json
-from datetime import datetime
 from .session import Session
 verbose = True
 
@@ -19,22 +18,23 @@ def main():
         sys.stderr.flush()
         sys.stdin.readline()
     # Check that we have either a config or hosts
+    sessionconfig : Session.Config
     if args.host:
         if os.path.exists(args.config):
             print(f"{parser.prog}: Error: don't use --host if a config directory exists", file=sys.stderr)
             sys.exit(1)
         configdir = None
-        machines = args.host
+        sessionconfig = args.host
     else:
         if not os.path.exists(args.config):
             print(f"{parser.prog}: Error: config directory {args.config} does not exist", file=sys.stderr)
             sys.exit(1)
         configdir = args.config
-        machines = json.load(open(os.path.join(configdir, "runconfig.json")))
+        sessionconfig = Session.load_config(configdir)
 
-    workdir = datetime.now().strftime("run-%Y%m%d-%H%M")
+    workdir = Session.invent_workdir()
 
-    session = Session(machines, configdir, workdir, verbose=verbose)
+    session = Session(sessionconfig, configdir, workdir, verbose=verbose)
 
     session.start()
 
