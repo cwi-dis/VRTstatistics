@@ -2,10 +2,8 @@ import sys
 import os
 import argparse
 import json
-from typing import List
 from datetime import datetime
-from . import Runner, Session
-
+from .session import Session
 verbose = True
 
 def main():
