@@ -5,7 +5,7 @@ from typing import List, Tuple
 
 from ..datastore import DataStore
 from ..annotator import combine
-from VRTrun import Session
+from VRTrun import Session, SessionConfig
 
 verbose = True
 
@@ -26,7 +26,7 @@ def main():
         print(f"{parser.prog}: Error: config directory {args.config} does not exist", file=sys.stderr)
         sys.exit(1)
 
-    sessionconfig = Session.load_config(configdir)
+    sessionconfig = SessionConfig.from_configdir(configdir)
 
     #
     # First we run the session (if needed)
@@ -52,9 +52,7 @@ def main():
             return sts
 
     datastores : List[Tuple[str, DataStore]] = []
-    for machine in sessionconfig:
-        assert type(machine) == dict
-        machine_role = machine["role"]
+    for machine_role, _ in sessionconfig.get_machines():
         machine_stats_filename = os.path.join(workdir, machine_role, "stats.log")
         machine_data = DataStore(machine_stats_filename)
         machine_data.load()

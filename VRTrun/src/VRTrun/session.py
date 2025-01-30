@@ -1,23 +1,19 @@
 import sys
 import os
-import json
 from datetime import datetime
 from .runner import Runner
-from typing import List, Dict, Optional
+from .sessionconfig import SessionConfig
+from typing import List, Optional
 
 class Session:
-    Config = List[str | Dict[str, str]]
-
+    
     @staticmethod
     def invent_workdir() -> str:
         return datetime.now().strftime("run-%Y%m%d-%H%M")
     
-    @staticmethod
-    def load_config(configdir : str) -> Config:
-        return json.load(open(os.path.join(configdir, "runconfig.json")))
     
-    def __init__(self, machines : Config, configdir : Optional[str], workdir : str, verbose : bool = False):
-        self.machines = machines
+    def __init__(self, config : SessionConfig, configdir : Optional[str], workdir : str, verbose : bool = False):
+        self.config = config
         self.configdir = configdir
         self.workdir = workdir
         self.verbose = verbose
@@ -26,14 +22,7 @@ class Session:
     def start(self) -> None:
         if self.verbose:
             print("Creating processes...", file=sys.stderr)
-        for machine in self.machines:
-            if type(machine) == str:
-                machine_role = machine
-                machine_address = machine
-            else:
-                assert type(machine) == dict
-                machine_role = machine["role"]
-                machine_address = machine["address"]
+        for machine_role, machine_address in self.config.get_machines():
             runner = Runner(machine_address, machine_role)
             self.runners.append(runner)
 

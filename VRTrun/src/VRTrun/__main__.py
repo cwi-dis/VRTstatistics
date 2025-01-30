@@ -1,7 +1,7 @@
 import sys
 import os
 import argparse
-from .session import Session
+from . import Session, SessionConfig
 verbose = True
 
 def main():
@@ -17,19 +17,19 @@ def main():
         sys.stderr.flush()
         sys.stdin.readline()
     # Check that we have either a config or hosts
-    sessionconfig : Session.Config
+    sessionconfig : SessionConfig
     if args.host:
         if os.path.exists(args.config):
             print(f"{parser.prog}: Error: don't use --host if a config directory exists", file=sys.stderr)
             sys.exit(1)
         configdir = None
-        sessionconfig = args.host
+        sessionconfig = SessionConfig.from_hostlist(args.host)
     else:
         if not os.path.exists(args.config):
             print(f"{parser.prog}: Error: config directory {args.config} does not exist", file=sys.stderr)
             sys.exit(1)
         configdir = args.config
-        sessionconfig = Session.load_config(configdir)
+        sessionconfig = SessionConfig.from_configdir(configdir)
 
     workdir = Session.invent_workdir()
 
