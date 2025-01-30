@@ -211,6 +211,7 @@ def listdir():
             files : List[str] = []
             for filename in filenames:
                 relpath = os.path.relpath(os.path.join(dirpath, filename), SETTINGS.topworkdir)
+                relpath.replace("\\", "/")
                 files.append(relpath)
     except FileNotFoundError:
         print("listdir: failed")
