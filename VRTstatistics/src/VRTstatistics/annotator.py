@@ -1,7 +1,7 @@
 import sys
 import time
 import datetime
-from typing import Mapping, Optional, Tuple, Type, Union, Dict, Any
+from typing import Mapping, Optional, Tuple, Type, Union, Dict, Any, List
 
 from .datastore import DataStore, DataStoreError, DataStoreRecord
 
@@ -393,21 +393,24 @@ _Annotators : dict[Optional[str], Tuple[Type[Annotator], Type[Annotator], Type[C
 }
 
 def combine(
-    annotator : str, senderdata: DataStore, receiverdata: DataStore, outputdata: DataStore
+    annotator : str, dataStores : List[Tuple[str, DataStore]], outputdata: DataStore
 ) -> bool:
     """
     Senderdata and receiverdata are lists of dictionaries, they are combined and sorted and the result is returned.
     Session timestamps (relative to start of session), sender/receiver role are added to each record.
     Records are sorted by timstamp.
     """
+    assert len(dataStores) == 2
+    sender_role, senderdata = dataStores[0]
+    receiver_role, receiverdata = dataStores[1]
     if not annotator in _Annotators:
         raise RuntimeError(f"Unknown annotator {annotator}, only know {list(_Annotators.keys())}")
     AnnoClassSender, AnnoClassReceiver, AnnoClassCombined = _Annotators[annotator]
     assert AnnoClassSender
     assert AnnoClassReceiver
 
-    annotate_sender = AnnoClassSender(senderdata, "sender")
-    annotate_receiver = AnnoClassReceiver(receiverdata, "receiver")
+    annotate_sender = AnnoClassSender(senderdata, sender_role)
+    annotate_receiver = AnnoClassReceiver(receiverdata, receiver_role)
     annotate_sender.collect()
     annotate_receiver.collect()
 

@@ -1,6 +1,7 @@
 import sys
 import os
 import argparse
+from typing import List, Tuple
 
 from ..datastore import DataStore
 from ..annotator import combine
@@ -50,17 +51,19 @@ def main():
             print(f"{parser.prog}: Error: session failed with status {sts}", file=sys.stderr)
             return sts
 
-    sender_stats_filename = os.path.join(workdir, "sender", "stats.log")
-    receiver_stats_filename = os.path.join(workdir, "receiver", "stats.log")
+    datastores : List[Tuple[str, DataStore]] = []
+    for machine in sessionconfig:
+        assert type(machine) == dict
+        machine_role = machine["role"]
+        machine_stats_filename = os.path.join(workdir, machine_role, "stats.log")
+        machine_data = DataStore(machine_stats_filename)
+        machine_data.load()
+        datastores.append((machine_role, machine_data))
+   
     combined_filename = os.path.join(workdir, "combined.json") 
-    senderdata = DataStore(sender_stats_filename)
-    receiverdata = DataStore(receiver_stats_filename)
-
-    senderdata.load()
-    receiverdata.load()
 
     outputdata = DataStore(combined_filename)
-    ok = combine(args.annotator, senderdata, receiverdata, outputdata)
+    ok = combine(args.annotator, datastores, outputdata)
     outputdata.save()
     sys.exit(0 if ok else 1)
 
