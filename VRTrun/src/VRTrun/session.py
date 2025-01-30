@@ -4,7 +4,7 @@ from .runner import Runner
 from typing import List, Dict, Optional
 
 class Session:
-    def __init__(self, machines : List[str] | Dict[str, str], configdir : Optional[str], workdir : str, verbose : bool = False):
+    def __init__(self, machines : List[str | Dict[str, str]], configdir : Optional[str], workdir : str, verbose : bool = False):
         self.machines = machines
         self.configdir = configdir
         self.workdir = workdir
@@ -19,6 +19,7 @@ class Session:
                 machine_role = machine
                 machine_address = machine
             else:
+                assert type(machine) == dict
                 machine_role = machine["role"]
                 machine_address = machine["address"]
             runner = Runner(machine_address, machine_role)
