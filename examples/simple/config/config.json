@@ -20,7 +20,7 @@
         "sessionTransportProtocol": "socketio",
         "sessionUncompressed": false,
         "sessionUncompressedAudio": false,
-        "autoStartWith": 1,
+        "autoStartWith": 2,
         "autoLeaveAfter": 20.0,
         "autoStopAfterLeave": true,
         "autoDelay": 1.0
