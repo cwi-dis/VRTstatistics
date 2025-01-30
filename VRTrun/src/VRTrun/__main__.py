@@ -1,7 +1,6 @@
 import sys
 import os
 import argparse
-import json
 from .session import Session
 verbose = True
 
