@@ -10,13 +10,8 @@ verbose = True
 
 def main():
     parser = argparse.ArgumentParser(description="Run a VR2Gather player session")
-    parser.add_argument("-d", "--destdir", help="directory to store results (default: current directory)")
-    parser.add_argument("-r", "--run", action="store_true", help="Run the test (default: only ingest data from an earlier run)")
-    parser.add_argument("--norusage", action="store_true", help="Do not try to get resource usage statistics logfiles")
-    parser.add_argument("--nolog", action="store_true", help="Do not try to get Unity Player logfiles")
-    parser.add_argument("--nofetch", action="store_true", help="Don't fetch log file but reuse earlier ones")
-    parser.add_argument("-c", "--config", metavar="FILE", help="Use host configuration from FILE (json)")
-    parser.add_argument("--writeconfig", metavar="FILE", help="Save default host configuration to FILE (json) and exit")
+    parser.add_argument("-c", "--config", metavar="DIR", help="Config directory to use (default: ./config)")
+    parser.add_argument("-h", "--host", action="+", metavar="HOST", help="Don't use config but simply run on HOST. May be repeated")
     parser.add_argument("--pausefordebug", action="store_true", help="Pause before starting to allow attaching a debugger")
     # xxxjack add machines
     
