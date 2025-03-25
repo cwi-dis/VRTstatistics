@@ -1,4 +1,77 @@
-# VRTApplication stats: script analysis
+# VRTstatistics - running VR2Gather apps remotely
+
+_VRTStatistics_ helps with automatically running multiple VR2Gather-based application instances, optionally collecting the results and producing graphs or tables of things like bandwidth usage, frames per second, interaction patterns and much more.
+
+It is intended to do repeatable experiments, for example for scientific papers, or for regression testing.
+
+VRTstatistics contains two packages that it uses, _VRTrunserver_ and _VRTrun_. These two are also useful outside of VRTStatistics. _VRTRunserver_ is incorporated into VR2Gather-based applications (after v1.2.1) built for Windows, and it can start the VR2Gather-based app under remote control. _VRTrun_ provides that remote control.
+
+Together, these allow a setup where a complete multi-user experience can be controlled from a single controlling computer. This can be useful for things like demonstrations or exhibitions.
+
+Note that it is possible for the controlling computer to be the same as one of the end-user computers, VRTrun and VRTrunserver are completely independent.
+
+This document presumes the end-user computers are running Windows (the controlling computers can run any of Mac, Linux or Windows). It is possible to use Linux or Mac end-user computers, but this is somewhat convoluted. Instructions will be forthcoming.
+
+## Preparing the VR2Gather experience to run
+
+- Build the Player for the experience you want to run, in the Unity Editor
+- Zip, copy to all end-user machines, unzip
+- On every end-user machine:
+	- Ensure a compatible version of Python is installed
+	- Run `VRTrunserver.ps1` with Powershell. This should install the VRTrunserver in a local (venv-based) Python. The _VRTrunserver_ is then started.
+	- The installation should happen only the first time. So after that running the powershell script will start VRTrunserver directly.
+	- This means that you can setup a Windows machine to auto-login after boot, and you can set `VRTrunserver.ps1` as a `Startup` program. This will prepare the machine for remote control automatically after booting.
+
+## Preparing the controlling computer
+
+- Create a directory where you are going to run your experiments from, and where you will store the results.
+
+  > If you care about repeatability it may be a good idea to store the ZIP file with the built VR2Gather experience here too.
+  >
+  > Also, you may want to think about storing this directory under `git`, but that may be a problem with the large ZIP file (which may be too large even for `git lfs`).
+- Create a Python venv, and install _VRTrun_. Installing _VRTStatistics_ itself is optional.
+	- Windows:
+	
+		```
+		python -m venv .venv
+		".venv\Scripts\activate.bat"
+		pip install git+https://github.com/cwi-dis/VRTStatistics#subdirectory=VRTrun
+		pip install git+https://github.com/cwi-dis/VRTStatistics#subdirectory=VRTstatistics
+		```
+	- Mac, Linux:
+	
+		```
+		python -m venv .venv
+		. venv/bin/activate
+		pip install git+https://github.com/cwi-dis/VRTStatistics#subdirectory=VRTrun
+		pip install git+https://github.com/cwi-dis/VRTStatistics#subdirectory=VRTstatistics
+		```
+- Create a configuration directory `config` to store the configuration files for this experiment.
+	- An example can be found in `examples/simple/config`
+	- The configuration directory needs to contain at least a `runconfig.json` which lists the hostnames (or IP addresses) of the end-user machines and the role they take in this experiment.
+	- More documentation is forthcoming.
+
+## Running an experiment
+
+- Ensure the correct _VRTrunserver_ is running on all end-user computers.
+- On the controlling computer, in the experiment directory:
+	- Activate the venv with `python -m venv .venv`
+	- Run `VRTrun`
+- The end-user computers should start their VR2Gather applications.
+- After the VR2Gather applications have all terminated the results will be collected.
+	- They will be in an output directory that has a timestamped name, such as `run-20250319-1230`.
+	- Within that directory, there are per-role subdirectories.
+	- Within each of those, all the log files from the run are stored. The configuration files that were used are stored there too.
+	- This all taken together means that the output directory contains all the information needed to repeat a run, if needed in the future.
+
+## Analyzing the results
+
+To be provided.
+	
+## Old README
+
+> Most of the information here is no longer true.
+>
 
 This is a set of modules and scripts to collect and analyse the `stats:` output files produced by `VRTApplication`.
 
