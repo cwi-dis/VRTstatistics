@@ -21,7 +21,7 @@ class Runner:
     exePath: str
     exeArgs : List[str]
     running : Any
-    verbose = True
+    verbose : bool
     runnerConfig : dict[str, dict[str, Union[str, bool]]] = {}
     mdnsWorkaround = True
 
@@ -29,10 +29,11 @@ class Runner:
     def load_config(cls, filename : str) -> None:
         cls.runnerConfig = json.load(open(filename))
 
-    def __init__(self, host: str, role : str, config: Optional[RunnerArgs] = None) -> None:
+    def __init__(self, host: str, role : str, config: Optional[RunnerArgs] = None, verbose: bool=False) -> None:
         self.host = host
         self.role = role
         self.running = None
+        self.verbose = verbose
         return
         if not config:
             config = self.runnerConfig.get(self.host)
@@ -57,7 +58,7 @@ class Runner:
     def start(self, workdirname : str) -> None:
         url = f"http://{self.host}:{RunnerServerPort}/start"
         if self.verbose:
-            print(f"+ POST {url} workdir={workdirname}")
+            print(f"VRTRun: + POST {url} workdir={workdirname}")
         r = requests.post(url, json={'workdir' : workdirname})
         r.raise_for_status()
         
@@ -76,7 +77,7 @@ class Runner:
     def upload_config_file(self, fullpath : str, relpath : str) -> None:
         url = f"http://{self.host}:{RunnerServerPort}/putfile"
         if self.verbose:
-            print(f"+ POST {url} fullpath={fullpath} relpath={relpath}")
+            print(f"VRTRun: + POST {url} fullpath={fullpath} relpath={relpath}")
         files = {'file' : (relpath, open(fullpath, 'rb'), 'application/octet-stream')}
         r = requests.post(url, files=files)
         r.raise_for_status()
@@ -87,7 +88,7 @@ class Runner:
     def get_result_filenames(self) -> List[str]:
         url = f"http://{self.host}:{RunnerServerPort}/listdir"
         if self.verbose:
-            print(f"+ GET {url}")
+            print(f"VRTRun: + GET {url}")
         r = requests.get(url)
         r.raise_for_status()
         return r.json()
@@ -101,7 +102,7 @@ class Runner:
             if local_filename.startswith(remote_dirname):
                 local_filename = local_filename[len(remote_dirname):]
             else:
-                print(f"Warning: Filename {filename} does not start with {remote_dirname}")
+                print(f"VRTRun: Warning: Filename {filename} does not start with {remote_dirname}")
             local_filename = os.path.join(dirname, local_filename)
             local_dirname = os.path.dirname(local_filename)
             if not os.path.exists(local_dirname):
@@ -117,7 +118,7 @@ class Runner:
     def get_remotefile(self, remotepath : str, filename : str) -> None:
         url = f"http://{self.host}:{RunnerServerPort}/get/{remotepath}"
         if self.verbose:
-            print(f"+ GET {url}")
+            print(f"VRTRun: + GET {url}")
         r = requests.get(url, stream=True)
         dirname = os.path.dirname(filename)
         if not os.path.exists(dirname):
@@ -129,17 +130,17 @@ class Runner:
                 f.write(chunk)
         r.raise_for_status()
         if self.verbose:
-            print(f"- GET {url} filename={filename} size={size}")
+            print(f"VRTRun: - GET {url} filename={filename} size={size}")
 
     def put_file(self, filename : str, data : str) -> str:
         url = f"http://{self.host}:{RunnerServerPort}/putfile"
         if self.verbose:
-            print(f"+ POST {url} filename={filename} data=...", file=sys.stderr)
+            print(f"VRTRun: + POST {url} filename={filename} data=...", file=sys.stderr)
         request_arg = {'filename' : filename, 'data' : data}
         r = requests.post(url, json=request_arg)
         rv = r.json()
         if self.verbose:
-            print(f'- POST {url} -> {rv}')
+            print(f'VRTRun: - POST {url} -> {rv}')
         return rv['fullpath']
 
     def run(self) -> None:
@@ -156,7 +157,7 @@ class Runner:
     def _run_server_thread(self):
         url = f"http://{self.host}:{RunnerServerPort}/run"
         if self.verbose:
-            print(f"+ POST {url}", file=sys.stderr)
+            print(f"VRTRun: + POST {url}", file=sys.stderr)
         response = requests.post(url)
         print(response.text)
         self.status_code = response.status_code if response.status_code != 200 else 0

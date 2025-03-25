@@ -21,13 +21,13 @@ class Session:
 
     def start(self) -> None:
         if self.verbose:
-            print("Creating processes...", file=sys.stderr)
+            print(f"VRTRun: Creating runners...", file=sys.stderr)
         for machine_role, machine_address in self.config.get_machines():
-            runner = Runner(machine_address, machine_role)
+            runner = Runner(machine_address, machine_role, verbose=self.verbose)
             self.runners.append(runner)
 
         if self.verbose:
-            print("Loading configurations...", file=sys.stderr)
+            print("VRTRun: Uploading configurations...", file=sys.stderr)
         for runner in self.runners:
             runner.start(self.workdir)
             if self.configdir:
@@ -37,27 +37,27 @@ class Session:
 
     def run(self) -> None:
         if self.verbose:
-            print("Starting processes...", file=sys.stderr)
+            print("VRTRun: Starting processes...", file=sys.stderr)
         for runner in self.runners:
             runner.run()
 
     def wait(self) -> int:
         if self.verbose:
-            print("Waiting for processes to finish...", file=sys.stderr)
+            print("VRTRun: Waiting for processes to finish...", file=sys.stderr)
         # xxxjack it would be good to be able to abort the runners with control-C
         all_status = 0
         for runner in self.runners:
             sts = runner.wait()
             if self.verbose or sts != 0:
-                print(f"Runner {runner.role} returned {sts}", file=sys.stderr)
+                print(f"VRTRun: Runner {runner.role} returned {sts}", file=sys.stderr)
             if sts != 0:
                 all_status = sts
         return all_status
 
     def receive_results(self) -> None:
         if self.verbose:
-            print("Fetching results...", file=sys.stderr)
+            print("VRTRun: Fetching results...", file=sys.stderr)
         for runner in self.runners:
             dirname = os.path.join(self.workdir, runner.role)
             runner.receive_results(self.workdir, dirname)
-        pass
+            print(f"VRTRun: Results stored in directory {dirname}", file=sys.stderr)
