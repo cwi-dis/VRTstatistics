@@ -35,7 +35,12 @@ class Settings:
             app_dir = os.path.dirname(app_dir) # Where the .app lives
             self.topworkdir = os.path.join(app_dir, "VRTrunserver-workdir")
         elif sys.platform == "win32":
-            # On other platforms the VRTrunserver lives in the same directory as the VR2Gather executable.
+            # On other platforms the VRTrunserver lives somewhere in the directory tree where the VR2Gather executable is.
+            while not os.path.exists(os.path.join(my_topdir, "VR2Gather.exe")):
+                next_topdir = os.path.dirname(my_topdir)
+                if next_topdir == my_topdir:
+                    raise Exception("Could not find VR2Gather.exe")
+                my_topdir = next_topdir
             # We create a temporary workdir in the same directory as the VR2Gather executable.
             self.executable = os.path.join(my_topdir, "VR2Gather.exe")
             self.topworkdir = os.path.join(my_topdir, "VRTrunserver-workdir")
