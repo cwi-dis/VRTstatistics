@@ -41,8 +41,8 @@ This document presumes the end-user computers are running Windows (the controlli
 	- Mac, Linux:
 	
 		```
-		python -m venv .venv
-		. venv/bin/activate
+		python3 -m venv .venv
+		source .venv/bin/activate
 		pip install git+https://github.com/cwi-dis/VRTStatistics#subdirectory=VRTrun
 		pip install git+https://github.com/cwi-dis/VRTStatistics#subdirectory=VRTstatistics
 		```
