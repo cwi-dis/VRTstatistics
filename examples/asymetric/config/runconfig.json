@@ -1,0 +1,10 @@
+[
+    {
+        "role" : "sender",
+        "address" : "vrtiny.huiskamer.private"
+    },
+    {
+        "role" : "receiver",
+        "address" : "boor.huiskamer.private"
+    }
+]
