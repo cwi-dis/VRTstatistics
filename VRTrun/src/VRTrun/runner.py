@@ -150,10 +150,25 @@ class Runner:
 
     def wait(self) -> int:
         assert self.running != None
-        self.running.join()
+        try:
+            self.running.join()
+        except KeyboardInterrupt:
+            print("VRTRun: KeyboardInterrupt. Sending kill to server")
+            self.kill()
+            print("VRTRun: Waiting for process to finish after kill")
+            self.running.join()
+            print("VRTRun: Process finished after kill")
         rv = self.status_code
         return rv
 
+    def kill(self) -> None:
+        url = f"http://{self.host}:{RunnerServerPort}/kill"
+        if self.verbose:
+            print(f"VRTRun: + POST {url}")
+        r = requests.post(url)
+        r.raise_for_status()
+        self.status_code = r.status_code if r.status_code != 200 else 0
+        
     def _run_server_thread(self):
         url = f"http://{self.host}:{RunnerServerPort}/run"
         if self.verbose:

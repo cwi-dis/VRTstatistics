@@ -125,8 +125,11 @@ def stop():
     SETTINGS.workdir = None
     return Response("OK", mimetype="text/plain")
 
+process : Optional[psutil.Popen] = None
+
 @app.route("/run", methods=["GET", "POST"])
 def run():
+    global process
     if SETTINGS.workdir == None:
         print("run: start not called")
         return Response("400: run: start not called", status=400)
@@ -149,6 +152,7 @@ def run():
     usage_collector.close()
     stdout_data, stderr_data = process.communicate()
     process.wait()
+    process = None
     #
     # Find the statsfilename and copy that file to the workdir
     #
@@ -156,6 +160,17 @@ def run():
     if stderr_data:
         stdout_data += b"\n" + stderr_data
     return Response(stdout_data, mimetype="text/plain")
+
+@app.route("/kill", methods=["GET", "POST"])
+def kill():
+    global process
+    if process:
+        print("kill")
+        process.kill()
+        return Response("OK", mimetype="text/plain")
+    else:
+        print("kill: no process")
+        return Response("400: kill: no process", status=400)
 
 def copy_stats_file(logfile : str, workdir : str):
     # See if we can find the stats file
