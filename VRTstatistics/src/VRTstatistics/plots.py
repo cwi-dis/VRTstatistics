@@ -26,7 +26,7 @@ __all__ = [
     "plot_latencies_per_tile", 
     ]
 
-def plot_simple(datastore : DataStore, *, predicate=None, title=None, noshow=False, x="sessiontime", fields=None, datafilter=None, plotargs={}) -> pyplot.Axes:
+def plot_simple(datastore : DataStore, *, predicate=None, title=None, noshow=False, x="sessiontime", fields=None, datafilter=None, plotargs={}, show_desc=True) -> pyplot.Axes:
     """
     Plot data (optionally after converting to pandas.DataFrame).
     output is optional output file (default: show in a window)
@@ -44,7 +44,9 @@ def plot_simple(datastore : DataStore, *, predicate=None, title=None, noshow=Fal
     dataframe = datastore.get_dataframe(predicate=predicate, fields=fields_to_retrieve)
     if datafilter:
         dataframe = datafilter(dataframe)
-    descr = datastore.annotator.description()
+    descr=None
+    if show_desc:
+        descr = datastore.annotator.description()
     return plot_dataframe(dataframe, title=title, noshow=noshow, x=x, fields=fields_to_plot, descr=descr, plotargs=plotargs)
 
 def plot_dataframe(dataframe : pd.DataFrame, *, title=None, noshow=False, x=None, fields=None, descr=None, plotargs={}, interpolate='linear') -> pyplot.Axes:
@@ -64,13 +66,19 @@ def plot_dataframe(dataframe : pd.DataFrame, *, title=None, noshow=False, x=None
         pyplot.show()
     return plot
 
-def _save_multi_plot(filename):
-    pp = PdfPages(filename)
-    fig_nums = pyplot.get_fignums()
-    figs = [pyplot.figure(n) for n in fig_nums]
-    for fig in figs:
-        fig.savefig(pp, format='pdf')
-    pp.close()
+def _save_multi_plot(filename, dpi="figure", format="pdf"):
+    if format=="pdf":
+        pp = PdfPages(filename)
+        fig_nums = pyplot.get_fignums()
+        figs = [pyplot.figure(n) for n in fig_nums]
+        for fig in figs:
+            fig.savefig(pp, bbox_inches='tight', format="pdf", pad_inches=0.05)
+        pp.close()
+    else:
+        fig_nums = pyplot.get_fignums()
+        figs = [pyplot.figure(n) for n in fig_nums]
+        for fig in figs:
+            fig.savefig(filename, bbox_inches='tight', dpi=dpi, format=format, pad_inches=0.01)
     
 def plot_pointcounts(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> pyplot.Axes:
     pyplot.close() # Close old figure
@@ -240,14 +248,14 @@ def plot_latencies_per_tile(ds : DataStore, dirname=None, showplot=True, saveplo
             pyplot.show()
         return ax
    
-def plot_latencies(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> pyplot.Axes:
+def plot_latencies(ds : DataStore, dpi="figure", format="pdf", file_name="latencies.pdf", title="Latency contributions (ms)", label_dict={}, tick_dict={}, legend_dict={}, labelspacing=0.5, ncols=1, use_row_major=False, dirname=None, showplot=True, saveplot=False, savecsv=False, max_y=0, show_sync=True, show_desc=True, figsize=(6, 4), show_legend=True) -> pyplot.Axes:
     pyplot.close() # Close old figure
     dataFilter = (
-        TileCombiner("sender.pc.grabber.downsample_ms", "downsample", "mean", combined=True) +
+        # removed by Gent: TileCombiner("sender.pc.grabber.downsample_ms", "downsample", "mean", combined=True) +
         TileCombiner("sender.pc.grabber.encoder_queue_ms", "encoder queue", "mean", combined=True) +
         TileCombiner("sender.pc.encoder.encoder_ms", "encoder", "mean", combined=True) +
         TileCombiner("sender.pc.encoder.transmitter_queue_ms", "transmitter queue", "mean", combined=True) +
-        TileCombiner("receiver.pc.reader.*.receive_ms", "receivers", "mean", combined=True) +
+        # removed by Gent: TileCombiner("receiver.pc.reader.*.receive_ms", "receivers", "mean", combined=True) +
         TileCombiner("receiver.pc.decoder.*.decoder_queue_ms", "decoder queues", "mean", combined=True) +
         TileCombiner("receiver.pc.decoder.*.decoder_ms", "decoders", "max", combined=True) +
         TileCombiner("receiver.pc.renderer.*.renderer_queue_ms", "renderer queues", "mean", combined=True)
@@ -256,20 +264,23 @@ def plot_latencies(ds : DataStore, dirname=None, showplot=True, saveplot=False, 
     #fig = pyplot.figure()
     ax = plot_simple(ds, 
         noshow=True,
-        title="Latency contributions (ms)", 
-        predicate='".pc." in component_role or component_role == "receiver.voice.renderer"', 
+        title=title, 
+        predicate='"sender.pc.grabber" in component_role or "sender.pc.encoder" in component_role or "receiver.pc.decoder" in component_role or "receiver.pc.renderer" in component_role or component_role == "receiver.voice.renderer"', 
+        # xxxjack was: predicate='".pc." in component_role or component_role == "receiver.voice.renderer"', 
+        
         fields=[
-            'component_role.=downsample_ms',
+            # removed by Gent: 'component_role.=downsample_ms',
             'component_role.=encoder_queue_ms',
             'component_role.=encoder_ms',
             'component_role.=transmitter_queue_ms',
-            'component_role.=receive_ms',
+            # removed by Gent: 'component_role.=receive_ms',
             'component_role.=decoder_queue_ms',
             'component_role.=decoder_ms',
             'component_role.=renderer_queue_ms'
             ],
         datafilter = dataFilter,
-        plotargs=dict(kind="area", colormap="Paired")
+        plotargs=dict(kind="area", colormap="Paired", figsize=figsize),
+        show_desc=show_desc
         )
     df = ds.get_dataframe(
         predicate='"receiver.pc.renderer" in component_role or "receiver.synchronizer" in component_role', 
@@ -279,22 +290,63 @@ def plot_latencies(ds : DataStore, dirname=None, showplot=True, saveplot=False, 
             'component_role.=latency_max_ms',
             ],
         )
-    dataFilter2 = (
-        TileCombiner("receiver.synchronizer.latency_ms", "synchronizer latency", "max", combined=True) +
-        TileCombiner("receiver.pc.renderer.*.latency_ms", "renderer latency", "min", combined=True) +
-        TileCombiner("receiver.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True)
-        )
-    df = dataFilter2(df)
-    df.interpolate().plot(x="sessiontime", y=["synchronizer latency", "renderer latency", "max renderer latency"], ax=ax, color=["blue", "red", "yellow"])
+    dataFilter2 = ()
+    avg_latency = 0
+    if show_sync:
+        dataFilter2 = (
+            TileCombiner("receiver.synchronizer.latency_ms", "synchronizer latency", "max", combined=True) +
+            TileCombiner("receiver.pc.renderer.*.latency_ms", "renderer latency", "min", combined=True) +
+            TileCombiner("receiver.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True)
+            )
+        df = dataFilter2(df)
+        df.interpolate().plot(x="sessiontime", y=["synchronizer latency", "renderer latency", "max renderer latency"], ax=ax, color=["blue", "red", "yellow"])
+        # Limit Y axis to reasonable values
+        avg_latency = df["renderer latency"].mean()
+        avg_max_latency = df["max renderer latency"].mean()
+        avg_sync_latency = df["synchronizer latency"].mean()
+        avg_latency = max(avg_latency, avg_max_latency, avg_sync_latency)
+    else:
+        dataFilter2 = (
+            TileCombiner("receiver.pc.renderer.*.latency_ms", "renderer latency", "min", combined=True) +
+            TileCombiner("receiver.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True)
+            )
+        df = dataFilter2(df)
+        df.interpolate().plot(x="sessiontime", y=["renderer latency", "max renderer latency"], ax=ax, color=["red", "yellow"])
+        # Limit Y axis to reasonable values
+        avg_latency = df["renderer latency"].mean()
+        avg_max_latency = df["max renderer latency"].mean()
+        avg_latency = max(avg_latency, avg_max_latency)
     # Limit Y axis to reasonable values
-    avg_latency = df["renderer latency"].mean()
-    avg_max_latency = df["max renderer latency"].mean()
-    avg_sync_latency = df["synchronizer latency"].mean()
-    avg_latency = max(avg_latency, avg_max_latency, avg_sync_latency)
-    ax.set_ylim(0, avg_latency*2)
-    ax.legend(loc='upper left', fontsize='small')
+    if max_y != 0:
+        ax.set_ylim(0, max_y)
+    else:
+        ax.set_ylim(0, avg_latency*2)
+    ax.set_xlim(0, 60)
+    handles, labels = pyplot.gca().get_legend_handles_labels()
+    nrows = -(-len(labels) // ncols)  # Ceiling division
+    reordered_handles = handles
+    reordered_labels = [label.capitalize() for label in labels]
+    
+    if use_row_major and ncols > 1:
+        reordered_handles = []
+        reordered_labels = []
+        for i in range(ncols):
+            for j in range(nrows):
+                index = i + j * ncols
+                print(index)
+                if index < len(labels):
+                    reordered_handles.append(handles[index])
+                    print(handles[index].get_color())
+                    reordered_labels.append(labels[index].capitalize())
+    ax.legend(reordered_handles[::-1], reordered_labels[::-1], loc='upper left', fontsize='small', prop=legend_dict, labelspacing=labelspacing, ncols=ncols)
+    if not show_legend:
+        ax.legend().set_visible(False)
+    pyplot.xticks(**tick_dict)
+    pyplot.yticks(**tick_dict)
+    pyplot.xlabel("Session time (s)", **label_dict)
+    pyplot.ylabel("Latency (ms)", **label_dict)
     if saveplot:
-        _save_multi_plot(os.path.join(dirname, "latencies.pdf"))
+        _save_multi_plot(os.path.join(dirname, file_name), dpi, format=format)
     if showplot:
         pyplot.show()
         
@@ -482,4 +534,122 @@ def plot_progress_latency(ds : DataStore, dirname=None, showplot=True, saveplot=
         _save_multi_plot(os.path.join(dirname, "progress-latencies.pdf"))
     if showplot:
         pyplot.show()
+    return ax
+
+
+def plot_latencies_rev(ds : DataStore, dpi="figure", format="pdf", file_name="latencies.pdf", title="Latency contributions (ms)", label_dict={}, tick_dict={}, legend_dict={}, labelspacing=0.5, ncols=1, use_row_major=False, dirname=None, showplot=True, saveplot=False, savecsv=False, max_y=0, show_sync=True, show_desc=True, figsize=(6, 4), show_legend=True) -> pyplot.Axes:
+    pyplot.close() # Close old figure
+    dataFilter = (
+        TileCombiner("receiver.pc.grabber.encoder_queue_ms", "encoder queue", "mean", combined=True) +
+        TileCombiner("receiver.pc.encoder.encoder_ms", "encoder", "mean", combined=True) +
+        TileCombiner("receiver.pc.encoder.transmitter_queue_ms", "transmitter queue", "mean", combined=True) +
+        #TileCombiner("receiver.pc.reader.*.receive_ms", "receivers", "mean", combined=True) +
+        TileCombiner("sender.pc.decoder.*.decoder_queue_ms", "decoder queues", "mean", combined=True) +
+        TileCombiner("sender.pc.decoder.*.decoder_ms", "decoders", "max", combined=True) +
+        TileCombiner("sender.pc.renderer.*.renderer_queue_ms", "renderer queues", "mean", combined=True)
+        )
+        
+    #fig = pyplot.figure()
+    ax = plot_simple(ds, 
+        noshow=True,
+        title="", 
+        predicate='"receiver.pc.grabber" in component_role or "receiver.pc.encoder" in component_role or "sender.pc.decoder" in component_role or "sender.pc.renderer" in component_role or component_role == "sender.voice.renderer"', 
+        fields  =[
+            'component_role.=encoder_queue_ms',
+            'component_role.=encoder_ms',
+            'component_role.=transmitter_queue_ms',
+            #'component_role.=receive_ms',
+            'component_role.=decoder_queue_ms',
+            'component_role.=decoder_ms',
+            'component_role.=renderer_queue_ms'
+            ],
+        datafilter = dataFilter,
+        plotargs=dict(kind="area", colormap="Paired", figsize=figsize),
+        show_desc=show_desc
+        )
+    df = ds.get_dataframe(
+        predicate='"sender.pc.renderer" in component_role or "sender.synchronizer" in component_role', 
+        fields=[
+            'sessiontime',
+            'component_role.=latency_ms',
+            'component_role.=latency_max_ms',
+            ],
+        )
+    dataFilter2 = ()
+    avg_latency = 0
+    if show_sync:
+        dataFilter2 = (
+            TileCombiner("receiver.synchronizer.latency_ms", "synchronizer latency", "max", combined=True) +
+            TileCombiner("receiver.pc.renderer.*.latency_ms", "renderer latency", "min", combined=True) +
+            TileCombiner("receiver.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True)
+            )
+        df = dataFilter2(df)
+        df.interpolate().plot(x="sessiontime", y=["synchronizer latency", "renderer latency", "max renderer latency"], ax=ax, color=["blue", "red", "yellow"])
+        # Limit Y axis to reasonable values
+        avg_latency = df["renderer latency"].mean()
+        avg_max_latency = df["max renderer latency"].mean()
+        avg_sync_latency = df["synchronizer latency"].mean()
+        avg_latency = max(avg_latency, avg_max_latency, avg_sync_latency)
+    else:
+        dataFilter2 = (
+            TileCombiner("sender.pc.renderer.*.latency_ms", "renderer latency", "min", combined=True) +
+            TileCombiner("sender.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True)
+            )
+        df = dataFilter2(df)
+        df.interpolate().plot(x="sessiontime", y=["renderer latency", "max renderer latency"], ax=ax, color=["red", "yellow"])
+        # Limit Y axis to reasonable values
+        avg_latency = df["renderer latency"].mean()
+        avg_max_latency = df["max renderer latency"].mean()
+        avg_latency = max(avg_latency, avg_max_latency)
+    # Limit Y axis to reasonable values
+    if max_y != 0:
+        ax.set_ylim(0, max_y)
+    else:
+        ax.set_ylim(0, avg_latency*2)
+    ax.set_xlim(0, 60)
+    handles, labels = pyplot.gca().get_legend_handles_labels()
+    nrows = -(-len(labels) // ncols)  # Ceiling division
+    reordered_handles = handles
+    reordered_labels = [label.capitalize() for label in labels]
+    if use_row_major and ncols > 1:
+        reordered_handles = []
+        reordered_labels = []
+        for i in range(ncols):
+            for j in range(nrows):
+                index = i + j * ncols
+                print(index)
+                if index < len(labels):
+                    reordered_handles.append(handles[index])
+                    reordered_labels.append(labels[index].capitalize())
+    ax.legend(reordered_handles[::-1], reordered_labels[::-1], loc='upper left', fontsize='small', prop=legend_dict, labelspacing=labelspacing, ncols=ncols)
+    if not show_legend:
+        ax.legend().set_visible(False)
+    pyplot.xticks(**tick_dict)
+    pyplot.yticks(**tick_dict)
+    pyplot.xlabel("Session time (s)", **label_dict)
+    pyplot.ylabel("Latency (ms)", **label_dict)
+    if saveplot:
+        _save_multi_plot(os.path.join(dirname, file_name), dpi, format=format)
+    if showplot:
+        pyplot.show()
+        
+    #
+    # Save to csv file, in raw form
+    #
+    if savecsv:
+        predicate='".pc." in component_role or component_role == "receiver.voice.renderer"'
+        fields=[
+            'sessiontime',
+            'component_role.=downsample_ms',
+            'component_role.=encoder_queue_ms',
+            'component_role.=encoder_ms',
+            'component_role.=transmitter_queue_ms',
+            'component_role.=receive_ms',
+            'component_role.=decoder_queue_ms',
+            'component_role.=decoder_ms',
+            'component_role.=renderer_queue_ms',
+            'component_role.=latency_ms'
+            ]
+        df = ds.get_dataframe(predicate=predicate, fields=fields)
+        df.to_csv(os.path.join(dirname, "latencies.csv"))    
     return ax
