@@ -2,6 +2,7 @@ import sys
 import os
 from datetime import datetime
 from .runner import Runner
+from .orchestrator import Orchestrator
 from .sessionconfig import SessionConfig
 from typing import List, Optional
 
@@ -18,6 +19,7 @@ class Session:
         self.workdir = workdir
         self.verbose = verbose
         self.runners : List[Runner] = []
+        self.orchestrator : Optional[Orchestrator] = None
 
     def start(self) -> None:
         if self.verbose:
