@@ -58,6 +58,14 @@ class DataStore:
         self.data = parser.parse()
         if not nocheck:
             parser.check()
+            
+    def append_log(self, filename : str) -> None:
+        """Used specifically to append the rusage data"""
+        parser = StatsFileParser(filename)
+        data = parser.parse()
+        # We don't check, only "normal" stats data is checked.
+        self.data = self.data + data
+        self.data.sort(key=lambda rec : rec["ts"])
 
     def load_csv(self) -> None:
         dataframe : pandas.DataFrame = pandas.read_csv(self.filename) # type: ignore
