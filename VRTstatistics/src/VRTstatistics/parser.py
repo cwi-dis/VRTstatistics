@@ -1,7 +1,7 @@
 import os
 import json
 import time
-from typing import TextIO, List, Any, cast, Dict
+from typing import TextIO, List, Any, cast, Dict, Optional
 
 __all__ = ["StatsFileParser"]
 
@@ -12,12 +12,18 @@ class StatsFileParser:
     filename: str
     data: StatsList
 
-    def __init__(self, filename: str) -> None:
+    def __init__(self, filename: str, filename2: Optional[str]) -> None:
         self.filename = filename
+        self.filename2 = filename2
+        self.localtime_epoch = None
+        self.orchtime_epoch = None
         self.data = []
 
     def parse(self) -> StatsList:
         self.data = self._extractstats(open(self.filename))
+        if self.filename2:
+            moreData = self._extractstats(open(self.filename2))
+            self.data += moreData
         return self.data
 
     def save_json(self, statsfile: str) -> None:
@@ -30,8 +36,6 @@ class StatsFileParser:
 
     def _extractstats(self, ifp: TextIO) -> StatsList:
         rv : StatsList = []
-        localtime_epoch = None
-        orchtime_epoch = None
         linenum = 0
         for line in ifp:
             linenum += 1
@@ -60,12 +64,12 @@ class StatsFileParser:
                     )
                 )
                 orch_midnight = time.mktime(orch_midnight_gmtime)
-                localtime_epoch = orch_midnight
-                orchtime_epoch = orch_time - entry["ts"]
-            if localtime_epoch:
-                entry["localtime"] = localtime_epoch + entry["ts"]
-            if orchtime_epoch:
-                entry["orchtime"] = orchtime_epoch + entry["ts"]
+                self.localtime_epoch = orch_midnight
+                self.orchtime_epoch = orch_time - entry["ts"]
+            if self.localtime_epoch:
+                entry["localtime"] = self.localtime_epoch + entry["ts"]
+            if self.orchtime_epoch:
+                entry["orchtime"] = self.orchtime_epoch + entry["ts"]
             rv.append(entry)
         return rv
 

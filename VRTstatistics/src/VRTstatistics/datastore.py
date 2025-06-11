@@ -22,8 +22,9 @@ class DataStore:
     data: list[DataStoreRecord]
     annotator : Any
    
-    def __init__(self, filename: Optional[str] = None) -> None:
+    def __init__(self, filename: Optional[str] = None, filename2: Optional[str] = None) -> None:
         self.filename = filename
+        self.filename2 = filename2
         self.data = []
         self.annotator = None
 
@@ -42,6 +43,7 @@ class DataStore:
 
     def load_json(self) -> None:
         assert self.filename
+        assert not self.filename2
         data = json.load(open(self.filename, "r"))
         metadata = None
         if type(data) != type([]):
@@ -54,20 +56,14 @@ class DataStore:
 
     def load_log(self, nocheck : bool=False) -> None:
         assert self.filename
-        parser = StatsFileParser(self.filename)
+        parser = StatsFileParser(self.filename, self.filename2)
         self.data = parser.parse()
         if not nocheck:
             parser.check()
-            
-    def append_log(self, filename : str) -> None:
-        """Used specifically to append the rusage data"""
-        parser = StatsFileParser(filename)
-        data = parser.parse()
-        # We don't check, only "normal" stats data is checked.
-        self.data = self.data + data
-        self.data.sort(key=lambda rec : rec["ts"])
 
     def load_csv(self) -> None:
+        assert self.filename
+        assert not self.filename2
         dataframe : pandas.DataFrame = pandas.read_csv(self.filename) # type: ignore
         self.load_data(dataframe)
         

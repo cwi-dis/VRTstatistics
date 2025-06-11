@@ -61,22 +61,18 @@ def main():
     datastores : List[Tuple[str, DataStore]] = []
     for machine_role, _ in sessionconfig.get_machines():
         machine_stats_filename = os.path.join(workdir, machine_role, "stats.log")
-        machine_data = DataStore(machine_stats_filename)
-        machine_data.load()
-        print(f"xxxjack before len={len(machine_data.data)}")
         machine_rusage_filename = os.path.join(workdir, machine_role, "rusage.log")
-        if os.path.exists(machine_rusage_filename):
-            machine_data.append_log(machine_rusage_filename)
-        else:
+        if not os.path.exists(machine_rusage_filename):
             print(f"{parser.prog}: Warning: no rusage data found at {machine_rusage_filename}")
-        print(f"xxxjack after len={len(machine_data.data)}")
+            machine_rusage_filename = None
+        machine_data = DataStore(machine_stats_filename,machine_rusage_filename )
+        machine_data.load()
         datastores.append((machine_role, machine_data))
    
     combined_filename = os.path.join(workdir, "combined.json") 
 
     outputdata = DataStore(combined_filename)
     ok = combine(args.annotator, datastores, outputdata)
-    print(f"xxxjack output len={len(outputdata.data)}")
     outputdata.save()
     sys.exit(0 if ok else 1)
 
