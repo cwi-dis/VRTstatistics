@@ -8,7 +8,7 @@ class Orchestrator(threading.Thread):
         self.url = url
         self.logfile = logfile
         self.stopped = False
-        self.verbose = True
+        self.verbose = False
 
     def run(self):
         if self.verbose:
