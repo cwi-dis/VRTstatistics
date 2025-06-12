@@ -22,6 +22,13 @@ class Session:
         self.orchestrator : Optional[Orchestrator] = None
 
     def start(self) -> None:
+        orchestratorLog = self.config.global_config.get("orchestratorLog")
+        if orchestratorLog:
+            if self.verbose:
+                print(f"VRTRun: Creating orchestrator log listener...", file=sys.stderr)
+            orchestratorLogfile = os.path.join(self.workdir, "orchestrator.log")
+            self.orchestrator = Orchestrator(orchestratorLog, orchestratorLogfile)
+            self.orchestrator.start()
         if self.verbose:
             print(f"VRTRun: Creating runners...", file=sys.stderr)
         for machine_role, machine_address in self.config.get_machines():
@@ -54,6 +61,8 @@ class Session:
                 print(f"VRTRun: Runner {runner.role} returned {sts}", file=sys.stderr)
             if sts != 0:
                 all_status = sts
+        if self.orchestrator:
+            self.orchestrator.stop()
         return all_status
 
     def receive_results(self) -> None:

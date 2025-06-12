@@ -3,6 +3,6 @@ requires = [
     "setuptools>=42",
     "wheel",
     "requests",
-    "socketio"
+    "python-socketio"
 ]
 build-backend = "setuptools.build_meta"

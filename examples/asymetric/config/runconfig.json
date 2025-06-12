@@ -1,10 +1,15 @@
-[
-    {
-        "role" : "sender",
-        "address" : "vrtiny.huiskamer.private"
+{
+    "global" : {
+        "orchestratorLog" : "ws://virtnuc-dis.spin-off.cwi.nl:8090/log"
     },
-    {
-        "role" : "receiver",
-        "address" : "boor.huiskamer.private"
-    }
-]
+    "machines" : [
+        {
+            "role" : "sender",
+            "address" : "vrtiny.huiskamer.private"
+        },
+        {
+            "role" : "receiver",
+            "address" : "boor.huiskamer.private"
+        }
+    ]
+}
