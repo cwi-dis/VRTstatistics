@@ -13,18 +13,10 @@ Predicate = str
 __all__ = [
     "plot_simple", 
     "plot_dataframe", 
-    "plot_pointcounts", 
     "plot_framerates_and_dropped", 
     "plot_framerates_dropped", 
     "plot_framerates", 
-    "plot_progress", 
-    "plot_resources", 
-    "plot_resources_cpu", 
-    "plot_resources_mem", 
-    "plot_resources_bandwidth", 
     "plot_latencies", 
-    "plot_latencies_for_tile", 
-    "plot_latencies_per_tile", 
     ]
 
 def plot_simple(datastore : DataStore, *, 
@@ -72,190 +64,29 @@ def plot_dataframe(dataframe : pd.DataFrame, *, title=None, noshow=False, x=None
     if not noshow:
         pyplot.show()
     return plot
-
-def _save_multi_plot(filename, dpi="figure", format="pdf"):
-    if format=="pdf":
-        pp = PdfPages(filename)
-        fig_nums = pyplot.get_fignums()
-        figs = [pyplot.figure(n) for n in fig_nums]
-        for fig in figs:
-            fig.savefig(pp, bbox_inches='tight', format="pdf", pad_inches=0.05)
-        pp.close()
-    else:
-        fig_nums = pyplot.get_fignums()
-        figs = [pyplot.figure(n) for n in fig_nums]
-        for fig in figs:
-            fig.savefig(filename, bbox_inches='tight', dpi=dpi, format=format, pad_inches=0.01)
-    
-def plot_pointcounts(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> Axes:
-    pyplot.close() # Close old figure
-    #
-    # Plot receiver point counts
-    #
-    dataFilter = TileCombiner("receiver.pc.renderer.*.points_per_cloud", "points per cloud", "sum", combined=True, keep=True)
-    predicate='"receiver.pc.renderer" in component_role'
-    fields=['sessiontime', 'component_role.=points_per_cloud']
- 
-    ax = plot_simple(ds,
-        noshow=True, 
-        title="Receiver point counts", 
-        predicate=predicate, 
-        fields=fields,
-        datafilter=dataFilter
-        )
-    bot, top = ax.get_ylim()
-    ax.set_ylim(0, top*1.5)
-    if saveplot:
-        _save_multi_plot(os.path.join(dirname, "pointcounts.pdf"))
-    if showplot:
-        pyplot.show()
-    if savecsv:
-        #
-        # Save point counts to file (including non-aggregated)
-        #
-        dataFilter.keep = True
-        df = ds.get_dataframe(predicate=predicate, fields=fields)
-        df = dataFilter(df)
-        df.to_csv(os.path.join(dirname, "pointcounts.csv"))
-    return ax
-    
-def plot_resource_cpu(ds : DataStore) -> Axes:
-    dataFilter=SessionTimeFilter()
-    predicate='component == "ResourceConsumption"'
-    ax1 = plot_simple(ds, 
-        noshow=True, 
-        title="CPU usage", 
-        predicate=predicate, 
-        fields=[
-            'role.=cpu'
-            ],
-        datafilter=dataFilter
-        )
-    bot, top = ax1.get_ylim()
-    ax1.set_ylim(0, top*1.5)
-    return ax1
-
-def plot_resource_mem(ds : DataStore) -> Axes:
-    dataFilter=SessionTimeFilter()
-    predicate='component == "ResourceConsumption"'
-    ax2 = plot_simple(ds, 
-        noshow=True, 
-        title="Memory usage", 
-        predicate=predicate, 
-        fields=[
-            'role.=mem'
-            ],
-        datafilter=dataFilter
-        )
-    bot, top = ax2.get_ylim()
-    ax2.set_ylim(0, top*1.5)
-    return ax2
-
-def plot_resource_bandwidth(ds : DataStore) -> Axes:
-    dataFilter=SessionTimeFilter()
-    predicate='component == "ResourceConsumption"'
-    ax3 = plot_simple(ds, 
-        noshow=True, 
-        title="Bandwidth usage", 
-        predicate=predicate, 
-        fields=[
-            'role.=recv_bandwidth',
-            'role.=sent_bandwidth'
-            ],
-        datafilter=dataFilter
-        )
-    bot, top = ax3.get_ylim()
-    ax3.set_ylim(0, top*1.5)
-    return ax3
-
-def plot_resources(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> Tuple[Axes, Axes, Axes]:
-    pyplot.close() # Close old figure
-    ax1 = plot_resource_cpu(ds)
-    ax2 = plot_resource_mem(ds)
-    ax3 = plot_resource_bandwidth(ds)
-
-    if saveplot:
-        _save_multi_plot(os.path.join(dirname, "resources.pdf"))
-    if showplot:
-        pyplot.show()
-
-    if savecsv:
-        dataFilter=SessionTimeFilter()
-        predicate='component == "ResourceConsumption"'
-        df = ds.get_dataframe(predicate=predicate, fields=['sessiontime', 'role.=cpu', 'role.=mem', 'role.=recv_bandwidth', 'role.=sent_bandwidth' ])
-        df = dataFilter(df)
-        df.to_csv(os.path.join(dirname, "resources.csv"))
-    return ax1, ax2, ax3
-    
-def plot_latencies_for_tile(df : pd.DataFrame, tilenum, ax) -> Axes:
-    fields = [
-        "sender.pc.grabber.downsample_ms",
-        "sender.pc.grabber.encoder_queue_ms",
-        "sender.pc.encoder.encoder_ms",
-        "sender.pc.encoder.transmitter_queue_ms",
-        f"receiver.pc.reader.{tilenum}.receive_ms",
-        f"receiver.pc.decoder.{tilenum}.decoder_queue_ms",
-        f"receiver.pc.decoder.{tilenum}.decoder_ms",
-        f"receiver.pc.renderer.{tilenum}.renderer_queue_ms"
-    ]
-    todelete = []
-    for i in range(len(fields)):
-        if not fields[i] in df.columns:
-            alt = fields[i].replace(f'.{tilenum}.', '.all.')
-            if alt in df.columns:
-                fields[i] = alt
-            else:
-                print(f'Warning: missing field {fields[i]} in dataframe')
-                todelete.append(fields[i])
-    for f in todelete:
-        fields.remove(f)
-    latency_fields = [
-        "receiver.synchronizer.latency_ms",
-        f"receiver.pc.renderer.{tilenum}.latency_ms",
-        f"receiver.pc.renderer.{tilenum}.latency_max_ms",
-        ]
-    ax = df.interpolate(method='pad').plot(x="sessiontime", y=fields, kind="area", colormap="Paired", ax=ax, legend=False)
-    df.interpolate(method='pad').plot(x="sessiontime", y=latency_fields, ax=ax, color=["blue", "red", "yellow"], legend=False)
-    ax.set_title(f"Per-tile Latency contributions, tile={tilenum}")
-    return ax
- 
-def plot_latencies_per_tile(ds : DataStore, dirname=None, showplot=True, saveplot=False) -> Axes:
-    pyplot.close() # Close old figure
-    # Per-tile
-    nTiles = ds.annotator.nTiles
-    if nTiles > 1:
-        predicate='".pc." in component_role or component_role == "receiver.voice.renderer" or component_role == "receiver.synchronizer"'
-        fields=[
-            'sessiontime',
-            'component_role.=downsample_ms',
-            'component_role.=encoder_queue_ms',
-            'component_role.=encoder_ms',
-            'component_role.=transmitter_queue_ms',
-            'component_role.=receive_ms',
-            'component_role.=decoder_queue_ms',
-            'component_role.=decoder_ms',
-            'component_role.=renderer_queue_ms',
-            'component_role.=latency_ms',
-            'component_role.=latency_max_ms',
-            ]
-        df = ds.get_dataframe(predicate=predicate, fields=fields)
-        n = ds.annotator.nTiles
-        ax = None
-        fig, axs = pyplot.subplots(nTiles, 1, sharex=True, sharey=True)
-        fig.set_figheight(fig.get_figheight()*(nTiles-1))
-        fig.set_figwidth(fig.get_figwidth()*1.5)
-        for i in range(nTiles):
-            plot_latencies_for_tile(df, i, axs[i])
-        handles, labels = axs[0].get_legend_handles_labels()
-        fig.legend(handles, labels, loc='center right')
-        pyplot.subplots_adjust(right=0.66)
-        if saveplot:
-            _save_multi_plot(os.path.join(dirname, "latencies-per-tile.pdf"))
-        if showplot:
-            pyplot.show()
-        return ax
    
-def plot_latencies(ds : DataStore, dpi="figure", format="pdf", file_name="latencies.pdf", title="Latency contributions (ms)", label_dict={}, tick_dict={}, legend_dict={}, labelspacing=0.5, ncols=1, use_row_major=False, dirname=None, showplot=True, saveplot=False, savecsv=False, max_y=0, show_sync=True, show_desc=True, figsize=(6, 4), show_legend=True) -> Axes:
+def plot_latencies(
+        ds : DataStore, 
+        dpi="figure", 
+        format="pdf", 
+        file_name="latencies.pdf", 
+        title="Latency contributions (ms)", 
+        label_dict={}, 
+        tick_dict={}, 
+        legend_dict={}, 
+        labelspacing=0.5, 
+        ncols=1, 
+        use_row_major=False, 
+        dirname=None, 
+        showplot=True, 
+        saveplot=False, 
+        savecsv=False, 
+        max_y=0, 
+        show_sync=True, 
+        show_desc=True, 
+        figsize=(6, 4), 
+        show_legend=True
+        ) -> Axes:
     pyplot.close() # Close old figure
     dataFilter = (
         # removed by Gent: TileCombiner("sender.pc.grabber.downsample_ms", "downsample", "mean", combined=True) +
@@ -430,7 +261,13 @@ def plot_framerates_dropped(ds : DataStore) -> Axes:
         )
     return ax2
 
-def plot_framerates_and_dropped(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> Tuple[Axes, Axes]:
+def plot_framerates_and_dropped(
+        ds : DataStore, 
+        dirname : str, 
+        showplot : bool = True, 
+        saveplot : bool = False, 
+        savecsv : bool = False
+        ) -> Tuple[Axes, Axes]:
     pyplot.close() # Close old figure
     ax1 = plot_framerates(ds)
     ax2 = plot_framerates_dropped(ds)
@@ -438,7 +275,7 @@ def plot_framerates_and_dropped(ds : DataStore, dirname=None, showplot=True, sav
     if saveplot:
         _save_multi_plot(os.path.join(dirname, "framerates.pdf"))
     if showplot:
-        pyplot.show()
+        pyplot.show() # type: ignore
     #
     # Save to csv file, without combining
     #
@@ -448,236 +285,18 @@ def plot_framerates_and_dropped(ds : DataStore, dirname=None, showplot=True, sav
         df = ds.get_dataframe(predicate=predicate, fields=fields)
         df.to_csv(os.path.join(dirname, "framerates.csv"))    
     return ax1, ax2
+
+def _save_multi_plot(filename : str, dpi : str = "figure", format : str = "pdf"):
+    if format=="pdf":
+        pp = PdfPages(filename)
+        fig_nums = pyplot.get_fignums()
+        figs = [pyplot.figure(n) for n in fig_nums] # type: ignore
+        for fig in figs:
+            fig.savefig(pp, bbox_inches='tight', format="pdf", pad_inches=0.05) # type: ignore
+        pp.close()
+    else:
+        fig_nums = pyplot.get_fignums()
+        figs = [pyplot.figure(n) for n in fig_nums] # type: ignore
+        for fig in figs:
+            fig.savefig(filename, bbox_inches='tight', dpi=dpi, format=format, pad_inches=0.01) # type: ignore
     
-def plot_progress(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> Axes:
-    pyplot.close() # Close old figure
-    df = ds.get_dataframe(
-        predicate='"aggregate_packets" in record and component_role',
-        fields = ['sessiontime', 'component_role=aggregate_packets']
-        )
-    columns = list(df.keys())
-    columns.sort()
-    columns.remove('sessiontime')
-    columns.remove('sender.pc.grabber') # It can drop frames without being a problem.
-    marker=None
-    colors=["red", "blue", "green", "purple"]
-    ax=None
-    for y in columns:
-        color='black'
-        marker=None
-        markevery = 100
-        markoffset = 0
-        if '.0' in y:
-            color='red'
-            markoffset = 20
-        elif '.1' in y:
-            color='blue'
-            markoffset = 40
-        elif '.2' in y:
-            color='green'
-            markoffset = 60
-        elif '.3' in y:
-            color='purple'
-            markoffset = 80
-        if '.encoder' in y:
-            marker = '+'
-            markoffset += 3
-        elif '.writer' in y:
-            marker = '>'
-            markoffset += 6
-        elif '.decoder' in y:
-            marker = 'o'
-            markoffset += 9
-        elif '.preparer' in y:
-            marker = '<'
-            markoffset += 12
-        elif '.reader' in y:
-            marker = '*'
-            markoffset += 15
-        series = df.loc[:, ["sessiontime", y]]
-        # Some columns need to be adjusted
-        if ds.annotator.nTiles > 1:
-            if '.all' in y:
-                series[y] = series[y] / ds.annotator.nTiles
-            elif y == "sender.pc.encoder":
-                series[y] = series[y] / (ds.annotator.nTiles*ds.annotator.nQualities)
-        ax = series.interpolate(method='pad').plot(x="sessiontime", marker=marker, markevery=(markoffset, markevery), color=color, alpha=0.5, ax=ax)
-    ax.legend(loc='upper left', fontsize='small')
-    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-    descr = ds.annotator.description()
-    ax.text(0.98, 0.98, descr, transform=ax.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props)
-    ax.set_title("Pointcloud Progress")
-    if saveplot:
-        _save_multi_plot(os.path.join(dirname, "progress.pdf"))
-    if showplot:
-        pyplot.show()
-    return ax
-
-def plot_progress_latency(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> Axes:
-    pyplot.close() # Close old figure
-    df = ds.get_dataframe(
-        predicate='"aggregate_packets" in record and component_role',
-        fields = ['sessiontime', 'component_role=aggregate_packets']
-        )
-    ax = None
-    df0 = dataframe_to_pcindex_latencies_for_tile(df, 0)
-    ax = df0.plot(x="sessiontime", ax=ax)
-    if 'receiver.pc.reader.1' in df:
-        df1 = dataframe_to_pcindex_latencies_for_tile(df, 1)
-        ax = df1.plot(x="sessiontime", ax=ax)
-    if 'receiver.pc.reader.2' in df:
-        df2 = dataframe_to_pcindex_latencies_for_tile(df, 2)
-        ax = df2.plot(x="sessiontime", ax=ax)
-    if 'receiver.pc.reader.3' in df:
-        df3 = dataframe_to_pcindex_latencies_for_tile(df, 3)
-        ax = df3.plot(x="sessiontime", ax=ax)
-
-    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-    descr = ds.annotator.description()
-    ax.text(0.98, 0.98, descr, transform=ax.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props)
-    ax.set_title("Pointcloud Receiver latencies")
-
-    if saveplot:
-        _save_multi_plot(os.path.join(dirname, "progress-latencies.pdf"))
-    if showplot:
-        pyplot.show()
-    return ax
-
-
-def plot_latencies_rev(
-        ds : DataStore, 
-        dpi="figure", 
-        format="pdf", 
-        file_name="latencies.pdf", 
-        title="Latency contributions (ms)", 
-        label_dict={}, 
-        tick_dict={}, 
-        legend_dict={}, 
-        labelspacing=0.5, 
-        ncols=1, 
-        use_row_major=False, 
-        dirname=None, 
-        showplot=True, 
-        saveplot=False, 
-        savecsv=False, 
-        max_y=0, s
-        how_sync=True, 
-        show_desc=True, 
-        figsize=(6, 4), 
-        show_legend=True
-        ) -> Axes:
-    pyplot.close() # Close old figure
-    dataFilter = (
-        TileCombiner("receiver.pc.grabber.encoder_queue_ms", "encoder queue", "mean", combined=True) +
-        TileCombiner("receiver.pc.encoder.encoder_ms", "encoder", "mean", combined=True) +
-        TileCombiner("receiver.pc.encoder.transmitter_queue_ms", "transmitter queue", "mean", combined=True) +
-        #TileCombiner("receiver.pc.reader.*.receive_ms", "receivers", "mean", combined=True) +
-        TileCombiner("sender.pc.decoder.*.decoder_queue_ms", "decoder queues", "mean", combined=True) +
-        TileCombiner("sender.pc.decoder.*.decoder_ms", "decoders", "max", combined=True) +
-        TileCombiner("sender.pc.renderer.*.renderer_queue_ms", "renderer queues", "mean", combined=True)
-        )
-        
-    #fig = pyplot.figure()
-    ax = plot_simple(ds, 
-        noshow=True,
-        title="", 
-        predicate='"receiver.pc.grabber" in component_role or "receiver.pc.encoder" in component_role or "sender.pc.decoder" in component_role or "sender.pc.renderer" in component_role or component_role == "sender.voice.renderer"', 
-        fields  =[
-            'component_role.=encoder_queue_ms',
-            'component_role.=encoder_ms',
-            'component_role.=transmitter_queue_ms',
-            #'component_role.=receive_ms',
-            'component_role.=decoder_queue_ms',
-            'component_role.=decoder_ms',
-            'component_role.=renderer_queue_ms'
-            ],
-        datafilter = dataFilter,
-        plotargs=dict(kind="area", colormap="Paired", figsize=figsize),
-        show_desc=show_desc
-        )
-    df = ds.get_dataframe(
-        predicate='"sender.pc.renderer" in component_role or "sender.synchronizer" in component_role', 
-        fields=[
-            'sessiontime',
-            'component_role.=latency_ms',
-            'component_role.=latency_max_ms',
-            ],
-        )
-    dataFilter2 = ()
-    avg_latency = 0
-    if show_sync:
-        dataFilter2 = (
-            TileCombiner("receiver.synchronizer.latency_ms", "synchronizer latency", "max", combined=True) +
-            TileCombiner("receiver.pc.renderer.*.latency_ms", "renderer latency", "min", combined=True) +
-            TileCombiner("receiver.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True)
-            )
-        df = dataFilter2(df)
-        df.interpolate().plot(x="sessiontime", y=["synchronizer latency", "renderer latency", "max renderer latency"], ax=ax, color=["blue", "red", "yellow"])
-        # Limit Y axis to reasonable values
-        avg_latency = df["renderer latency"].mean()
-        avg_max_latency = df["max renderer latency"].mean()
-        avg_sync_latency = df["synchronizer latency"].mean()
-        avg_latency = max(avg_latency, avg_max_latency, avg_sync_latency)
-    else:
-        dataFilter2 = (
-            TileCombiner("sender.pc.renderer.*.latency_ms", "renderer latency", "min", combined=True) +
-            TileCombiner("sender.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True)
-            )
-        df = dataFilter2(df)
-        df.interpolate().plot(x="sessiontime", y=["renderer latency", "max renderer latency"], ax=ax, color=["red", "yellow"])
-        # Limit Y axis to reasonable values
-        avg_latency = df["renderer latency"].mean()
-        avg_max_latency = df["max renderer latency"].mean()
-        avg_latency = max(avg_latency, avg_max_latency)
-    # Limit Y axis to reasonable values
-    if max_y != 0:
-        ax.set_ylim(0, max_y)
-    else:
-        ax.set_ylim(0, avg_latency*2)
-    ax.set_xlim(0, 60)
-    handles, labels = pyplot.gca().get_legend_handles_labels()
-    nrows = -(-len(labels) // ncols)  # Ceiling division
-    reordered_handles = handles
-    reordered_labels = [label.capitalize() for label in labels]
-    if use_row_major and ncols > 1:
-        reordered_handles = []
-        reordered_labels = []
-        for i in range(ncols):
-            for j in range(nrows):
-                index = i + j * ncols
-                print(index)
-                if index < len(labels):
-                    reordered_handles.append(handles[index])
-                    reordered_labels.append(labels[index].capitalize())
-    ax.legend(reordered_handles[::-1], reordered_labels[::-1], loc='upper left', fontsize='small', prop=legend_dict, labelspacing=labelspacing, ncols=ncols)
-    if not show_legend:
-        ax.legend().set_visible(False)
-    pyplot.xticks(**tick_dict)
-    pyplot.yticks(**tick_dict)
-    pyplot.xlabel("Session time (s)", **label_dict)
-    pyplot.ylabel("Latency (ms)", **label_dict)
-    if saveplot:
-        _save_multi_plot(os.path.join(dirname, file_name), dpi, format=format)
-    if showplot:
-        pyplot.show()
-        
-    #
-    # Save to csv file, in raw form
-    #
-    if savecsv:
-        predicate='".pc." in component_role or component_role == "receiver.voice.renderer"'
-        fields=[
-            'sessiontime',
-            'component_role.=downsample_ms',
-            'component_role.=encoder_queue_ms',
-            'component_role.=encoder_ms',
-            'component_role.=transmitter_queue_ms',
-            'component_role.=receive_ms',
-            'component_role.=decoder_queue_ms',
-            'component_role.=decoder_ms',
-            'component_role.=renderer_queue_ms',
-            'component_role.=latency_ms'
-            ]
-        df = ds.get_dataframe(predicate=predicate, fields=fields)
-        df.to_csv(os.path.join(dirname, "latencies.csv"))    
-    return ax

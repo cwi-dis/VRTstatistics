@@ -7,86 +7,21 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 from .datastore import DataStore, DataStoreError
 from .analyze import TileCombiner, SessionTimeFilter, dataframe_to_pcindex_latencies_for_tile
-
+from .plots import *
 Predicate = str
 
 __all__ = [
-    "plot_simple", 
-    "plot_dataframe", 
     "plot_pointcounts", 
     "plot_framerates_and_dropped", 
-    "plot_framerates_dropped", 
-    "plot_framerates", 
     "plot_progress", 
     "plot_resources", 
     "plot_resources_cpu", 
     "plot_resources_mem", 
     "plot_resources_bandwidth", 
-    "plot_latencies", 
     "plot_latencies_for_tile", 
     "plot_latencies_per_tile", 
     ]
 
-def plot_simple(datastore : DataStore, *, 
-        predicate:Optional[Predicate]=None, 
-        title:str=None, 
-        noshow:bool=False, 
-        x:str="sessiontime", 
-        fields:Any=None, 
-        datafilter=None, plotargs={}, show_desc=True) -> Axes:
-    """
-    Plot data (optionally after converting to pandas.DataFrame).
-    output is optional output file (default: show in a window)
-    x is name of x-axis field
-    fields is list of fields to plot (default: all, except x)
-    """
-    fields_to_retrieve = list(fields)
-    fields_to_plot = fields
-    # If we have specified fields to retrieve ensure our x-axis is in the list
-    if fields_to_retrieve and x and not x in fields_to_retrieve:
-        fields_to_retrieve.append(x)
-    fields_to_plot = None # For simple plots we use all fields (except x, which is automatically ignored)
-    if not fields_to_retrieve:
-        fields_to_retrieve = None
-    dataframe = datastore.get_dataframe(predicate=predicate, fields=fields_to_retrieve)
-    if datafilter:
-        dataframe = datafilter(dataframe)
-    descr=None
-    if show_desc:
-        descr = datastore.annotator.description()
-    return plot_dataframe(dataframe, title=title, noshow=noshow, x=x, fields=fields_to_plot, descr=descr, plotargs=plotargs)
-
-def plot_dataframe(dataframe : pd.DataFrame, *, title=None, noshow=False, x=None, fields=None, descr=None, plotargs={}, interpolate='linear') -> Axes:
-    if dataframe.empty:
-        raise DataStoreError("dataframe is empty, nothing to plot")
-    if fields:
-        plot = dataframe.interpolate(method=interpolate).plot(x=x, y=fields, **plotargs)
-    else:
-        plot = dataframe.interpolate(method=interpolate).plot(x=x, **plotargs)
-    if descr:
-        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-        plot.text(0.98, 0.98, descr, transform=plot.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props)
-    if title:
-        pyplot.title(title)
-    plot.legend(loc='upper left', fontsize='small')
-    if not noshow:
-        pyplot.show()
-    return plot
-
-def _save_multi_plot(filename, dpi="figure", format="pdf"):
-    if format=="pdf":
-        pp = PdfPages(filename)
-        fig_nums = pyplot.get_fignums()
-        figs = [pyplot.figure(n) for n in fig_nums]
-        for fig in figs:
-            fig.savefig(pp, bbox_inches='tight', format="pdf", pad_inches=0.05)
-        pp.close()
-    else:
-        fig_nums = pyplot.get_fignums()
-        figs = [pyplot.figure(n) for n in fig_nums]
-        for fig in figs:
-            fig.savefig(filename, bbox_inches='tight', dpi=dpi, format=format, pad_inches=0.01)
-    
 def plot_pointcounts(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> Axes:
     pyplot.close() # Close old figure
     #
