@@ -62,10 +62,16 @@ def main():
     for machine_role, _ in sessionconfig.get_machines():
         machine_stats_filename = os.path.join(workdir, machine_role, "stats.log")
         machine_rusage_filename = os.path.join(workdir, machine_role, "rusage.log")
-        if not os.path.exists(machine_rusage_filename):
+        machine_vq_filename = os.path.join(workdir, machine_role, "vq-brisque.log" )
+        if os.path.exists(machine_vq_filename):
+            print(f"{parser.prog}: Using visual quality data from {machine_vq_filename}")
+            extra_filename = machine_vq_filename
+        elif os.path.exists(machine_rusage_filename):
+            extra_filename = machine_rusage_filename
+        else:
             print(f"{parser.prog}: Warning: no rusage data found at {machine_rusage_filename}")
-            machine_rusage_filename = None
-        machine_data = DataStore(machine_stats_filename,machine_rusage_filename )
+            extra_filename = None
+        machine_data = DataStore(machine_stats_filename,extra_filename )
         machine_data.load()
         datastores.append((machine_role, machine_data))
    
