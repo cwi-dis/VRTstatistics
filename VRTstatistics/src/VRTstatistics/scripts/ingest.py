@@ -30,7 +30,7 @@ def main():
     # Check that we have either a config or hosts
     configdir = "./config"
     if not os.path.exists(configdir):
-        print(f"{parser.prog}: Error: config directory {args.config} does not exist", file=sys.stderr)
+        print(f"{parser.prog}: Error: config directory {configdir} does not exist", file=sys.stderr)
         sys.exit(1)
 
     sessionconfig = SessionConfig.from_configdir(configdir)
