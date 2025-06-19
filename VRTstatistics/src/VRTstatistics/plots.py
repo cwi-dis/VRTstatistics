@@ -248,7 +248,7 @@ def plot_latencies_per_tile(ds : DataStore, dirname=None, showplot=True, saveplo
             pyplot.show()
         return ax
    
-def plot_latencies(ds : DataStore, dpi="figure", format="pdf", file_name="latencies.pdf", title="Latency contributions (ms)", label_dict={}, tick_dict={}, legend_dict={}, labelspacing=0.5, ncols=1, use_row_major=False, dirname=None, showplot=True, saveplot=False, savecsv=False, max_y=0, show_sync=True, show_desc=True, figsize=(6, 4), show_legend=True) -> pyplot.Axes:
+def plot_latencies(ds : DataStore, dpi="figure", format="pdf", file_name="latencies.pdf", title="Latency contributions (ms)", label_dict={}, tick_dict={}, legend_dict={}, labelspacing=0.5, ncols=1, use_row_major=False, dirname=None, showplot=True, saveplot=False, savecsv=False, max_y=0, show_sync=True, show_desc=True, figsize=(6, 4), show_legend=True, plotargs={}) -> pyplot.Axes:
     pyplot.close() # Close old figure
     dataFilter = (
         # removed by Gent: TileCombiner("sender.pc.grabber.downsample_ms", "downsample", "mean", combined=True) +
@@ -279,7 +279,7 @@ def plot_latencies(ds : DataStore, dpi="figure", format="pdf", file_name="latenc
             'component_role.=renderer_queue_ms'
             ],
         datafilter = dataFilter,
-        plotargs=dict(kind="area", colormap="Paired", figsize=figsize),
+        plotargs=dict(kind="area", colormap="Paired", figsize=figsize) | plotargs,
         show_desc=show_desc
         )
     df = ds.get_dataframe(
@@ -311,7 +311,7 @@ def plot_latencies(ds : DataStore, dpi="figure", format="pdf", file_name="latenc
             TileCombiner("receiver.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True)
             )
         df = dataFilter2(df)
-        df.interpolate().plot(x="sessiontime", y=["renderer latency", "max renderer latency"], ax=ax, color=["red", "yellow"])
+        df.interpolate().plot(x="sessiontime", y=["renderer latency", "max renderer latency"], ax=ax, color=["red", "yellow"], plotargs=plotargs)
         # Limit Y axis to reasonable values
         avg_latency = df["renderer latency"].mean()
         avg_max_latency = df["max renderer latency"].mean()
@@ -371,7 +371,7 @@ def plot_latencies(ds : DataStore, dpi="figure", format="pdf", file_name="latenc
         df.to_csv(os.path.join(dirname, "latencies.csv"))    
     return ax
 
-def plot_framerates(ds : DataStore) -> pyplot.Axes:
+def plot_framerates(ds : DataStore, plotargs={}) -> pyplot.Axes:
     pyplot.close() # Close old figure
     df = ds.get_dataframe(
         predicate='component_role and "fps" in record', 
@@ -397,11 +397,12 @@ def plot_framerates(ds : DataStore) -> pyplot.Axes:
         noshow=True,
         title="Frames per second", 
         x="sessiontime",
-        descr=ds.annotator.description()
+        descr=ds.annotator.description(),
+        plotargs=plotargs
         )
     return ax1
 
-def plot_framerates_dropped(ds : DataStore) -> pyplot.Axes:
+def plot_framerates_dropped(ds : DataStore, plotargs={}) -> pyplot.Axes:
     dataFilter = (
         TileCombiner("sender.voice.grabber.fps_dropped", "voice capturer dropped", "min", combined=True, optional=True) +
         TileCombiner("sender.voice.encoder.fps_dropped", "voice encoder dropped", "min", combined=True, optional=True) +
@@ -419,14 +420,15 @@ def plot_framerates_dropped(ds : DataStore) -> pyplot.Axes:
         title="FPS dropped", 
         predicate='component_role and "fps_dropped" in record', 
         fields=['component_role.=fps_dropped'],
-        datafilter=dataFilter
+        datafilter=dataFilter,
+        plotargs=plotargs
         )
     return ax2
 
-def plot_framerates_and_dropped(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> Tuple[pyplot.Axes, pyplot.Axes]:
+def plot_framerates_and_dropped(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False, plotargs={}) -> Tuple[pyplot.Axes, pyplot.Axes]:
     pyplot.close() # Close old figure
-    ax1 = plot_framerates(ds)
-    ax2 = plot_framerates_dropped(ds)
+    ax1 = plot_framerates(ds, plotargs=plotargs)
+    ax2 = plot_framerates_dropped(ds, plotargs=plotargs)
 
     if saveplot:
         _save_multi_plot(os.path.join(dirname, "framerates.pdf"))
@@ -442,7 +444,7 @@ def plot_framerates_and_dropped(ds : DataStore, dirname=None, showplot=True, sav
         df.to_csv(os.path.join(dirname, "framerates.csv"))    
     return ax1, ax2
     
-def plot_progress(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> pyplot.Axes:
+def plot_progress(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False, plotargs={}) -> pyplot.Axes:
     pyplot.close() # Close old figure
     df = ds.get_dataframe(
         predicate='"aggregate_packets" in record and component_role',
@@ -494,7 +496,7 @@ def plot_progress(ds : DataStore, dirname=None, showplot=True, saveplot=False, s
                 series[y] = series[y] / ds.annotator.nTiles
             elif y == "sender.pc.encoder":
                 series[y] = series[y] / (ds.annotator.nTiles*ds.annotator.nQualities)
-        ax = series.interpolate(method='pad').plot(x="sessiontime", marker=marker, markevery=(markoffset, markevery), color=color, alpha=0.5, ax=ax)
+        ax = series.interpolate(method='pad').plot(x="sessiontime", marker=marker, markevery=(markoffset, markevery), color=color, alpha=0.5, ax=ax, plotargs=plotargs)
     ax.legend(loc='upper left', fontsize='small')
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
     descr = ds.annotator.description()
@@ -506,7 +508,7 @@ def plot_progress(ds : DataStore, dirname=None, showplot=True, saveplot=False, s
         pyplot.show()
     return ax
 
-def plot_progress_latency(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> pyplot.Axes:
+def plot_progress_latency(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False, plotargs={}) -> pyplot.Axes:
     pyplot.close() # Close old figure
     df = ds.get_dataframe(
         predicate='"aggregate_packets" in record and component_role',
@@ -514,16 +516,17 @@ def plot_progress_latency(ds : DataStore, dirname=None, showplot=True, saveplot=
         )
     ax = None
     df0 = dataframe_to_pcindex_latencies_for_tile(df, 0)
-    ax = df0.plot(x="sessiontime", ax=ax)
+    ax = df0.plot(x="sessiontime", ax=ax, plotargs=plotargs)
     if 'receiver.pc.reader.1' in df:
         df1 = dataframe_to_pcindex_latencies_for_tile(df, 1)
-        ax = df1.plot(x="sessiontime", ax=ax)
+        ax = df1.plot(x="sessiontime", ax=ax, plotargs=plotargs)
     if 'receiver.pc.reader.2' in df:
         df2 = dataframe_to_pcindex_latencies_for_tile(df, 2)
-        ax = df2.plot(x="sessiontime", ax=ax)
+        ax = df2.plot(x="sessiontime", ax=ax, plotargs=plotargs)
     if 'receiver.pc.reader.3' in df:
         df3 = dataframe_to_pcindex_latencies_for_tile(df, 3)
-        ax = df3.plot(x="sessiontime", ax=ax)
+        ax = df3.plot(x="sessiontime", ax=ax, plotargs=plotargs)
+    assert not 'receiver.pc.reader.4' in df, "plot_progress_latency can only handle up to 4 tiles"
 
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
     descr = ds.annotator.description()
