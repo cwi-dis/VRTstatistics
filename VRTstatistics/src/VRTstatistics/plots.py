@@ -81,7 +81,6 @@ def _save_multi_plot(filename, dpi="figure", format="pdf"):
             fig.savefig(filename, bbox_inches='tight', dpi=dpi, format=format, pad_inches=0.01)
     
 def plot_pointcounts(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> pyplot.Axes:
-    pyplot.close() # Close old figure
     #
     # Plot receiver point counts
     #
@@ -162,7 +161,6 @@ def plot_resource_bandwidth(ds : DataStore) -> pyplot.Axes:
     return ax3
 
 def plot_resources(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> Tuple[pyplot.Axes, pyplot.Axes, pyplot.Axes]:
-    pyplot.close() # Close old figure
     ax1 = plot_resource_cpu(ds)
     ax2 = plot_resource_mem(ds)
     ax3 = plot_resource_bandwidth(ds)
@@ -213,7 +211,6 @@ def plot_latencies_for_tile(df : pd.DataFrame, tilenum, ax) -> pyplot.Axes:
     return ax
  
 def plot_latencies_per_tile(ds : DataStore, dirname=None, showplot=True, saveplot=False) -> pyplot.Axes:
-    pyplot.close() # Close old figure
     # Per-tile
     nTiles = ds.annotator.nTiles
     if nTiles > 1:
@@ -249,7 +246,6 @@ def plot_latencies_per_tile(ds : DataStore, dirname=None, showplot=True, saveplo
         return ax
    
 def plot_latencies(ds : DataStore, dpi="figure", format="pdf", file_name="latencies.pdf", title="Latency contributions (ms)", label_dict={}, tick_dict={}, legend_dict={}, labelspacing=0.5, ncols=1, use_row_major=False, dirname=None, showplot=True, saveplot=False, savecsv=False, max_y=0, show_sync=True, show_desc=True, figsize=(6, 4), show_legend=True, plotargs={}) -> pyplot.Axes:
-    pyplot.close() # Close old figure
     dataFilter = (
         # removed by Gent: TileCombiner("sender.pc.grabber.downsample_ms", "downsample", "mean", combined=True) +
         TileCombiner("sender.pc.grabber.encoder_queue_ms", "encoder queue", "mean", combined=True) +
@@ -372,7 +368,6 @@ def plot_latencies(ds : DataStore, dpi="figure", format="pdf", file_name="latenc
     return ax
 
 def plot_framerates(ds : DataStore, plotargs={}) -> pyplot.Axes:
-    pyplot.close() # Close old figure
     df = ds.get_dataframe(
         predicate='component_role and "fps" in record', 
         fields=['sessiontime', 'component_role.=fps'],
@@ -426,7 +421,6 @@ def plot_framerates_dropped(ds : DataStore, plotargs={}) -> pyplot.Axes:
     return ax2
 
 def plot_framerates_and_dropped(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False, plotargs={}) -> Tuple[pyplot.Axes, pyplot.Axes]:
-    pyplot.close() # Close old figure
     ax1 = plot_framerates(ds, plotargs=plotargs)
     ax2 = plot_framerates_dropped(ds, plotargs=plotargs)
 
@@ -445,7 +439,6 @@ def plot_framerates_and_dropped(ds : DataStore, dirname=None, showplot=True, sav
     return ax1, ax2
     
 def plot_progress(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False, plotargs={}) -> pyplot.Axes:
-    pyplot.close() # Close old figure
     df = ds.get_dataframe(
         predicate='"aggregate_packets" in record and component_role',
         fields = ['sessiontime', 'component_role=aggregate_packets']
@@ -509,7 +502,6 @@ def plot_progress(ds : DataStore, dirname=None, showplot=True, saveplot=False, s
     return ax
 
 def plot_progress_latency(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False, plotargs={}) -> pyplot.Axes:
-    pyplot.close() # Close old figure
     df = ds.get_dataframe(
         predicate='"aggregate_packets" in record and component_role',
         fields = ['sessiontime', 'component_role=aggregate_packets']
@@ -541,7 +533,6 @@ def plot_progress_latency(ds : DataStore, dirname=None, showplot=True, saveplot=
 
 
 def plot_latencies_rev(ds : DataStore, dpi="figure", format="pdf", file_name="latencies.pdf", title="Latency contributions (ms)", label_dict={}, tick_dict={}, legend_dict={}, labelspacing=0.5, ncols=1, use_row_major=False, dirname=None, showplot=True, saveplot=False, savecsv=False, max_y=0, show_sync=True, show_desc=True, figsize=(6, 4), show_legend=True) -> pyplot.Axes:
-    pyplot.close() # Close old figure
     dataFilter = (
         TileCombiner("receiver.pc.grabber.encoder_queue_ms", "encoder queue", "mean", combined=True) +
         TileCombiner("receiver.pc.encoder.encoder_ms", "encoder", "mean", combined=True) +
