@@ -16,11 +16,15 @@ This document presumes the end-user computers are running Windows (the controlli
 
 - Build the Player for the experience you want to run, in the Unity Editor
 - Zip, copy to all end-user machines, unzip
-- On every end-user machine:
+- On every end-user machine (Windows):
 	- Ensure a compatible version of Python is installed
 	- Run `VRTrunserver.ps1` with Powershell. This should install the VRTrunserver in a local (venv-based) Python. The _VRTrunserver_ is then started.
 	- The installation should happen only the first time. So after that running the powershell script will start VRTrunserver directly.
 	- This means that you can setup a Windows machine to auto-login after boot, and you can set `VRTrunserver.ps1` as a `Startup` program. This will prepare the machine for remote control automatically after booting.
+- On every end-user machine (Mac, for development only):
+	- Install the built VR2Gather as `VRTApp-Develop-built.app`.
+	- Run with `./VRTApp-Develop-built.app/Contents/MacOS/VRTrunservermac.sh`
+	- Note: you may have to add some symlinks here and there (specifically in the `.app` folder) to make the content work.
 
 ## Preparing the controlling computer
 
