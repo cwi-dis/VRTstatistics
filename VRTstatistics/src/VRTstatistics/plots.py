@@ -297,10 +297,10 @@ def plot_latencies(ds : DataStore, dpi="figure", format="pdf", file_name="latenc
         df = dataFilter2(df)
         df.interpolate().plot(x="sessiontime", y=["synchronizer latency", "renderer latency", "max renderer latency"], ax=ax, color=["blue", "red", "yellow"])
         # Limit Y axis to reasonable values
-        avg_latency = df["renderer latency"].mean()
-        avg_max_latency = df["max renderer latency"].mean()
-        avg_sync_latency = df["synchronizer latency"].mean()
-        avg_latency = max(avg_latency, avg_max_latency, avg_sync_latency)
+        max_latency = df["renderer latency"].max()
+        max_max_latency = df["max renderer latency"].max()
+        max_sync_latency = df["synchronizer latency"].max()
+        max_latency = max(max_latency, max_max_latency, max_sync_latency)
     else:
         dataFilter2 = (
             TileCombiner("receiver.pc.renderer.*.latency_ms", "renderer latency", "min", combined=True) +
@@ -309,14 +309,14 @@ def plot_latencies(ds : DataStore, dpi="figure", format="pdf", file_name="latenc
         df = dataFilter2(df)
         df.interpolate().plot(x="sessiontime", y=["renderer latency", "max renderer latency"], ax=ax, color=["red", "yellow"], plotargs=plotargs)
         # Limit Y axis to reasonable values
-        avg_latency = df["renderer latency"].mean()
-        avg_max_latency = df["max renderer latency"].mean()
-        avg_latency = max(avg_latency, avg_max_latency)
+        max_latency = df["renderer latency"].max()
+        max_max_latency = df["max renderer latency"].max()
+        max_latency = max(max_latency, max_max_latency)
     # Limit Y axis to reasonable values
     if max_y != 0:
         ax.set_ylim(0, max_y)
     else:
-        ax.set_ylim(0, avg_latency*2)
+        ax.set_ylim(0, max_latency*1.1)
     ax.set_xlim(0, 60)
     handles, labels = pyplot.gca().get_legend_handles_labels()
     nrows = -(-len(labels) // ncols)  # Ceiling division
