@@ -1,6 +1,6 @@
 from __future__ import annotations
 import fnmatch
-from typing import List, Optional
+from typing import List, Optional, Sequence
 import matplotlib.pyplot as pyplot
 import pandas as pd
 from .datastore import DataStore, DataStoreError
@@ -9,8 +9,7 @@ __all__ = ["DataFrameFilter", "TileCombiner", "SessionTimeFilter"]
 
 
 class DataFrameFilter:
-    """A DataFrameFiler is a callable object. It accepts a dataframe and returns
-    a copy of that dataframe with filtering applied.
+    """A DataFrameFiler is a callable object that accepts a dataframe and returns a copy of that dataframe with filtering applied.
     
     DataFrameFilters can be added. This modifies the RHS filter to apply the LHS
     filter before itself and returns the RHS filter.
@@ -48,12 +47,18 @@ class TileCombiner(DataFrameFilter):
     """
     DafaFrameFilter that combines columns matching a pattern into a new column.
 
-    pattern - A (shell-like) pattern selecting one or more columns
-    column - name of the output column
-    function - Function to apply to the fields: sum/mean/max/min
-    combined - don't remember
-    keep - Keep the original columns selected by pattern, otherwise drop them.
-    optional - don't complain if pattern doesn't match anything, return the dataFrama as-is.
+    :param pattern: A (shell-like) pattern selecting one or more columns
+    :type pattern: str
+    :param column: name of the output column
+    :type column: str
+    :param function: Function to apply to the fields: sum/mean/max/min
+    :type function: str
+    :param combined: xxxjack don't remember
+    :type combined: bool
+    :param keep: Keep the original columns selected by pattern, otherwise drop them.
+    :type keep: bool
+    :param optional: don't complain if pattern doesn't match anything, return the dataFrama as-is.
+    :type optional: bool
     """
 
     def __init__(self, pattern : str, column : str, function : str, combined : bool = False, keep : bool = False, optional : bool = False) -> None:
@@ -95,6 +100,7 @@ class TileCombiner(DataFrameFilter):
                 new_values = new_values[:-1]
             rv[n] = new_values
         # Now sum the relevant columns
+        assert rv is not None
         if self.function == "sum":
             rv[self.column] = rv[column_names].sum(axis=1)
         elif self.function == "mean":
@@ -119,9 +125,19 @@ class TileCombiner(DataFrameFilter):
                 rv.drop(column_names, axis=1, inplace=True)
         return rv
 
-    def _get_column_names(self, dataframe : pd.DataFrame, pattern) -> List[str]:
-        all_columns = list(dataframe.keys())
-        rv = []
+    def _get_column_names(self, dataframe : pd.DataFrame, pattern : str) -> List[str]:
+        """
+        Return all column names in a DataFrame that match the given pattern
+        
+        :param dataframe: the DataFrame
+        :type dataframe: pd.DataFrame
+        :param pattern: A pattern. May contain * wildcards.
+        :type pattern: str
+        :return: List of column names matched.
+        :rtype: List[str]
+        """
+        all_columns : List[str] = list(dataframe.keys())
+        rv : List[str] = []
         for col in all_columns:
             if fnmatch.fnmatchcase(col, pattern):
                 rv.append(col)
@@ -129,7 +145,7 @@ class TileCombiner(DataFrameFilter):
 
 def _df_to_pc_index_1(df : pd.DataFrame, column : str) -> pd.DataFrame:
     """Helper - convert a single column from time->index mapping into index->time mapping"""
-    tmp = df[["sessiontime", column]].dropna()
+    tmp : pd.DataFrame = df[["sessiontime", column]].dropna()
     filter = tmp[column] > 0
     tmp = tmp[filter].copy()
     tmp.loc[:,'pc_index'] = tmp[column]
@@ -140,7 +156,7 @@ def _df_to_pc_index_1(df : pd.DataFrame, column : str) -> pd.DataFrame:
 
 def _df_to_pc_index(df : pd.DataFrame, columns : List[str]) -> pd.DataFrame:
     """Helper - convert a set of columns from sessiontime-indexed into pcindex-indexed"""
-    all = []
+    all : Sequence[pd.DataFrame] = []
     for c in columns:
         all.append(_df_to_pc_index_1(df, c))
     rv = all[0]

@@ -5,10 +5,23 @@ from typing import TextIO, List, Any, cast, Dict, Optional
 
 __all__ = ["StatsFileParser"]
 
-StatsRecord = Dict[str, Any]
-StatsList = List[StatsRecord]
+type StatsRecord = Dict[str, Any]
+type StatsList = List[StatsRecord]
 
 class StatsFileParser:
+    """
+    Parse one or two stats-style text files.
+
+    The stats-style format is very simple: it starts with the static text "stats: " followed by
+    comma-separated "key=value" entries. Spaces before key and after value are removed. So the only rule
+    is that "value" cannot contain a comma, and it cannot end with spaces.
+
+    This format was designed to be both human-readable and machine-readable.
+
+    There is some knowledge about VR2Gather and its orchestrator: After a record defining the
+    orchestrator time has been seen it will convert midnight-based local machine "ts=" timestamps
+    to "localtime" and "orchtime" unix-epoch-based timestamps.
+    """
     filename: str
     data: StatsList
 
