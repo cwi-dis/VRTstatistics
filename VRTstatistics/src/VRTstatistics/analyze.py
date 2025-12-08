@@ -5,10 +5,18 @@ import matplotlib.pyplot as pyplot
 import pandas as pd
 from .datastore import DataStore, DataStoreError
 
-__all__ = ["TileCombiner", "SessionTimeFilter"]
+__all__ = ["DataFrameFilter", "TileCombiner", "SessionTimeFilter"]
 
 
 class DataFrameFilter:
+    """A DataFrameFiler is a callable object. It accepts a dataframe and returns
+    a copy of that dataframe with filtering applied.
+    
+    DataFrameFilters can be added. This modifies the RHS filter to apply the LHS
+    filter before itself and returns the RHS filter.
+    
+    Not elegant, but it means filters can be stacked left-to-right with +.
+    """
     previous_filter : Optional[DataFrameFilter]
 
     def __init__(self):
@@ -28,12 +36,25 @@ class DataFrameFilter:
         return dataframe
 
 class SessionTimeFilter(DataFrameFilter):
+    """
+    DataFrameFilter that removes all items with sessiontime < 0
+    """
 
     def _apply(self, dataframe : pd.DataFrame) -> pd.DataFrame:
         dataframe = dataframe[dataframe["sessiontime"] >= 0]
         return dataframe
 
 class TileCombiner(DataFrameFilter):
+    """
+    DafaFrameFilter that combines columns matching a pattern into a new column.
+
+    pattern - A (shell-like) pattern selecting one or more columns
+    column - name of the output column
+    function - Function to apply to the fields: sum/mean/max/min
+    combined - don't remember
+    keep - Keep the original columns selected by pattern, otherwise drop them.
+    optional - don't complain if pattern doesn't match anything, return the dataFrama as-is.
+    """
 
     def __init__(self, pattern : str, column : str, function : str, combined : bool = False, keep : bool = False, optional : bool = False) -> None:
         super().__init__()

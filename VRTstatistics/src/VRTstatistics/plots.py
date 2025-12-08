@@ -7,7 +7,7 @@ import matplotlib.pyplot as pyplot
 from matplotlib.backends.backend_pdf import PdfPages
 
 from .datastore import DataStore, DataStoreError
-from .analyze import TileCombiner, SessionTimeFilter, dataframe_to_pcindex_latencies_for_tile
+from .analyze import DataFrameFilter, TileCombiner, SessionTimeFilter, dataframe_to_pcindex_latencies_for_tile
 
 __all__ = [
     "plot_simple", 
@@ -26,7 +26,7 @@ __all__ = [
     "plot_latencies_per_tile", 
     ]
 
-def plot_simple(datastore : DataStore, *, predicate=None, title=None, noshow=False, x="sessiontime", fields=None, datafilter=None, plotargs={}, show_desc=True) -> pyplot.Axes:
+def plot_simple(datastore : DataStore, *, predicate : Any=None, title : Optional[str]=None, noshow : bool=False, x : str="sessiontime", fields : Optional[List[str]]=None, datafilter : Optional[DataFrameFilter]=None, plotargs : Dict[str, Any]={}, show_desc : bool=True) -> pyplot.Axes:
     """
     Plot data (optionally after converting to pandas.DataFrame).
     output is optional output file (default: show in a window)
@@ -49,7 +49,7 @@ def plot_simple(datastore : DataStore, *, predicate=None, title=None, noshow=Fal
         descr = datastore.annotator.description()
     return plot_dataframe(dataframe, title=title, noshow=noshow, x=x, fields=fields_to_plot, descr=descr, plotargs=plotargs)
 
-def plot_dataframe(dataframe : pd.DataFrame, *, title=None, noshow=False, x=None, fields=None, descr=None, plotargs={}, interpolate='linear') -> pyplot.Axes:
+def plot_dataframe(dataframe : pd.DataFrame, *, title : Optional[str]=None, noshow : bool=False, x : Any=None, fields : Any=None, descr : Optional[str]=None, plotargs : Dict[str, Any]={}, interpolate : str='linear') -> pyplot.Axes:
     if dataframe.empty:
         raise DataStoreError("dataframe is empty, nothing to plot")
     if fields:
@@ -66,7 +66,7 @@ def plot_dataframe(dataframe : pd.DataFrame, *, title=None, noshow=False, x=None
         pyplot.show()
     return plot
 
-def _save_multi_plot(filename, dpi="figure", format="pdf"):
+def _save_multi_plot(filename : str, dpi : Any="figure", format : str="pdf") -> None:
     if format=="pdf":
         pp = PdfPages(filename)
         fig_nums = pyplot.get_fignums()
@@ -80,7 +80,7 @@ def _save_multi_plot(filename, dpi="figure", format="pdf"):
         for fig in figs:
             fig.savefig(filename, bbox_inches='tight', dpi=dpi, format=format, pad_inches=0.01)
     
-def plot_pointcounts(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False) -> pyplot.Axes:
+def plot_pointcounts(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, savecsv : bool=False) -> pyplot.Axes:
     #
     # Plot receiver point counts
     #
@@ -397,7 +397,7 @@ def plot_framerates(ds : DataStore, plotargs={}) -> pyplot.Axes:
         )
     return ax1
 
-def plot_framerates_dropped(ds : DataStore, plotargs={}) -> pyplot.Axes:
+def plot_framerates_dropped(ds : DataStore, plotargs : Dict[str, Any]={}) -> pyplot.Axes:
     dataFilter = (
         TileCombiner("sender.voice.grabber.fps_dropped", "voice capturer dropped", "min", combined=True, optional=True) +
         TileCombiner("sender.voice.encoder.fps_dropped", "voice encoder dropped", "min", combined=True, optional=True) +
@@ -420,7 +420,7 @@ def plot_framerates_dropped(ds : DataStore, plotargs={}) -> pyplot.Axes:
         )
     return ax2
 
-def plot_framerates_and_dropped(ds : DataStore, dirname=None, showplot=True, saveplot=False, savecsv=False, plotargs={}) -> Tuple[pyplot.Axes, pyplot.Axes]:
+def plot_framerates_and_dropped(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot: bool=False, savecsv : bool=False, plotargs : Dict[str, Any]={}) -> Tuple[pyplot.Axes, pyplot.Axes]:
     ax1 = plot_framerates(ds, plotargs=plotargs)
     ax2 = plot_framerates_dropped(ds, plotargs=plotargs)
 
