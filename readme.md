@@ -4,7 +4,7 @@ _VRTStatistics_ helps with automatically running multiple VR2Gather-based applic
 
 It is intended to do repeatable experiments, for example for scientific papers, or for regression testing.
 
-VRTstatistics contains two packages that it uses, _VRTrunserver_ and _VRTrun_. These two are also useful outside of VRTStatistics. _VRTRunserver_ is incorporated into VR2Gather-based applications (after v1.2.1) built for Windows, and it can start the VR2Gather-based app under remote control. _VRTrun_ provides that remote control.
+VRTstatistics contains two packages that it uses, _VRTrunserver_ and _VRTrun_. These two are also useful outside of VRTStatistics. _VRTRunserver_ is incorporated into VR2Gather-based applications (after v1.2.1) built for Windows or Mac, and it can start the VR2Gather-based app under remote control. _VRTrun_ provides that remote control.
 
 Together, these allow a setup where a complete multi-user experience can be controlled from a single controlling computer. This can be useful for things like demonstrations or exhibitions.
 
@@ -72,25 +72,20 @@ This document presumes the end-user computers are running Windows (the controlli
 
 To be provided.
 	
-## Old README
+## Development
 
-> Most of the information here is no longer true.
->
+If you want to modify anything here it is best to check out or fork the repository.
 
-This is a set of modules and scripts to collect and analyse the `stats:` output files produced by `VRTApplication`.
+### Installing for development
 
-> Note: need to check these instructions work on windows.
-
-> Note: need to add the "python -m build" invocation.
-
-## Installation
-
-Install python in a virtual environment and install the needed packages. For Mac or Linux:
+Install python in a virtual environment and install the needed packages in an editable way. For Mac or Linux:
 
 ```
 python -m venv .venv
-. .venv/bin/activate
-pip install -e .
+source .venv/bin/activate
+pip install -e VRTrun
+pip install -e VRTrunserver
+pip install -e VRTstatistics
 ```
 
 For Windows `CMD`:
@@ -98,7 +93,9 @@ For Windows `CMD`:
 ```
 python -m venv .venv
 ".venv\Scripts\activate.bat" 
-pip install -e .
+pip install -e VRTrun
+pip install -e VRTrunserver
+pip install -e VRTstatistics
 ```
 
 For Windows PowerShell:
@@ -106,37 +103,26 @@ For Windows PowerShell:
 ```
 python -m venv .venv
 & .venv\Scripts\Activate.ps1
-pip install -e .
+pip install -e VRTrun
+pip install -e VRTrunserver
+pip install -e VRTstatistics
 ```
-
 
 > Note: you should not try to use `bash` on Windows, this will not work because the `activate` script doesn't know how to modify `PATH` correctly.
 
-After having done this once, you can use the scripts and utilities from any directory, by calling
+After you have created the `.venv` you can select it in `vscode` with the `Python: Select Interpreter` command. Then all type checking and such will work.
+
+Also, you can use the scripts and utilities from any directory, by calling
 
 ```
 . .../VRTstatistics/.venv/Scripts/activate
 ```
 
-## Getting started
+Finally, most tools take a `--debugpy` argument. If you pass this argument the tool will wait after startup, and you can use the `vscode` Python Debugger `attach` command to attach a debugger. The tool will continue running once you have attached the debugger.
 
-Check the `example` directory and the [example/README.md](example/README.md) file to get started.
+There is also a `--pausefordebug` argument that also waits after startup, but it doesn't wait for the python debugger. So you can attach any debugger by PID.
 
-## Debugging VRTstatistics
-
-Many things can go wrong, especially because of the origin of this package (initially meant for one project, for one task).
-For now, here is a way to see why things are going wrong:
-
-- Run the venv initialization sequnce, above.
-- Open `vscode` in this directory. Ensure you have all the right plugins for Python installed.
-- Open a terminal in vscode. It should automatically find the `.venv` and load it.
-- Now add the toplevel directory with your measurements with _File_ -> _Add Folder To Workspace..._
-- You can now navigate all files and edit them.
-- Run whatever tool is giving you problems with (for example) `VRTstatistics-plot --pausefordebug ...`.
-- In vscode, goto debugger, select "Python: Attach using Process ID", select the process.
-- You can now set breakpoints, whatever. When you type a _return_ in the terminal window the tool will start running under the debugger.
-
-## Gathering data
+## Old readme.
 
 > Note this section is incorrect at the moment (at least mostly incorrect). See the example.
 
