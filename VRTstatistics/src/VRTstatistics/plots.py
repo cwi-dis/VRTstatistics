@@ -327,8 +327,6 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
     :type savecsv: bool
     :param max_y: If specified: gives maximum y. Default is to compute a reasonable value.
     :type max_y: float
-    :param show_sync: Show synchronizer latencies too.
-    :type show_sync: bool
     :param show_desc: Don't remember
     :type show_desc: bool
     :param figsize: Description
@@ -388,30 +386,18 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
             ],
         )
     dataFilter_end2end_latencies = ()
-    if show_sync:
-        dataFilter_end2end_latencies = (
-            TileCombiner("receiver.synchronizer.latency_ms", "synchronizer latency", "max", combined=True) +
-            TileCombiner("receiver.pc.renderer.*.latency_ms", "renderer latency", "min", combined=True) +
-            TileCombiner("receiver.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True)
-            )
-        dataframe_end2end_latencies = dataFilter_end2end_latencies(dataframe_end2end_latencies)
-        dataframe_end2end_latencies.interpolate().plot(x="sessiontime", y=["synchronizer latency", "renderer latency", "max renderer latency"], ax=ax, color=["blue", "red", "yellow"])
-        # Limit Y axis to reasonable values
-        max_latency = dataframe_end2end_latencies["renderer latency"].max()
-        max_max_latency = dataframe_end2end_latencies["max renderer latency"].max()
-        max_sync_latency = dataframe_end2end_latencies["synchronizer latency"].max()
-        max_latency = max(max_latency, max_max_latency, max_sync_latency)
-    else:
-        dataFilter_end2end_latencies = (
-            TileCombiner("receiver.pc.renderer.*.latency_ms", "renderer latency", "min", combined=True) +
-            TileCombiner("receiver.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True)
-            )
-        dataframe_end2end_latencies = dataFilter_end2end_latencies(dataframe_end2end_latencies)
-        dataframe_end2end_latencies.interpolate().plot(x="sessiontime", y=["renderer latency", "max renderer latency"], ax=ax, color=["red", "yellow"], plotargs=plotargs)
-        # Limit Y axis to reasonable values
-        max_latency = dataframe_end2end_latencies["renderer latency"].max()
-        max_max_latency = dataframe_end2end_latencies["max renderer latency"].max()
-        max_latency = max(max_latency, max_max_latency)
+    dataFilter_end2end_latencies = (
+        TileCombiner("receiver.synchronizer.latency_ms", "synchronizer latency", "max", combined=True) +
+        TileCombiner("receiver.pc.renderer.*.latency_ms", "renderer latency", "min", combined=True) +
+        TileCombiner("receiver.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True)
+        )
+    dataframe_end2end_latencies = dataFilter_end2end_latencies(dataframe_end2end_latencies)
+    dataframe_end2end_latencies.interpolate().plot(x="sessiontime", y=["synchronizer latency", "renderer latency", "max renderer latency"], ax=ax, color=["blue", "red", "yellow"])
+    # Limit Y axis to reasonable values
+    max_latency = dataframe_end2end_latencies["renderer latency"].max()
+    max_max_latency = dataframe_end2end_latencies["max renderer latency"].max()
+    max_sync_latency = dataframe_end2end_latencies["synchronizer latency"].max()
+    max_latency = max(max_latency, max_max_latency, max_sync_latency)
     # Limit Y axis to reasonable values
     if max_y != 0:
         ax.set_ylim(0, max_y)
@@ -637,7 +623,7 @@ def plot_progress_latency(ds : DataStore, dirname : Optional[str]=None, showplot
     return ax
 
 
-def plot_latencies_rev(ds : DataStore, dpi : float|Literal["figure"]="figure", format : str="pdf", file_name : str="latencies.pdf", title : str="Latency contributions (ms)", label_dict : Dict[str, Any]={}, tick_dict : Dict[str, Any]={}, legend_dict : Dict[str, Any]={}, labelspacing : float=0.5, ncols : int=1, use_row_major : bool=False, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, savecsv : bool=False, max_y : float=0, show_sync : bool=True, show_desc : bool=True, figsize : Tuple[int, int]=(6, 4), show_legend : bool=True) -> Axes:
+def plot_latencies_rev(ds : DataStore, dpi : float|Literal["figure"]="figure", format : str="pdf", file_name : str="latencies.pdf", title : str="Latency contributions (ms)", label_dict : Dict[str, Any]={}, tick_dict : Dict[str, Any]={}, legend_dict : Dict[str, Any]={}, labelspacing : float=0.5, ncols : int=1, use_row_major : bool=False, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, savecsv : bool=False, max_y : float=0, show_desc : bool=True, figsize : Tuple[int, int]=(6, 4), show_legend : bool=True) -> Axes:
     dataFilter = (
         TileCombiner("receiver.pc.grabber.encoder_queue_ms", "encoder queue", "mean", combined=True) +
         TileCombiner("receiver.pc.encoder.encoder_ms", "encoder", "mean", combined=True) +
