@@ -1,5 +1,5 @@
 import os
-from typing import Tuple, Optional, List, Dict, Any, cast
+from typing import Tuple, Optional, List, Dict, Any, cast, Literal
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 import pandas as pd
@@ -11,7 +11,7 @@ from .analyze import DataFrameFilter, TileCombiner, SessionTimeFilter, dataframe
 
 __all__ = [
     "plot_simple", 
-    "plot_dataframe", 
+    "_plot_dataframe", 
     "plot_pointcounts", 
     "plot_framerates_and_dropped", 
     "plot_framerates_dropped", 
@@ -47,15 +47,41 @@ def plot_simple(datastore : DataStore, *, predicate : Optional[Predicate]=None, 
     descr=None
     if show_desc:
         descr = datastore.annotator.description()
-    return plot_dataframe(dataframe, title=title, noshow=noshow, x=x, fields=fields_to_plot, descr=descr, plotargs=plotargs)
+    ax1 = _plot_dataframe(dataframe, title=title, noshow=noshow, x=x, fields=fields_to_plot, descr=descr, plotargs=plotargs)
+    return ax1
 
-def plot_dataframe(dataframe : pd.DataFrame, *, title : Optional[str]=None, noshow : bool=False, x : Any=None, fields : Optional[List[str]]=None, descr : Optional[str]=None, plotargs : Dict[str, Any]={}, interpolate : str='linear') -> Axes:
+def _plot_dataframe(dataframe : pd.DataFrame, *, title : Optional[str]=None, noshow : bool=False, x : Any=None, fields : Optional[List[str]]=None, descr : Optional[str]=None, plotargs : Dict[str, Any]={}, interpolate : str='linear') -> Axes:
+    """
+    Convenience method: plot a pandas DataFrame.
+
+    The plot is returned (as an Axes) but it is also the pyplot default current plot, so it is easy to save it after this call.
+    
+    :param dataframe: the dataframe to plot
+    :type dataframe: pd.DataFrame
+    :param title: Optional title for the plot
+    :type title: Optional[str]
+    :param noshow: By default plot is shown on-screen, set to true to not do so.
+    :type noshow: bool
+    :param x: x-axis column. Default supplied by DataFrame
+    :type x: Any
+    :param fields: Column names to plot.
+    :type fields: Optional[List[str]]
+    :param descr: Description to show on the plot
+    :type descr: Optional[str]
+    :param plotargs: Extra arguments to plot()
+    :type plotargs: Dict[str, Any]
+    :param interpolate: Method used to interpolate() the dataframe
+    :type interpolate: str
+    :return: the plot Axes object
+    :rtype: Axes
+    """
     if dataframe.empty:
         raise DataStoreError("dataframe is empty, nothing to plot")
+    df_tmp = dataframe.interpolate(method=interpolate) # type: ignore
     if fields:
-        plot : Axes = cast(Axes, dataframe.interpolate(method=interpolate).plot(x=x, y=fields, **plotargs))
+        plot : Axes = cast(Axes, df_tmp.plot(x=x, y=fields, **plotargs))
     else:
-        plot : Axes = cast(Axes, dataframe.interpolate(method=interpolate).plot(x=x, **plotargs))
+        plot : Axes = cast(Axes, df_tmp.plot(x=x, **plotargs))
     assert plot
     if descr:
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
@@ -67,7 +93,17 @@ def plot_dataframe(dataframe : pd.DataFrame, *, title : Optional[str]=None, nosh
         pyplot.show() # type: ignore
     return plot
 
-def _save_multi_plot(filename : str, dpi : Any="figure", format : str="pdf") -> None:
+def _save_multi_plot(filename : str, dpi : float|Literal["figure"]="figure", format : str="pdf") -> None:
+    """
+    Convenience method: save the current pyplot figures as a multipage PDF or other file.
+    
+    :param filename: Filename to save to
+    :type filename: str
+    :param dpi: Description
+    :type dpi: Any
+    :param format: Description
+    :type format: str
+    """
     if format=="pdf":
         pp = PdfPages(filename)
         fig_nums = pyplot.get_fignums()
@@ -252,7 +288,62 @@ def plot_latencies_per_tile(ds : DataStore, dirname : Optional[str]=None, showpl
         pyplot.show() # type: ignore
     return ax
    
-def plot_latencies(ds : DataStore, dpi : str="figure", format : str="pdf", file_name : str="latencies.pdf", title : str="Latency contributions (ms)", label_dict : Dict[str, Any]={}, tick_dict : Dict[str, Any]={}, legend_dict : Dict[str, Any]={}, labelspacing : float=0.5, ncols : int=1, use_row_major : bool=False, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, savecsv : bool=False, max_y : float=0, show_sync : bool=True, show_desc : bool=True, figsize : Tuple[int, int]=(6, 4), show_legend : bool=True, plotargs : Dict[str, Any]={}) -> Axes:
+def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", format : str="pdf", file_name : str="latencies.pdf", title : str="Latency contributions (ms)", label_dict : Dict[str, Any]={}, tick_dict : Dict[str, Any]={}, legend_dict : Dict[str, Any]={}, labelspacing : float=0.5, ncols : int=1, use_row_major : bool=False, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, savecsv : bool=False, max_y : float=0, show_sync : bool=True, show_desc : bool=True, figsize : Tuple[int, int]=(6, 4), show_legend : bool=True, plotargs : Dict[str, Any]={}) -> Axes:
+    """
+    Plot latency contributions over time.
+
+    Some fields (such as queue durations) are plotted as a stacked area graph.
+    Some other fields (like eventual end-to-end latency) are plotted as a line graph.
+    
+    :param ds: DataStore to plot
+    :type ds: DataStore
+    :param dpi: See pyplot
+    :type dpi: float | Literal["figure"]
+    :param format: Output file format.
+    :type format: str
+    :param file_name: Output file name.
+    :type file_name: str
+    :param title: Optional title for the plot.
+    :type title: str
+    :param label_dict: Extra argument to pyplot.xlabel() and ylabel()
+    :type label_dict: Dict[str, Any]
+    :param tick_dict: Extra arguments to pyplot.xticks() and yticks()
+    :type tick_dict: Dict[str, Any]
+    :param legend_dict: FontProperties prop argument to pyplot.legend()
+    :type legend_dict: Dict[str, Any]
+    :param labelspacing: labelspacing argument to pyplot.legend()
+    :type labelspacing: float
+    :param ncols: ncols argument to pyplot.legend()
+    :type ncols: int
+    :param use_row_major: If ncols > 1 use row-major ordering in stead of column-major ordering for legend.
+    :type use_row_major: bool
+    :param dirname: Name of directory where plots and CSV files are saved
+    :type dirname: Optional[str]
+    :param showplot: If true also show the plot on-screen
+    :type showplot: bool
+    :param saveplot: If true also save the plot
+    :type saveplot: bool
+    :param savecsv: If true also save the CSV file
+    :type savecsv: bool
+    :param max_y: If specified: gives maximum y. Default is to compute a reasonable value.
+    :type max_y: float
+    :param show_sync: Show synchronizer latencies too.
+    :type show_sync: bool
+    :param show_desc: Don't remember
+    :type show_desc: bool
+    :param figsize: Description
+    :type figsize: Tuple[int, int]
+    :param show_legend: Description
+    :type show_legend: bool
+    :param plotargs: Description
+    :type plotargs: Dict[str, Any]
+    :return: Description
+    :rtype: Axes
+    """
+    #
+    # Step 1 - Plot the area plot that shows things like queue durations and encoder durations.
+    # These are plotted straight from the DataStore.
+    #
     dataFilter = (
         # removed by Gent: TileCombiner("sender.pc.grabber.downsample_ms", "downsample", "mean", combined=True) +
         TileCombiner("sender.pc.grabber.encoder_queue_ms", "encoder queue", "mean", combined=True) +
@@ -264,7 +355,7 @@ def plot_latencies(ds : DataStore, dpi : str="figure", format : str="pdf", file_
         TileCombiner("receiver.pc.renderer.*.renderer_queue_ms", "renderer queues", "mean", combined=True)
         )
         
-    #fig = pyplot.figure()
+    
     ax = plot_simple(ds, 
         noshow=True,
         title=title, 
@@ -285,7 +376,10 @@ def plot_latencies(ds : DataStore, dpi : str="figure", format : str="pdf", file_
         plotargs=dict(kind="area", colormap="Paired", figsize=figsize) | plotargs,
         show_desc=show_desc
         )
-    df = ds.get_dataframe(
+    #
+    # Step 2 - plot some end-to-end latencies as line graphs.
+    #
+    dataframe_end2end_latencies = ds.get_dataframe(
         predicate='"receiver.pc.renderer" in component_role or "receiver.synchronizer" in component_role', 
         fields=[
             'sessiontime',
@@ -293,30 +387,30 @@ def plot_latencies(ds : DataStore, dpi : str="figure", format : str="pdf", file_
             'component_role.=latency_max_ms',
             ],
         )
-    dataFilter2 = ()
+    dataFilter_end2end_latencies = ()
     if show_sync:
-        dataFilter2 = (
+        dataFilter_end2end_latencies = (
             TileCombiner("receiver.synchronizer.latency_ms", "synchronizer latency", "max", combined=True) +
             TileCombiner("receiver.pc.renderer.*.latency_ms", "renderer latency", "min", combined=True) +
             TileCombiner("receiver.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True)
             )
-        df = dataFilter2(df)
-        df.interpolate().plot(x="sessiontime", y=["synchronizer latency", "renderer latency", "max renderer latency"], ax=ax, color=["blue", "red", "yellow"])
+        dataframe_end2end_latencies = dataFilter_end2end_latencies(dataframe_end2end_latencies)
+        dataframe_end2end_latencies.interpolate().plot(x="sessiontime", y=["synchronizer latency", "renderer latency", "max renderer latency"], ax=ax, color=["blue", "red", "yellow"])
         # Limit Y axis to reasonable values
-        max_latency = df["renderer latency"].max()
-        max_max_latency = df["max renderer latency"].max()
-        max_sync_latency = df["synchronizer latency"].max()
+        max_latency = dataframe_end2end_latencies["renderer latency"].max()
+        max_max_latency = dataframe_end2end_latencies["max renderer latency"].max()
+        max_sync_latency = dataframe_end2end_latencies["synchronizer latency"].max()
         max_latency = max(max_latency, max_max_latency, max_sync_latency)
     else:
-        dataFilter2 = (
+        dataFilter_end2end_latencies = (
             TileCombiner("receiver.pc.renderer.*.latency_ms", "renderer latency", "min", combined=True) +
             TileCombiner("receiver.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True)
             )
-        df = dataFilter2(df)
-        df.interpolate().plot(x="sessiontime", y=["renderer latency", "max renderer latency"], ax=ax, color=["red", "yellow"], plotargs=plotargs)
+        dataframe_end2end_latencies = dataFilter_end2end_latencies(dataframe_end2end_latencies)
+        dataframe_end2end_latencies.interpolate().plot(x="sessiontime", y=["renderer latency", "max renderer latency"], ax=ax, color=["red", "yellow"], plotargs=plotargs)
         # Limit Y axis to reasonable values
-        max_latency = df["renderer latency"].max()
-        max_max_latency = df["max renderer latency"].max()
+        max_latency = dataframe_end2end_latencies["renderer latency"].max()
+        max_max_latency = dataframe_end2end_latencies["max renderer latency"].max()
         max_latency = max(max_latency, max_max_latency)
     # Limit Y axis to reasonable values
     if max_y != 0:
@@ -348,9 +442,10 @@ def plot_latencies(ds : DataStore, dpi : str="figure", format : str="pdf", file_
     pyplot.xlabel("Session time (s)", **label_dict)
     pyplot.ylabel("Latency (ms)", **label_dict)
     if saveplot:
+        assert dirname
         _save_multi_plot(os.path.join(dirname, file_name), dpi, format=format)
     if showplot:
-        pyplot.show()
+        pyplot.show() # type: ignore
         
     #
     # Save to csv file, in raw form
@@ -370,8 +465,8 @@ def plot_latencies(ds : DataStore, dpi : str="figure", format : str="pdf", file_
             'component_role.=renderer_queue_ms',
             'component_role.=latency_ms'
             ]
-        df = ds.get_dataframe(predicate=predicate, fields=fields)
-        df.to_csv(os.path.join(dirname, "latencies.csv"))    
+        dataframe_end2end_latencies = ds.get_dataframe(predicate=predicate, fields=fields)
+        dataframe_end2end_latencies.to_csv(os.path.join(dirname, "latencies.csv"))    
     return ax
 
 def plot_framerates(ds : DataStore, plotargs : Dict[str, Any]={}) -> Axes:
@@ -395,7 +490,7 @@ def plot_framerates(ds : DataStore, plotargs : Dict[str, Any]={}) -> Axes:
         TileCombiner("receiver.pc.renderer.*.fps", "renderers", "min", combined=True)
         )
     df = dataFilter(df)
-    ax1 = plot_dataframe(df, 
+    ax1 = _plot_dataframe(df, 
         noshow=True,
         title="Frames per second", 
         x="sessiontime",
@@ -542,7 +637,7 @@ def plot_progress_latency(ds : DataStore, dirname : Optional[str]=None, showplot
     return ax
 
 
-def plot_latencies_rev(ds : DataStore, dpi : str="figure", format : str="pdf", file_name : str="latencies.pdf", title : str="Latency contributions (ms)", label_dict : Dict[str, Any]={}, tick_dict : Dict[str, Any]={}, legend_dict : Dict[str, Any]={}, labelspacing : float=0.5, ncols : int=1, use_row_major : bool=False, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, savecsv : bool=False, max_y : float=0, show_sync : bool=True, show_desc : bool=True, figsize : Tuple[int, int]=(6, 4), show_legend : bool=True) -> Axes:
+def plot_latencies_rev(ds : DataStore, dpi : float|Literal["figure"]="figure", format : str="pdf", file_name : str="latencies.pdf", title : str="Latency contributions (ms)", label_dict : Dict[str, Any]={}, tick_dict : Dict[str, Any]={}, legend_dict : Dict[str, Any]={}, labelspacing : float=0.5, ncols : int=1, use_row_major : bool=False, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, savecsv : bool=False, max_y : float=0, show_sync : bool=True, show_desc : bool=True, figsize : Tuple[int, int]=(6, 4), show_legend : bool=True) -> Axes:
     dataFilter = (
         TileCombiner("receiver.pc.grabber.encoder_queue_ms", "encoder queue", "mean", combined=True) +
         TileCombiner("receiver.pc.encoder.encoder_ms", "encoder", "mean", combined=True) +
