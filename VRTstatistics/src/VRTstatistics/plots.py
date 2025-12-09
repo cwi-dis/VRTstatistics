@@ -331,7 +331,7 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
     :type show_desc: bool
     :param figsize: Description
     :type figsize: Tuple[int, int]
-    :param show_legend: Description
+    :param show_legend: Can be set to False to hide the legend (can be used in case the legend is printed once for many figures which share it)
     :type show_legend: bool
     :param plotargs: Description
     :type plotargs: Dict[str, Any]
@@ -393,6 +393,9 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
         )
     dataframe_end2end_latencies = dataFilter_end2end_latencies(dataframe_end2end_latencies)
     dataframe_end2end_latencies.interpolate().plot(x="sessiontime", y=["synchronizer latency", "renderer latency", "max renderer latency"], ax=ax, color=["blue", "red", "yellow"])
+    #
+    # Overall handling of the graph.
+    #
     # Limit Y axis to reasonable values
     max_latency = dataframe_end2end_latencies["renderer latency"].max()
     max_max_latency = dataframe_end2end_latencies["max renderer latency"].max()
@@ -404,6 +407,9 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
     else:
         ax.set_ylim(0, max_latency*1.1)
     ax.set_xlim(0, 60)
+    #
+    # Optionally create a multicolumn legend.
+    #
     handles, labels = pyplot.gca().get_legend_handles_labels()
     nrows = -(-len(labels) // ncols)  # Ceiling division
     reordered_handles = handles
@@ -420,6 +426,9 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
                     reordered_handles.append(handles[index])
                     print(handles[index].get_color())
                     reordered_labels.append(labels[index].capitalize())
+    #
+    # Set legend, ticks and axis labels.
+    #
     ax.legend(reordered_handles[::-1], reordered_labels[::-1], loc='upper left', fontsize='small', prop=legend_dict, labelspacing=labelspacing, ncols=ncols)
     if not show_legend:
         ax.legend().set_visible(False)
@@ -427,6 +436,9 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
     pyplot.yticks(**tick_dict)
     pyplot.xlabel("Session time (s)", **label_dict)
     pyplot.ylabel("Latency (ms)", **label_dict)
+    #
+    # Final processing: show or save the plot.
+    #
     if saveplot:
         assert dirname
         _save_multi_plot(os.path.join(dirname, file_name), dpi, format=format)
