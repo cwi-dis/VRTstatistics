@@ -399,12 +399,26 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
     # Step 3 - Show disruptions
     #
     if show_disruptions:
-        dataframe_disruptions = ds.get_dataframe(fields=['component', 'sessiontime', 'fps_dropped'])
-        filter = dataframe_disruptions['fps_dropped'] > 0
-        dataframe_disruptions = dataframe_disruptions[filter]
-        dataframe_disruptions.loc[:,'fps_dropped'] = 1
-        dataframe_disruptions.rename(columns={'fps_dropped':'PC Drops'},inplace=True)
-        dataframe_disruptions.plot(x='sessiontime',y=['PC Drops'],marker='|', linestyle='None', color='red', ax=ax, zorder=4)
+        # Get timestamps when anything was dropped
+        dataframe_framedrops = ds.get_dataframe(fields=['component', 'sessiontime', 'fps_dropped'])
+        filter = dataframe_framedrops['fps_dropped'] > 0
+        dataframe_framedrops = dataframe_framedrops[filter]
+        # xxxjack should only continue if there are any
+        dataframe_framedrops.loc[:,'fps_dropped'] = 1
+        if dataframe_framedrops.shape[0] > 0:
+            dataframe_framedrops.rename(columns={'fps_dropped':'PC Drop event'},inplace=True)
+            dataframe_framedrops.plot(x='sessiontime',y=['PC Drop event'],marker='|', linestyle='None', color='red', ax=ax, zorder=4)
+        else:
+            print("xxxjack no framedrops")
+        # Get timestamps when the tileselector made any decision
+        dataframe_tileswitch = ds.get_dataframe(predicate='"component_role" in record and component_role == "receiver.pc.tileselector" and "tile0" in record', fields=['sessiontime', 'component'])
+        if dataframe_tileswitch.shape[0] > 0:
+            dataframe_tileswitch = dataframe_tileswitch.assign(tile_switch=0)
+            dataframe_tileswitch.rename(columns={'tile_switch':'Tile switch event'}, inplace=True)
+            dataframe_tileswitch.plot(x='sessiontime', y=['Tile switch event'], marker='x', linestyle='None', color='blue', ax=ax, zorder=5)
+        else:
+            print("xxxjack no tileswitches")
+
     #
     # Overall handling of the graph.
     #
