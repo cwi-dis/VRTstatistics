@@ -1,9 +1,8 @@
 from __future__ import annotations
 import fnmatch
 from typing import List, Optional, Sequence
-import matplotlib.pyplot as pyplot
 import pandas as pd
-from .datastore import DataStore, DataStoreError
+from .datastore import DataStoreError
 
 __all__ = ["DataFrameFilter", "TileCombiner", "SessionTimeFilter"]
 
@@ -80,7 +79,6 @@ class TileCombiner(DataFrameFilter):
                 print(f'Warning: pattern {self.pattern} did not select any columns. Returning dataframe as-is.')
                 self.didwarn = True
             return dataframe
-        columns = []
         rv = None
         for n in column_names:
             # Create scaffolding (sessiontimes) if we haven't done so.
@@ -113,9 +111,9 @@ class TileCombiner(DataFrameFilter):
             raise DataStoreError(f"Unknown function {self.function}")
         rv.drop(column_names, axis=1, inplace=True)
         if self.combined:
-            orig_columns = list(dataframe.keys())
-            rv_columns = list(rv.keys())
-            todrop_columns = []
+            orig_columns : List[str] = list(dataframe.keys())
+            rv_columns : List[str] = list(rv.keys())
+            todrop_columns : List[str] = []
             for c in orig_columns:
                 if c in rv_columns:
                     todrop_columns.append(c)

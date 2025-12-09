@@ -1,13 +1,23 @@
 import sys
 import time
 import datetime
-from typing import Mapping, Optional, Tuple, Type, Union, Dict, Any, List
+from typing import Mapping, Optional, Tuple, Type, Union, Dict, Any, List, cast
 
 from .datastore import DataStore, DataStoreError, DataStoreRecord
 
 __all__ = ["Annotator", "combine", "deserialize"]
 
 class Annotator:
+    """Annotates a DataStore with additional columns (in-place).
+    
+    Some columns cannot be known without information from earlier records.
+    For example, realtime timestamps in orchestrator time are based on local timestamps,
+    and can only be computed when that mapping is known.
+    Or the actual (high level) role of a component such as a renderer can only be known based on
+    prior knowledge.
+
+    An Annotator does these operations.
+    """
     verbose = True
     datastore : DataStore
     role : str
@@ -18,11 +28,26 @@ class Annotator:
     user_name : Optional[str]
 
     def __init__(self, datastore : DataStore, role : str) -> None:
+        """
+        Create an Annotator object.
+
+        :param datastore: The DataStore to be annotated.
+        :type datastore: DataStore
+        :param role: The role within the experment that this DataStore holds, for example sender or receiver.
+        :type role: str
+        """
         self.datastore = datastore
         self.datastore.annotator = self
         self.role = role
     
     def to_dict(self) -> DataStoreRecord:
+        """
+        Returns all global information the Annotator gathered during annotating as a DataStoreRecord.
+
+        This is enough information to re-create the Annotator object later.
+
+        Contains things like "session_id" and clock desync and uncertainty with the orchestrator clock.
+        """
         rv = dict(
             type=type(self).__name__,
             role=self.role,
@@ -35,6 +60,7 @@ class Annotator:
         return rv
 
     def collect(self) -> None:
+        """Examine the DataStore and collect all global information, prior to annotating."""
         r = self.datastore.find_first_record('"starting" in record and component == "OrchestratorController"', f"{self.role} session start")
         self.session_id = r["sessionId"]
         if self.verbose:
@@ -53,6 +79,7 @@ class Annotator:
             print(f"{self.role}: user_name={self.user_name} (from seq={r['seq']})")
         
     def annotate(self) -> None:
+        """Annotate the DataStore records, after a prior call to collect()"""
         self._adjust_time_and_role(self.session_start_time, self.role)
         
     def _adjust_time_and_role(self, starttime: float, role: str) -> None:
@@ -69,9 +96,14 @@ class Annotator:
         self.datastore.data = rv
 
     def description(self) -> str:
+        """Short human-readable description of this annotator"""
         return f"captured: {time.ctime(self.session_start_time)}\nrole: {self.role}\nsession_id: {self.session_id}\nusername: {self.user_name}"
 
 class CombinedAnnotator(Annotator):
+    """Combines the data from two other annotators.
+    
+    Base class is not very useful by itself.
+    """
     sender : Optional[str]
     receiver : Optional[str]
 
@@ -79,6 +111,9 @@ class CombinedAnnotator(Annotator):
         super().collect()
 
     def from_sources(self, sender_annotator : Annotator, receiver_annotator : Annotator) -> None:
+        """
+        Signals sender and receiver annotators.
+        """
         self.desync = 0
         self.desync = sender_annotator.desync - receiver_annotator.desync
         self.desync_uncertainty = max(sender_annotator.desync_uncertainty, receiver_annotator.desync_uncertainty)/2
@@ -99,6 +134,9 @@ class CombinedAnnotator(Annotator):
         return f"captured: {time.ctime(self.session_start_time)}\nsender: {self.sender}\nreceiver: {self.receiver}\ndesync: {self.desync:.3f} ± {self.desync_uncertainty:.3f}"
 
 class LatencySenderAnnotator(Annotator):
+    """
+    Annotator for the sender DataStore in experiments where we are interested in latency.
+    """
     send_pc_pipeline : str
     send_pc_grabber : str
     send_pc_encoder : str
@@ -211,6 +249,9 @@ class LatencySenderAnnotator(Annotator):
                 record["component_role"] = ""
           
 class LatencyReceiverAnnotator(Annotator):
+    """
+    Annotator for the receiver DataStore in experiments where we are interested in latency.
+    """
     recv_synchronizer : str
 
     recv_pc_pipeline : str
@@ -335,6 +376,9 @@ class LatencyReceiverAnnotator(Annotator):
                 record["component_role"] = ""
 
 class LatencyCombinedAnnotator(CombinedAnnotator):
+    """
+    CombinedAnnotator for experiments where we are interested in latency.
+    """
     protocol : str
     nTiles : int
     nQualities : int
@@ -342,6 +386,8 @@ class LatencyCombinedAnnotator(CombinedAnnotator):
 
     def from_sources(self, sender_annotator : Annotator, receiver_annotator : Annotator) -> None:
         super().from_sources(sender_annotator, receiver_annotator)
+        sender_annotator = cast(LatencySenderAnnotator, sender_annotator)
+
         self.protocol = sender_annotator.protocol
         self.nTiles = sender_annotator.nTiles
         self.nQualities = sender_annotator.nQualities
@@ -374,6 +420,7 @@ class LatencyCombinedAnnotator(CombinedAnnotator):
             rv += f", {self.nTiles} tiles"
         rv += f"\ndesync: {int(self.desync*1000)} ms ± {int(self.desync_uncertainty*1000)}"
         return rv
+    
     def annotate(self) -> None:
         pass # Nothing to change in the data, has all been done in the sender and receiver annotator
 
@@ -393,12 +440,18 @@ _Annotators : dict[Optional[str], Tuple[Type[Annotator], Type[Annotator], Type[C
 }
 
 def combine(
-    annotator : str, dataStores : List[Tuple[str, DataStore]], outputdata: DataStore
+    annotator : Optional[str], dataStores : List[Tuple[str, DataStore]], outputdata: DataStore
 ) -> bool:
     """
-    Senderdata and receiverdata are lists of dictionaries, they are combined and sorted and the result is returned.
-    Session timestamps (relative to start of session), sender/receiver role are added to each record.
-    Records are sorted by timstamp.
+    Combine 2 per-machine DataStores into one per-experiment DataStore.
+
+    :param annotator: The name of the annotator to use.
+    :type annotator: Optional[str]
+    :param dataStores: List of tuples (role, DataStore)
+    :type dataStores: List[Tuple[str, DataStore]]
+    :param outputdata: Where the result (all records for the whole run) will be deposited.
+    :type outputdata: DataStore
+
     """
     assert len(dataStores) == 2
     sender_role, senderdata = dataStores[0]
@@ -459,6 +512,13 @@ def combine(
     return True
 
 def deserialize(datastore : DataStore, d : Dict[Any, Any]) -> Annotator:
+    """Re-create an Annotator object based on the information from its to_dict() call.
+    
+    :param datastore: The DataStore for which to create an annotator.
+    :type datastore: DataStore
+    :param d: The to_dict() metadata.
+    :type d: dict
+    """
     klass = globals()[d["type"]]
     ann = klass(datastore, d["role"])
     for k, v in d.items():
