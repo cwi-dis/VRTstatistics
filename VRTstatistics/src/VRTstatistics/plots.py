@@ -288,7 +288,7 @@ def plot_latencies_per_tile(ds : DataStore, dirname : Optional[str]=None, showpl
         pyplot.show() # type: ignore
     return ax
    
-def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", format : str="pdf", file_name : str="latencies.pdf", title : str="Latency contributions (ms)", label_dict : Dict[str, Any]={}, tick_dict : Dict[str, Any]={}, legend_dict : Dict[str, Any]={}, labelspacing : float=0.5, ncols : int=1, use_row_major : bool=False, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, savecsv : bool=False, max_y : float=0, show_sync : bool=True, show_desc : bool=True, figsize : Tuple[int, int]=(6, 4), show_legend : bool=True, plotargs : Dict[str, Any]={}) -> Axes:
+def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", format : str="pdf", file_name : str="latencies.pdf", title : str="Latency contributions (ms)", label_dict : Dict[str, Any]={}, tick_dict : Dict[str, Any]={}, legend_dict : Dict[str, Any]={}, labelspacing : float=0.5, ncols : int=1, use_row_major : bool=False, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, savecsv : bool=False, max_y : float=0, show_sync : bool=True, show_desc : bool=True, figsize : Tuple[int, int]=(6, 4), show_legend : bool=True, show_disruptions : bool=False, plotargs : Dict[str, Any]={}) -> Axes:
     """
     Plot latency contributions over time.
 
@@ -333,6 +333,8 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
     :type figsize: Tuple[int, int]
     :param show_legend: Can be set to False to hide the legend (can be used in case the legend is printed once for many figures which share it)
     :type show_legend: bool
+    :param show_disruptions: Set to True to show disruption events (frame drops, quality switches)
+    :type show_disruptions: bool
     :param plotargs: Description
     :type plotargs: Dict[str, Any]
     :return: Description
@@ -393,6 +395,16 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
         )
     dataframe_end2end_latencies = dataFilter_end2end_latencies(dataframe_end2end_latencies)
     dataframe_end2end_latencies.interpolate().plot(x="sessiontime", y=["synchronizer latency", "renderer latency", "max renderer latency"], ax=ax, color=["blue", "red", "yellow"])
+    #
+    # Step 3 - Show disruptions
+    #
+    if show_disruptions:
+        dataframe_disruptions = ds.get_dataframe(fields=['component', 'sessiontime', 'fps_dropped'])
+        filter = dataframe_disruptions['fps_dropped'] > 0
+        dataframe_disruptions = dataframe_disruptions[filter]
+        dataframe_disruptions.loc[:,'fps_dropped'] = 1
+        dataframe_disruptions.rename(columns={'fps_dropped':'PC Drops'},inplace=True)
+        dataframe_disruptions.plot(x='sessiontime',y=['PC Drops'],marker='|', linestyle='None', color='red', ax=ax, zorder=4)
     #
     # Overall handling of the graph.
     #
