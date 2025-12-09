@@ -259,6 +259,7 @@ class LatencyReceiverAnnotator(Annotator):
     recv_pc_decoders : Mapping[str, int]
     recv_pc_preparers : Mapping[str, int]
     recv_pc_renderers : Mapping[str, int]
+    recv_pc_tileselector : Optional[str]
 
     recv_voice_pipeline : Optional[str]
     recv_voice_reader : Optional[str]
@@ -280,10 +281,20 @@ class LatencyReceiverAnnotator(Annotator):
         #
         # Find names of receiver side pc components
         #
+        # First we look for the Pipeline (to which the other components will link)
         r = self.datastore.find_first_record('"PointCloudPipelineOther" in component and "self" in record and self == 0', f"{self.role} pc pipeline")
         self.recv_pc_pipeline = r['component']
         if self.verbose:
             print(f"{self.role}: recv_pc_pipeline={self.recv_pc_pipeline} (from seq={r['seq']})")
+        # Next we look for the TileSelector (which links back to the receiver pipeline)
+        self.recv_pc_tileselector = None
+        try:
+            r = self.datastore.find_first_record(f'"TileSelector" in component and "pipeline" in record and pipeline == "{self.recv_pc_pipeline}"', f"{self.role} Tile selector")
+            self.recv_pc_tileselector = r["component"]
+            print(f"{self.role}: recv_pc_tileselector={self.recv_pc_tileselector} (from seq={r['seq']})")
+        except DataStoreError:
+            pass
+
         r = self.datastore.find_first_record(f'component == "{self.recv_pc_pipeline}" and "reader" in record', f"{self.role} pc reader umbrella")
         recv_pc_reader_umbrella = r["reader"]
         self.recv_synchronizer = r["synchronizer"]
@@ -363,6 +374,9 @@ class LatencyReceiverAnnotator(Annotator):
             elif record["component"] in self.recv_pc_renderers:
                 tile = self.recv_pc_renderers[record["component"]]
                 record["component_role"] = f"receiver.pc.renderer.{tile}"
+            # Tile selector
+            elif record["component"] == self.recv_pc_tileselector:
+                record["component_role"] = f"receiver.pc.tileselector"
             # receiver voice
             elif record["component"] == self.recv_voice_reader:
                 record["component_role"] = f"receiver.voice.reader"
