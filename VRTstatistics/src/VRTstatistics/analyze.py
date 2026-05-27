@@ -52,7 +52,7 @@ class TileCombiner(DataFrameFilter):
     :type column: str
     :param function: Function to apply to the fields: sum/mean/max/min
     :type function: str
-    :param combined: xxxjack don't remember
+    :param combined: If True, the combined column is joined back onto the full original dataframe (all rows preserved). If False, only the rows that had values in the matched columns are returned.
     :type combined: bool
     :param keep: Keep the original columns selected by pattern, otherwise drop them.
     :type keep: bool
