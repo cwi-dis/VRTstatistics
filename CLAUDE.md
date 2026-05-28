@@ -10,52 +10,13 @@ This repo contains three Python packages with a shared `.venv`, managed as a mon
 | `VRTrun` | `VRTrun` | Remote-control client: reads `config/runconfig.json`, uploads per-machine configs, starts players, collects results |
 | `VRTstatistics` | `VRTstatistics-ingest`, `-filter`, `-plot`, `-stats2json` | Parses log files, annotates and aligns multi-machine data, produces matplotlib plots and CSV exports |
 
-## Use Cases
+## Use Cases and Experiment Structure
 
-VRTstatistics/VRTrun serves three distinct purposes, which evolved over time:
+See `readme.md` for the full description of use cases and system-oriented experiment structure. Key points for suggesting code or configs:
 
-**1. System-oriented experiments** (original purpose): Automated runs with no participants, varying transport protocol, framerate, encoder quality (octreeBits), tiling on/off. Goal: latency, bandwidth, resource usage for system-focused scientific papers. Multiple runs per configuration provide statistical robustness.
-
-**2. User-centric experiments** (later addition): Sessions with two real users interacting in a VR experience. Goal: human behaviour metrics — turn-taking in speech, gaze direction/heat maps, movement and interaction patterns — for user-focused papers. Few or no parameter variations; key metadata is a participant number for matching to questionnaires/interviews. Requires completely different analysis from system experiments.
-
-**3. Demo/exhibition control** (later addition): VRTrun used to start/stop VR2Gather on multiple machines from one laptop, avoiding running between rooms. Logs are timestamped for post-hoc debugging. No upfront analysis intended.
-
-## System-oriented experiment structure
-
-Each experiment lives in its own directory (often its own git repo or subdirectory of one). Conventional layout:
-
-```
-my-experiment/
-  _config/                    # base config template, shared across all variants
-    config.json
-    config-user.json
-    runconfig.json
-    sender/config-user.json   # per-role overrides if needed
-    receiver/config-user.json
-  tiled_octree9_fps15/        # one directory per parameter combination
-    config/                   # hand-edited copy of _config for this variant
-    _run-20260528-1340/       # discarded/test run — underscore prefix excludes from analysis
-    run-20260528-1410/        # actual run (multiple runs per variant for statistics)
-    run-20260528-1430/
-    run-20260528-1450/
-  untiled_octree7_fps15/
-    config/
-    run-YYYYMMDD-HHMM/
-    ...
-  create_plots.py             # experiment-level batch plotting driver
-```
-
-**Variant naming:** encode the key parameters in the directory name (e.g. `tiled_octree9_fps15_socketio`).
-
-**Hand-code each variant config.** Do not generate them programmatically. The effort of hand-coding forces justifying each variant before running it, keeping scope manageable and the paper story clear. (A `create_json_run.py` script exists in `2024-spirit-lldash/experiments/scripts/` and was used historically, but led to too many variants and an unclear story.)
-
-Running each variant multiple times:
-```bash
-VRTstatistics-ingest -a latency --config tiled_octree9_fps15/config
-# repeat N times for statistical robustness
-```
-
-**Plotting:** Each experiment needs a `create_plots.py` driver that calls `VRTstatistics.plots` functions and saves output alongside each `combined.json`. See `2024-spirit-lldash/experiments/scripts/create_plots.py` for a reference implementation. A proper `VRTstatistics-plot` command is planned (issue #21) but not yet implemented.
+- **System experiments**: identify which parameter is varying; suggest hand-coding each variant config (don't generate programmatically — that historically led to too many variants and an unclear paper story). Enforce the `_run-` prefix convention for discarded runs.
+- **User-centric experiments**: participant number is key metadata; analysis needs are completely different from system experiments (gaze, speech, movement — not latency/resources).
+- **Demo use**: reliability and log capture matter; no analysis pipeline needed.
 
 ## Development Setup
 
