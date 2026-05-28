@@ -58,6 +58,14 @@ VRTstatistics-ingest -a latency --config tiled_octree9_fps15/config
 
 Each run lands in `tiled_octree9_fps15/run-YYYYMMDD-HHMM/combined.json`. Prefix a run directory with `_` to mark it as a test or excluded run.
 
+**Using prerecorded data for parameter sweeps:** Running real participants for every parameter variant is impractical. The recommended pattern is:
+
+1. Run one session with two real participants using live RGBD capture. Record their movement, gaze, and the raw RGBD camera streams (large files, stored outside the repo).
+2. Validate that a prerecorded playback session gives comparable latency and performance numbers to the live session.
+3. Run all parameter variants using prerecorded playback (`variant_str: prerecorded` in the VR2Gather config, pointing at the recorded data). Sessions run unattended overnight; human variability is eliminated and input is identical across all variants.
+
+This is what the `prerecorded` variant in the VR2Gather `RepresentationPointcloudConfig` is for. The `synthetic` variant used in the `examples/` configs is a self-contained substitute that works without data files, but is not suitable for publication-quality measurements.
+
 **Plotting:** For now, write a small `create_plots.py` driver script in your experiment directory that calls `VRTstatistics.plots` functions (`plot_latencies`, `plot_framerates_and_dropped`, `plot_resources`, etc.) on each `combined.json` and saves the output alongside it. See `2024-spirit-lldash/experiments/scripts/create_plots.py` for a working example. A proper `VRTstatistics-plot` command that handles the standard cases is planned (see [issue #21](https://github.com/cwi-dis/VRTstatistics/issues/21)).
 
 ## Preparing the VR2Gather experience to run
