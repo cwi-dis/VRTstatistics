@@ -57,7 +57,6 @@ Minimal config for a two-machine synthetic-PC session:
 ```json
 {
     "configVersion": 20260311,
-    "orchestratorURL": "http://ORCHESTRATOR-HOST:8090/",
     "StatisticsConfig": {
         "interval": 10.0,
         "outputFile": "stats.log",
@@ -88,6 +87,8 @@ Minimal config for a two-machine synthetic-PC session:
     }
 }
 ```
+
+**`orchestratorURL`**: omit this field to use the orchestrator URL baked into the build (set in the Unity scene). Only include it if you need to override the build default.
 
 **`autoCreateForUser`**: VR2Gather invents a username from the machine hostname (lowercase, max 20 chars) when `RepresentationConfig.userName` is empty. Set `autoCreateForUser` to match that hostname so the sender machine creates the session and all others join. Alternatively, set explicit per-role usernames — see "Per-role usernames" below.
 
@@ -150,6 +151,8 @@ VRTApp-Develop-built.app/Contents/MacOS/VRTrunservermac.sh
 ```
 
 This script auto-installs VRTrunserver into a venv inside the `.app` bundle on first run, then starts it.
+
+> **Stale build trap:** the Mac script discovers the VR2Gather executable from its own location inside the `.app`. If you have an old `.app` lying around and accidentally run its `VRTrunservermac.sh`, it will silently start the old binary. Always run the script from the specific `.app` you intend to test.
 
 **Windows:**
 ```powershell

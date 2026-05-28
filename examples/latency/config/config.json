@@ -1,6 +1,5 @@
 {
     "configVersion": 20260311,
-    "orchestratorURL": "http://ORCHESTRATOR-HOST:8090/",
     "StatisticsConfig": {
         "interval": 10.0,
         "outputFile": "stats.log",
