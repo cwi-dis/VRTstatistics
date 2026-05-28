@@ -53,7 +53,7 @@ See `testing.md` for a full step-by-step walkthrough including current config fi
 `VRTstatistics-ingest` can both run the session and ingest:
 - Runs the session (unless `--norun <dir>` is passed to re-ingest an existing run).
 - Parses `stats.log` and (if present) `rusage.log` or `vq-brisque.log` from each role.
-- Applies an annotator (`-a LatencyCombinedAnnotator` is the main one) to add `component_role`, align clocks, and merge.
+- Applies an annotator (`-a latency` is the main one) to add `component_role`, align clocks, and merge.
 - Saves `combined.json` in the run directory.
 
 ## Key Concepts

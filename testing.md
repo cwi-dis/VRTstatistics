@@ -197,7 +197,7 @@ source /path/to/VRTstatistics/.venv/bin/activate   # Mac/Linux
 ## Step 4: Run the session and ingest
 
 ```bash
-VRTstatistics-ingest -a LatencyCombinedAnnotator
+VRTstatistics-ingest -a latency
 ```
 
 This:
@@ -210,7 +210,7 @@ This:
 
 To re-ingest an existing run without re-running VR2Gather:
 ```bash
-VRTstatistics-ingest -a LatencyCombinedAnnotator --norun run-YYYYMMDD-HHMM
+VRTstatistics-ingest -a latency --norun run-YYYYMMDD-HHMM
 ```
 
 To only run the session without ingesting (collect results, no analysis):
