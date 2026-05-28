@@ -23,8 +23,8 @@
         "microphoneName": "Muted",
         "representation_str": "PointCloud",
         "RepresentationPointcloudConfig": {
-            "variant_str": "prerecorded",
-            "PrerecordedConfig": {"folder": "PRERECORDED-DATA-PATH"},
+            "variant_str": "synthetic",
+            "SyntheticConfig": {"nPoints": 16000},
             "frameRate": 15.0
         }
     }
