@@ -59,7 +59,7 @@ This document presumes the end-user computers are running Windows (the controlli
 
 - Ensure the correct _VRTrunserver_ is running on all end-user computers.
 - On the controlling computer, in the experiment directory:
-	- Activate the venv with `python -m venv .venv`
+	- Activate the venv with `source .venv/bin/activate` (Mac/Linux) or `.venv\Scripts\activate` (Windows)
 	- Run `VRTrun`
 - The end-user computers should start their VR2Gather applications.
 - After the VR2Gather applications have all terminated the results will be collected.
@@ -70,8 +70,21 @@ This document presumes the end-user computers are running Windows (the controlli
 
 ## Analyzing the results
 
-To be provided.
-	
+See [testing.md](testing.md) for a full end-to-end walkthrough including ingesting logs and producing plots.
+
+Quick summary: after a run, use `VRTstatistics-ingest -a LatencyCombinedAnnotator` (or `--norun <dir>` to re-ingest an existing run). Results land in `run-YYYYMMDD-HHMM/combined.json`. Plot with:
+
+```python
+from VRTstatistics.datastore import DataStore
+from VRTstatistics.plots import plot_latencies
+import matplotlib.pyplot as plt
+ds = DataStore("run-YYYYMMDD-HHMM/combined.json")
+ds.load()
+plot_latencies(ds)
+plt.show()
+```
+
+
 ## Development
 
 If you want to modify anything here it is best to check out or fork the repository.

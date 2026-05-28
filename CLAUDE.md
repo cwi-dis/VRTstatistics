@@ -40,9 +40,11 @@ VR2Gather app  →  "stats: key=value,..." lines in log file
 
 ### Running a session
 
+See `testing.md` for a full step-by-step walkthrough including current config file formats and common failure modes.
+
 1. Ensure VRTrunserver is running on each end-user machine.
 2. Create a `config/` directory containing `runconfig.json` (list of `{role, address}` entries).
-   Per-role subdirectories (`config/<role>/`) are uploaded to the corresponding machine.
+   Per-role subdirectories (`config/<role>/`) are uploaded to the corresponding machine — files there overwrite the top-level files.
 3. Run `VRTrun` from the experiment directory.
    Results land in `run-YYYYMMDD-HHMM/<role>/` (log files + configs used).
 
@@ -51,7 +53,7 @@ VR2Gather app  →  "stats: key=value,..." lines in log file
 `VRTstatistics-ingest` can both run the session and ingest:
 - Runs the session (unless `--norun <dir>` is passed to re-ingest an existing run).
 - Parses `stats.log` and (if present) `rusage.log` or `vq-brisque.log` from each role.
-- Applies an annotator (`-a latency` is the main one) to add `component_role`, align clocks, and merge.
+- Applies an annotator (`-a LatencyCombinedAnnotator` is the main one) to add `component_role`, align clocks, and merge.
 - Saves `combined.json` in the run directory.
 
 ## Key Concepts

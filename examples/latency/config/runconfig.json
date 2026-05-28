@@ -1,17 +1,13 @@
 {
-    "global" : {
-        "annotator" : "LatencyCombinedAnnotator"
-    },
-    "machines" : [
+    "global": {},
+    "machines": [
         {
-            "role" : "sender",
-            "address" : "sap.local",
-            "annotator" : "LatencySenderAnnotator"
+            "role": "sender",
+            "address": "sap.local"
         },
         {
-            "role" : "receiver",
-            "address" : "beelzebub.local",
-            "annotator" : "LatencyReceiverAnnotator"
+            "role": "receiver",
+            "address": "beelzebub.local"
         }
     ]
 }

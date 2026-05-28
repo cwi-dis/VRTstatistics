@@ -1,1 +1,1 @@
-{"userAudioUrl":"","webcamName":"None","microphoneName":"Unknown USB Audio Device","userRepresentationType":0}
+{"representation_str": "PointCloud", "microphoneName": "Muted", "RepresentationPointcloudConfig": {"variant_str": "synthetic", "SyntheticConfig": {"nPoints": 16000}, "frameRate": 15.0}}
