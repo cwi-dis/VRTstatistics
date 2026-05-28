@@ -12,6 +12,54 @@ Note that it is possible for the controlling computer to be the same as one of t
 
 This document presumes the end-user computers are running Windows (the controlling computers can run any of Mac, Linux or Windows). It is possible to use Linux or Mac end-user computers, but this is somewhat convoluted. Instructions will be forthcoming.
 
+## Use cases
+
+**System-oriented experiments** (primary use): Automated runs with no participants, varying parameters such as transport protocol, framerate, encoder quality, and tiling. Goal: measure latency, bandwidth, and resource usage for system-focused scientific papers. Multiple runs per configuration provide statistical robustness.
+
+**User-centric experiments**: Sessions with two real participants interacting. Goal: measure human behaviour — turn-taking in speech, gaze direction, movement patterns — for user-focused scientific papers. Fewer parameter variations; key metadata is a participant identifier for matching to questionnaires or interviews.
+
+**Demo/exhibition control**: VRTrun used to start and stop VR2Gather on multiple machines from a single laptop, avoiding running between rooms. Logs are timestamped for post-hoc debugging. No upfront analysis intended.
+
+## System-oriented experiment structure
+
+Each experiment lives in its own directory (often its own git repo). The structure for a system experiment with multiple parameter variants:
+
+```
+my-experiment/
+  _config/                    # base config template, shared across variants
+    config.json
+    config-user.json
+    runconfig.json
+    sender/config-user.json   # per-role overrides if needed
+    receiver/config-user.json
+  tiled_octree9_fps15/        # one directory per parameter combination
+    config/                   # hand-edited copy of _config for this variant
+    _run-20260528-1340/       # discarded or test run (underscore prefix)
+    run-20260528-1410/        # actual run — multiple runs per variant
+    run-20260528-1430/        # for statistical robustness
+    run-20260528-1450/
+  untiled_octree7_fps15/
+    config/
+    run-20260528-1510/
+    ...
+```
+
+**Variant naming:** encode the key parameters in the directory name (e.g. `tiled_octree9_fps15_socketio`). Names should read as a description of what distinguishes this variant.
+
+**Hand-code each variant config.** Do not generate them programmatically. The effort of hand-coding forces you to justify each variant before running it, which keeps the experiment scope manageable and the eventual paper story clear.
+
+Running each variant multiple times (from the experiment directory):
+
+```bash
+VRTstatistics-ingest -a latency --config tiled_octree9_fps15/config
+VRTstatistics-ingest -a latency --config tiled_octree9_fps15/config
+VRTstatistics-ingest -a latency --config tiled_octree9_fps15/config
+```
+
+Each run lands in `tiled_octree9_fps15/run-YYYYMMDD-HHMM/combined.json`. Prefix a run directory with `_` to mark it as a test or excluded run.
+
+**Plotting:** For now, write a small `create_plots.py` driver script in your experiment directory that calls `VRTstatistics.plots` functions (`plot_latencies`, `plot_framerates_and_dropped`, `plot_resources`, etc.) on each `combined.json` and saves the output alongside it. See `2024-spirit-lldash/experiments/scripts/create_plots.py` for a working example. A proper `VRTstatistics-plot` command that handles the standard cases is planned (see [issue #21](https://github.com/cwi-dis/VRTstatistics/issues/21)).
+
 ## Preparing the VR2Gather experience to run
 
 - Build the Player for the experience you want to run, in the Unity Editor
