@@ -196,8 +196,22 @@ source /path/to/VRTstatistics/.venv/bin/activate   # Mac/Linux
 
 ## Step 4: Run the session and ingest
 
+You can run from any directory by passing `--config` to point at the config directory:
+
 ```bash
-VRTstatistics-ingest -a latency
+VRTstatistics-ingest --config /path/to/examples/simple/config
+```
+
+Or without `--config` if you are already in a directory containing a `config/` subdirectory:
+
+```bash
+VRTstatistics-ingest
+```
+
+For a latency experiment with PC data, add the annotator:
+
+```bash
+VRTstatistics-ingest -a latency --config /path/to/examples/latency/config
 ```
 
 This:
@@ -205,17 +219,17 @@ This:
 2. Waits for all instances to exit.
 3. Downloads result files to `run-YYYYMMDD-HHMM/<role>/`.
 4. Parses `stats.log` and `rusage.log` from each role.
-5. Runs the annotator to add `component_role`, align clocks, and merge.
+5. Runs the annotator (if given) to add `component_role`, align clocks, and merge.
 6. Writes `run-YYYYMMDD-HHMM/combined.json`.
 
 To re-ingest an existing run without re-running VR2Gather:
 ```bash
-VRTstatistics-ingest -a latency --norun run-YYYYMMDD-HHMM
+VRTstatistics-ingest --config /path/to/config --norun run-YYYYMMDD-HHMM
 ```
 
 To only run the session without ingesting (collect results, no analysis):
 ```bash
-VRTrun
+VRTrun --config /path/to/config
 ```
 
 ## Step 5: Check the results

@@ -13,6 +13,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run a test, or ingest results")
     parser.add_argument("-a", "--annotator", metavar="ANN", help="Annotator to use for symbolic naming of records")
     parser.add_argument("--norun", metavar="DIR", help="Don't run the test, only ingest data from an earlier run)")
+    parser.add_argument("--config", metavar="DIR", default="./config", help="Config directory to use (default: ./config)")
     parser.add_argument("--pausefordebug", action="store_true", help="Wait for a newline after start (so you can attach a debugger)")
     parser.add_argument("--debugpy", action="store_true", help="Pause at begin of run to allow debugpuy to attach")
     args = parser.parse_args()
@@ -28,7 +29,7 @@ def main():
         sys.stdin.readline()
     
     # Check that we have either a config or hosts
-    configdir = "./config"
+    configdir = args.config
     if not os.path.exists(configdir):
         print(f"{parser.prog}: Error: config directory {configdir} does not exist", file=sys.stderr)
         sys.exit(1)
