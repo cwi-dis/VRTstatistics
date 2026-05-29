@@ -71,8 +71,6 @@ class TileCombiner(DataFrameFilter):
         self.didwarn = False
 
     def _apply(self, dataframe : pd.DataFrame) -> pd.DataFrame:
-        if self.previous_filter:
-            dataframe = self.previous_filter(dataframe)
         column_names = self._get_column_names(dataframe, self.pattern)
         if not column_names:
             if not self.optional and not self.didwarn:
