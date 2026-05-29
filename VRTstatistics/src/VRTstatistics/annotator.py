@@ -467,60 +467,64 @@ def combine(
     :type outputdata: DataStore
 
     """
-    assert len(dataStores) == 2
-    sender_role, senderdata = dataStores[0]
-    receiver_role, receiverdata = dataStores[1]
+    if not dataStores:
+        raise RuntimeError("No datastores to combine")
     if not annotator in _Annotators:
         raise RuntimeError(f"Unknown annotator {annotator}, only know {list(_Annotators.keys())}")
     AnnoClassSender, AnnoClassReceiver, AnnoClassCombined = _Annotators[annotator]
-    assert AnnoClassSender
-    assert AnnoClassReceiver
 
-    annotate_sender = AnnoClassSender(senderdata, sender_role)
-    annotate_receiver = AnnoClassReceiver(receiverdata, receiver_role)
-    annotate_sender.collect()
-    annotate_receiver.collect()
+    # Annotate each role: first role uses the sender class, subsequent roles use the receiver class.
+    # This preserves the existing sender/receiver split for 2-role sessions and works for 1-role sessions.
+    per_role_annotators : List[Annotator] = []
+    for i, (role, data) in enumerate(dataStores):
+        AnnoClass = AnnoClassSender if i == 0 else AnnoClassReceiver
+        ann = AnnoClass(data, role)
+        ann.collect()
+        per_role_annotators.append(ann)
 
-    print(f"Sender:\n{annotate_sender.description()}\n\nReceiver:\n{annotate_receiver.description()}\n\n")
-    
-    if annotate_sender.session_id != annotate_receiver.session_id:
-        raise DataStoreError(
-            f"sender has session {annotate_sender.session_id} and receiver has {annotate_receiver.session_id}"
-        )
-    if abs(annotate_sender.session_start_time - annotate_receiver.session_start_time) > 1:
+    for ann in per_role_annotators:
+        print(f"{ann.role}:\n{ann.description()}\n")
+
+    # Validate all roles are from the same session
+    session_ids = {ann.session_id for ann in per_role_annotators}
+    if len(session_ids) > 1:
+        raise DataStoreError(f"Session ID mismatch across roles: {session_ids}")
+
+    # Warn about clock sync and start time spread
+    start_times = [ann.session_start_time for ann in per_role_annotators]
+    if max(start_times) - min(start_times) > 1:
         print(
-            f"Warning: different session start times, {abs(annotate_sender.session_start_time-annotate_receiver.session_start_time)} seconds apart: receiver {annotate_receiver.session_start_time} sender {annotate_sender.session_start_time}",
+            f"Warning: session start times spread {max(start_times)-min(start_times):.1f}s across roles",
             file=sys.stderr,
         )
-    if abs(annotate_sender.desync) > 0.030 or abs(annotate_receiver.desync > 0.030):
-        print(
-            f"Warning: synchronization: sender {annotate_sender.desync:.3f}s (+/- {annotate_sender.desync_uncertainty/2:.3f}s) behind orchestrator",
-            file=sys.stderr,
-        )
-        print(
-            f"Warning: synchronization: receiver {annotate_receiver.desync:.3f}s (+/- {annotate_receiver.desync_uncertainty/2:.3f}s) behind orchestrator",
-            file=sys.stderr,
-        )
+    for ann in per_role_annotators:
+        if abs(ann.desync) > 0.030:
+            print(
+                f"Warning: synchronization: {ann.role} {ann.desync:.3f}s (+/- {ann.desync_uncertainty/2:.3f}s) behind orchestrator",
+                file=sys.stderr,
+            )
 
-    session_start_time = min(annotate_receiver.session_start_time, annotate_sender.session_start_time)
-    annotate_receiver.session_start_time = session_start_time
-    annotate_sender.session_start_time = session_start_time
-    #
-    # Adjust data lists with session timestamps and roles
-    #
-    annotate_sender.annotate()
-    annotate_receiver.annotate()
+    # Align all roles to the earliest session start
+    session_start_time = min(start_times)
+    for ann in per_role_annotators:
+        ann.session_start_time = session_start_time
 
-    #
-    # Combine and sort
-    #
-    outputdata.load_data(senderdata.data + receiverdata.data)
+    # Annotate each role's data
+    for ann in per_role_annotators:
+        ann.annotate()
+
+    # Merge and sort
+    all_data : List[DataStoreRecord] = []
+    for _, data in dataStores:
+        all_data.extend(data.data)
+    outputdata.load_data(all_data)
     outputdata.sort(key=lambda r: r["sessiontime"])
-    # And annotate, if wanted
-    if AnnoClassCombined:
+
+    # Combined annotator: only supported for exactly 2 roles for now
+    if AnnoClassCombined and len(per_role_annotators) == 2:
         annotate_combined = AnnoClassCombined(outputdata, "combined")
         annotate_combined.collect()
-        annotate_combined.from_sources(annotate_sender, annotate_receiver)
+        annotate_combined.from_sources(per_role_annotators[0], per_role_annotators[1])
         annotate_combined.annotate()
         print(f"Session:\n{annotate_combined.description()}\n\n")
     return True
