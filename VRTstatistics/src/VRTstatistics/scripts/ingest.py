@@ -5,12 +5,15 @@ from typing import List, Tuple
 
 from ..datastore import DataStore
 from ..normalizer import SessionNormalizer
+from ..scripts.annotate import _parse_annotation_arg
+from ..annotation import engine
 from VRTrun import Session, SessionConfig
 
 verbose = True
 
 def main():
     parser = argparse.ArgumentParser(description="Run a test, or ingest results")
+    parser.add_argument("-a", "--annotate", metavar="NAME[(...)]", action="append", dest="annotations", default=[], help="Annotation to apply after ingesting (same syntax as VRTstatistics-annotate). Repeat for multiple.")
     parser.add_argument("--norun", metavar="DIR", help="Don't run the test, only ingest data from an earlier run)")
     parser.add_argument("--config", metavar="DIR", default="./config", help="Config directory to use (default: ./config)")
     parser.add_argument("--pausefordebug", action="store_true", help="Wait for a newline after start (so you can attach a debugger)")
@@ -80,6 +83,15 @@ def main():
     outputdata = DataStore(combined_filename)
     normalizer = SessionNormalizer(datastores, outputdata)
     ok = normalizer.normalize()
+
+    for ann_arg in args.annotations:
+        try:
+            name, params = _parse_annotation_arg(ann_arg)
+            engine.ensure(outputdata, name, **params)
+        except Exception as e:
+            print(f"{parser.prog}: Error applying annotation '{ann_arg}': {e}", file=sys.stderr)
+            ok = False
+
     outputdata.save()
     sys.exit(0 if ok else 1)
 
