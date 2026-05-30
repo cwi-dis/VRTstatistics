@@ -11,7 +11,8 @@ class AnnotationStep:
     """
     Base class for a single declarative, idempotent annotation step.
 
-    Subclasses set class-level `name` and `dependencies`, and implement `apply()`.
+    Subclasses set class-level `name`, `dependencies`, `description`, and
+    `params`, and implement `apply()`.
 
     Register subclasses with the module-level `engine` singleton:
         from VRTstatistics.annotation import engine
@@ -19,6 +20,8 @@ class AnnotationStep:
     """
     name: str = ""
     dependencies: List[str] = []
+    description: str = ""
+    params: Dict[str, str] = {}  # param_name → description
 
     def apply(self, ds: DataStore, **params) -> Dict[str, Any]:
         """
@@ -47,6 +50,23 @@ class AnnotationEngine:
         if not step_class.name:
             raise ValueError(f"AnnotationStep class {step_class} has no name")
         self._registry[step_class.name] = step_class
+
+    def list_steps(self) -> str:
+        """Return a human-readable listing of all registered annotation steps."""
+        if not self._registry:
+            return "(no annotation steps registered)"
+        lines = []
+        for name, cls in sorted(self._registry.items()):
+            lines.append(f"{name}")
+            if cls.description:
+                lines.append(f"  {cls.description}")
+            if cls.dependencies:
+                lines.append(f"  depends on: {', '.join(cls.dependencies)}")
+            if cls.params:
+                lines.append("  parameters:")
+                for pname, pdesc in cls.params.items():
+                    lines.append(f"    {pname}: {pdesc}")
+        return "\n".join(lines)
 
     def ensure(self, ds: DataStore, name: str, **params) -> None:
         """
@@ -77,6 +97,8 @@ class ComponentRoleAnnotation(AnnotationStep):
     """
     name = "component_role"
     dependencies: List[str] = []
+    description = "Assign component_role to every record (e.g. sender.pc.grabber) based on discovered pipeline topology."
+    params: Dict[str, str] = {}
 
     def apply(self, ds: DataStore, **params) -> Dict[str, Any]:
         component_map: Dict[str, str] = ds.session_metadata.get("component_map", {})
@@ -93,13 +115,14 @@ class LatencyAnnotation(AnnotationStep):
     """
     Records experiment metadata (sender/receiver roles, protocol, nTiles, etc.)
     into ds.applied_annotations["latency"].
-
-    Params:
-        sender: role name of the point-cloud sender (default: roles[0])
-        receiver: role name of the point-cloud receiver (default: roles[1])
     """
     name = "latency"
     dependencies = ["component_role"]
+    description = "Record latency-experiment metadata: sender/receiver roles, protocol, nTiles, nQualities."
+    params = {
+        "sender": "Role name of the point-cloud sender (default: first role in session)",
+        "receiver": "Role name of the point-cloud receiver (default: second role in session)",
+    }
 
     def apply(self, ds: DataStore, **params) -> Dict[str, Any]:
         roles = ds.session_metadata.get("roles", [])

@@ -35,6 +35,11 @@ def main() -> None:
         description="Apply annotations to a combined.json DataStore produced by VRTstatistics-ingest"
     )
     parser.add_argument(
+        "--list",
+        action="store_true",
+        help="List available annotation steps with their parameters and exit.",
+    )
+    parser.add_argument(
         "-a", "--annotate",
         metavar="NAME[(...)]",
         action="append",
@@ -62,7 +67,7 @@ def main() -> None:
     )
     parser.add_argument(
         "files",
-        nargs="+",
+        nargs="*",
         metavar="combined.json",
         help="DataStore file(s) to annotate",
     )
@@ -82,8 +87,14 @@ def main() -> None:
     for mod_name in args.modules:
         importlib.import_module(mod_name)
 
+    if args.list:
+        print(engine.list_steps())
+        sys.exit(0)
+
     if not args.annotations:
         parser.error("At least one -a/--annotate argument is required")
+    if not args.files:
+        parser.error("At least one combined.json file is required")
 
     parsed: List[Tuple[str, Dict[str, Any]]] = []
     for ann_arg in args.annotations:
