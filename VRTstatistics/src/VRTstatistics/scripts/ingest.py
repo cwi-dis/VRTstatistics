@@ -1,6 +1,7 @@
 import sys
 import os
 import argparse
+from importlib.metadata import version as _pkg_version
 from typing import List, Tuple
 
 from ..datastore import DataStore
@@ -11,6 +12,7 @@ verbose = True
 
 def main():
     parser = argparse.ArgumentParser(description="Run a test, or ingest results")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {_pkg_version('VRTstatistics')}")
     parser.add_argument("-a", "--annotator", metavar="ANN", help="Annotator to use for symbolic naming of records")
     parser.add_argument("--norun", metavar="DIR", help="Don't run the test, only ingest data from an earlier run)")
     parser.add_argument("--config", metavar="DIR", default="./config", help="Config directory to use (default: ./config)")

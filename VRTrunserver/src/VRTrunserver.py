@@ -9,6 +9,7 @@ from flask import Flask, request, Response, jsonify, send_file
 import platform
 import psutil
 import argparse
+from importlib.metadata import version as _pkg_version
 
 RunnerServerPort = 5002
 
@@ -246,6 +247,7 @@ def main():
     print("WARNING: this is a dangerous server that allows executing anything on this machine.")
     SETTINGS.init_defaults()
     parser = argparse.ArgumentParser(description="Run a VR2Gather player server")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {_pkg_version('VRTrunserver')}")
     parser.add_argument("--executable", metavar="EXE", default=SETTINGS.executable, help="Executable to run (default: %(default)s)")
     parser.add_argument("--topworkdir", metavar="DIR", default=SETTINGS.topworkdir, help="Top work directory (default: %(default)s)")
     parser.add_argument("--pausefordebug", action="store_true", help="Pause before starting to allow attaching a debugger")

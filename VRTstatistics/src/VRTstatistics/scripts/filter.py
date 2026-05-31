@@ -1,12 +1,14 @@
 import argparse
 import sys
 import os
+from importlib.metadata import version as _pkg_version
 
 from ..datastore import DataStore
 
 
 def main():
     parser = argparse.ArgumentParser(description="Filter datastore or CSV file")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {_pkg_version('VRTstatistics')}")
     parser.add_argument("-d", "--datastore", required=True, help="datastore or CSV datafile to filter")
     parser.add_argument(
         "-o", "--output", metavar="FILE", help="Output datastore or CSV file"

@@ -1,10 +1,12 @@
 import sys
 import os
 import argparse
+from importlib.metadata import version as _pkg_version
 from . import Session, SessionConfig
 
 def main():
     parser = argparse.ArgumentParser(description="Run a VR2Gather player session")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {_pkg_version('VRTrun')}")
     parser.add_argument("--config", metavar="DIR", default="./config", help="Config directory to use (default: ./config)")
     parser.add_argument("--host", action="append", metavar="HOST", help="Don't use config but simply run on HOST. May be repeated")
     parser.add_argument("--quiet", action="store_true", dest="quiet", help="Don't print progress messages")
