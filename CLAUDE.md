@@ -154,6 +154,14 @@ run-YYYYMMDD-HHMM/
   combined.json     # merged + annotated data (written by VRTstatistics-ingest)
 ```
 
+## Working with existing run directories
+
+Before suggesting a fresh VR2Gather run, check whether a run directory already exists:
+
+- If `combined.json` is present and its `fileversion` is **compatible** with the current `FILEVERSION` in `datastore.py` → use it directly, no re-ingest needed.
+- If `combined.json` is absent or its `fileversion` is **incompatible** (e.g. produced before a schema-changing refactor) → re-ingest with `VRTstatistics-ingest --norun <run-dir>` to regenerate it from the existing `stats.log` files.
+- Only suggest a completely fresh run if `stats.log` is missing from the role directories or too short to be useful.
+
 ## Known Issues / Historical Artifacts
 
 - **`VRTstatistics-combine`** appears in the installed `.venv/bin` but is not in the current `setup.cfg` — leftover from an older version.

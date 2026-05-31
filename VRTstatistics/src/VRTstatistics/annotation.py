@@ -172,9 +172,9 @@ def describe(ds: DataStore) -> str:
 
     lat = ann.get("latency", {})
     if lat:
-        sender_user = lat.get("sender_user") or lat.get("sender", "?")
-        receiver_user = lat.get("receiver_user") or lat.get("receiver", "?")
-        lines.append(f"{sender_user} → {receiver_user}")
+        sender = lat.get("sender", "?")
+        receiver = lat.get("receiver", "?")
+        lines.append(f"{sender} → {receiver}")
         proto = lat.get("protocol")
         if proto:
             suffix = ""
