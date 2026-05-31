@@ -106,9 +106,8 @@ class DataStore:
                         f"{self.filename}: fileversion {fv} is older than oldest supported {OLDEST_COMPATIBLE_VERSION}"
                     )
                 if fv > FILEVERSION:
-                    print(
-                        f"Warning: {self.filename}: fileversion {fv} is newer than this code ({FILEVERSION}); proceeding anyway",
-                        file=sys.stderr,
+                    raise DataStoreError(
+                        f"{self.filename}: fileversion {fv} is newer than this code ({FILEVERSION}); upgrade VRTstatistics"
                     )
             self.session_metadata = raw.get("session", {})
             self.applied_annotations = raw.get("annotations", {})
