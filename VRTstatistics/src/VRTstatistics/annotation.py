@@ -133,6 +133,13 @@ class LatencyAnnotation(AnnotationStep):
         sender_topo = role_topology.get(sender, {})
 
         user_names = ds.session_metadata.get("user_names", {})
+        desyncs = ds.session_metadata.get("desyncs", {})
+        uncertainties = ds.session_metadata.get("desync_uncertainties", {})
+
+        sender_desync = desyncs.get(sender, 0)
+        receiver_desync = desyncs.get(receiver, 0)
+        combined_desync = sender_desync - receiver_desync
+        combined_uncertainty = max(uncertainties.get(sender, 0), uncertainties.get(receiver, 0)) / 2
 
         return {
             "sender": sender,
@@ -143,6 +150,8 @@ class LatencyAnnotation(AnnotationStep):
             "compressed": sender_topo.get("compressed", False),
             "sender_user": user_names.get(sender),
             "receiver_user": user_names.get(receiver),
+            "desync": combined_desync,
+            "desync_uncertainty": combined_uncertainty,
         }
 
 
@@ -177,10 +186,12 @@ def describe(ds: DataStore) -> str:
             if nt and nt > 1:
                 suffix += f", {nt} tiles"
             lines.append(proto + suffix)
-        desyncs = sm.get("desyncs", {})
-        sender_role = lat.get("sender", "sender")
-        desync = desyncs.get(sender_role, 0)
-        lines.append(f"desync: {int(desync * 1000)} ms")
+        desync = lat.get("desync", 0)
+        uncertainty = lat.get("desync_uncertainty", 0)
+        if uncertainty:
+            lines.append(f"desync: {int(desync * 1000)} ms ± {int(uncertainty * 1000)}")
+        else:
+            lines.append(f"desync: {int(desync * 1000)} ms")
     else:
         roles = sm.get("roles", [])
         user_names = sm.get("user_names", {})

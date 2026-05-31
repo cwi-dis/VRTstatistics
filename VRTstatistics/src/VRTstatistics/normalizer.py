@@ -98,6 +98,7 @@ class SessionNormalizer:
             "roles": [r.role for r in roles],
             "user_names": {r.role: r.user_name for r in roles},
             "desyncs": {r.role: r.desync for r in roles},
+            "desync_uncertainties": {r.role: r.desync_uncertainty for r in roles},
             "component_map": combined_component_map,
             "role_topology": {r.role: r.topology for r in roles},
         }

@@ -131,6 +131,8 @@ class DataStore:
                 "compressed": metadata.get("compressed", False),
                 "sender_user": sender_user,
                 "receiver_user": receiver_user,
+                "desync": metadata.get("desync", 0),
+                "desync_uncertainty": metadata.get("desync_uncertainty", 0),
             }
 
     def _load_log(self, nocheck : bool=False) -> None:
