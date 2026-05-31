@@ -159,25 +159,25 @@ def _df_to_pc_index(df : pd.DataFrame, columns : List[str]) -> pd.DataFrame:
     rv = rv.join(all[1:])
     return rv
     
-def dataframe_to_pcindex_for_tile(dataframe : pd.DataFrame, tilenum : int, include_sender : bool=False) -> pd.DataFrame:
+def dataframe_to_pcindex_for_tile(dataframe : pd.DataFrame, tilenum : int, include_sender : bool=False, sender : str="sender", receiver : str="receiver") -> pd.DataFrame:
     """Convert a sessiontime-indexed dataframe to a pcindex-indexed dataframe"""
     cols = [
-        f'receiver.pc.reader.{tilenum}', 
-        f'receiver.pc.decoder.{tilenum}', 
-        f'receiver.pc.preparer.{tilenum}'
+        f'{receiver}.pc.reader.{tilenum}',
+        f'{receiver}.pc.decoder.{tilenum}',
+        f'{receiver}.pc.preparer.{tilenum}'
         ]
     if include_sender:
-        cols.insert(0, f'sender.pc.writer.{tilenum}')
+        cols.insert(0, f'{sender}.pc.writer.{tilenum}')
     return _df_to_pc_index(dataframe, cols)
 
-def dataframe_to_pcindex_latencies_for_tile(dataframe : pd.DataFrame, tilenum : int) -> pd.DataFrame:
-    rv = dataframe_to_pcindex_for_tile(dataframe, tilenum, include_sender=False)
-    basecol = rv[f'receiver.pc.reader.{tilenum}.sessiontime']
-    
-    rv[f'receiver.pc.preparer.{tilenum}.latency'] = rv[f'receiver.pc.preparer.{tilenum}.sessiontime'] - basecol
-    rv[f'receiver.pc.decoder.{tilenum}.latency'] = rv[f'receiver.pc.decoder.{tilenum}.sessiontime'] - basecol
-    rv[f'sessiontime'] = rv[f'receiver.pc.reader.{tilenum}.sessiontime']
-    rv.drop(f'receiver.pc.preparer.{tilenum}.sessiontime', axis=1, inplace=True)
-    rv.drop(f'receiver.pc.decoder.{tilenum}.sessiontime', axis=1, inplace=True)
-    rv.drop(f'receiver.pc.reader.{tilenum}.sessiontime', axis=1, inplace=True)
+def dataframe_to_pcindex_latencies_for_tile(dataframe : pd.DataFrame, tilenum : int, sender : str="sender", receiver : str="receiver") -> pd.DataFrame:
+    rv = dataframe_to_pcindex_for_tile(dataframe, tilenum, include_sender=False, sender=sender, receiver=receiver)
+    basecol = rv[f'{receiver}.pc.reader.{tilenum}.sessiontime']
+
+    rv[f'{receiver}.pc.preparer.{tilenum}.latency'] = rv[f'{receiver}.pc.preparer.{tilenum}.sessiontime'] - basecol
+    rv[f'{receiver}.pc.decoder.{tilenum}.latency'] = rv[f'{receiver}.pc.decoder.{tilenum}.sessiontime'] - basecol
+    rv[f'sessiontime'] = rv[f'{receiver}.pc.reader.{tilenum}.sessiontime']
+    rv.drop(f'{receiver}.pc.preparer.{tilenum}.sessiontime', axis=1, inplace=True)
+    rv.drop(f'{receiver}.pc.decoder.{tilenum}.sessiontime', axis=1, inplace=True)
+    rv.drop(f'{receiver}.pc.reader.{tilenum}.sessiontime', axis=1, inplace=True)
     return rv

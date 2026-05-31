@@ -8,6 +8,16 @@ import pandas
 
 __all__ = ["DataStoreRecord", "DataStore", "DataStoreError"]
 
+# Combined-JSON file versioning.
+# FILEVERSION is written into every saved file.
+# OLDEST_COMPATIBLE_VERSION is the oldest version this code can read.
+# Bump FILEVERSION (and OLDEST_COMPATIBLE_VERSION if the change is breaking)
+# whenever the on-disk schema changes. Use the date of the change as an integer
+# (YYYYMMDD). If two incompatible changes happen on the same day, use YYYYMMDD+1
+# for the second one.
+FILEVERSION = 20260531
+OLDEST_COMPATIBLE_VERSION = 20260531
+
 class DataStoreError(RuntimeError):
     pass
 
@@ -46,12 +56,13 @@ class DataStore:
 
     filename: Optional[str]
     data: list[DataStoreRecord]
-    annotator : Any
-   
+    session_metadata: Dict[str, Any]
+    applied_annotations: Dict[str, Any]
+
     def __init__(self, filename: Optional[str] = None, filename2: Optional[str] = None) -> None:
         """
         Create a DataStore, does not load anything yet.
-        
+
         :param filename: The filename to load from (and save to). Can be json, csv or stats-style log.
         :type filename: Optional[str]
         :param filename2: Optional second file to load, for some filetypes.
@@ -60,7 +71,8 @@ class DataStore:
         self.filename = filename
         self.filename2 = filename2
         self.data = []
-        self.annotator = None
+        self.session_metadata = {}
+        self.applied_annotations = {}
 
     def load(self) -> None:
         """
@@ -81,15 +93,67 @@ class DataStore:
     def _load_json(self) -> None:
         assert self.filename
         assert not self.filename2
-        data = json.load(open(self.filename, "r"))
-        metadata = None
-        if type(data) != type([]):
-            metadata = data["metadata"]
-            data = data["data"]
-        self.data = data
-        if metadata:
-            from .annotator import deserialize
-            self.annotator = deserialize(self, metadata)
+        raw = json.load(open(self.filename, "r"))
+        if isinstance(raw, list):
+            # Bare list — no metadata at all
+            self.data = raw
+        elif "session" in raw:
+            # New schema (with or without fileversion)
+            fv = raw.get("fileversion")
+            if fv is not None:
+                if fv < OLDEST_COMPATIBLE_VERSION:
+                    raise DataStoreError(
+                        f"{self.filename}: fileversion {fv} is older than oldest supported {OLDEST_COMPATIBLE_VERSION}"
+                    )
+                if fv > FILEVERSION:
+                    raise DataStoreError(
+                        f"{self.filename}: fileversion {fv} is newer than this code ({FILEVERSION}); upgrade VRTstatistics"
+                    )
+            self.session_metadata = raw.get("session", {})
+            self.applied_annotations = raw.get("annotations", {})
+            self.data = raw["data"]
+        elif "metadata" in raw:
+            # Old schema — backward-compat conversion
+            self.data = raw["data"]
+            self._load_old_metadata(raw["metadata"])
+        else:
+            self.data = raw.get("data", raw)
+
+    def _load_old_metadata(self, metadata: Dict[str, Any]) -> None:
+        """Convert old annotator to_dict() metadata into new session/annotations schema."""
+        ann_type = metadata.get("type", "")
+        roles = []
+        if "role" in metadata:
+            roles = [metadata["role"]]
+
+        self.session_metadata = {
+            "session_id": metadata.get("session_id", metadata.get("sessionId", "")),
+            "session_start_time": metadata.get("session_start_time", 0),
+            "roles": roles,
+            "user_names": {metadata["role"]: metadata.get("user_name")} if "role" in metadata else {},
+            "desyncs": {metadata["role"]: metadata.get("desync", 0)} if "role" in metadata else {},
+            "component_map": {},
+            "role_topology": {},
+        }
+
+        if "LatencyCombined" in ann_type or "Combined" in ann_type:
+            sender_user = metadata.get("sender")
+            receiver_user = metadata.get("receiver")
+            self.session_metadata["roles"] = ["sender", "receiver"]
+            self.session_metadata["user_names"] = {"sender": sender_user, "receiver": receiver_user}
+            self.applied_annotations["component_role"] = {"roles": ["sender", "receiver"]}
+            self.applied_annotations["latency"] = {
+                "sender": "sender",
+                "receiver": "receiver",
+                "protocol": metadata.get("protocol"),
+                "nTiles": metadata.get("nTiles", 1),
+                "nQualities": metadata.get("nQualities", 1),
+                "compressed": metadata.get("compressed", False),
+                "sender_user": sender_user,
+                "receiver_user": receiver_user,
+                "desync": metadata.get("desync", 0),
+                "desync_uncertainty": metadata.get("desync_uncertainty", 0),
+            }
 
     def _load_log(self, nocheck : bool=False) -> None:
         assert self.filename
@@ -223,12 +287,15 @@ class DataStore:
             raise DataStoreError(f"Don't know how to save {self.filename}")
 
     def _save_json(self) -> None:
-        data = dict(
-            metadata=self.annotator.to_dict(),
-            data=self.data
-        )
+        out: Dict[str, Any] = {}
+        out["fileversion"] = FILEVERSION
+        if self.session_metadata:
+            out["session"] = self.session_metadata
+        if self.applied_annotations:
+            out["annotations"] = self.applied_annotations
+        out["data"] = self.data
         assert self.filename
-        json.dump(data, open(self.filename, "w"), indent="\t")
+        json.dump(out, open(self.filename, "w"), indent="\t")
 
     def _save_csv(self) -> None:
         pd = self.get_dataframe()
@@ -280,6 +347,11 @@ class DataStore:
         if not rv:
             raise DataStoreError(f"missing {descr}. No record found for predicate: {predicate}.")
         return rv
+
+    def describe(self) -> str:
+        """Return a short human-readable description of this session and its annotations."""
+        from .annotation import describe as _describe
+        return _describe(self)
 
     def sort(self, key: Any) -> None:
         """

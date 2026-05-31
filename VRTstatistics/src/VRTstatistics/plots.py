@@ -8,6 +8,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 from .datastore import DataStore, DataStoreError, Predicate
 from .analyze import DataFrameFilter, TileCombiner, SessionTimeFilter, dataframe_to_pcindex_latencies_for_tile
+from .annotation import engine
 
 __all__ = [
     "plot_simple", 
@@ -46,7 +47,7 @@ def plot_simple(datastore : DataStore, *, predicate : Optional[Predicate]=None, 
         dataframe = datafilter(dataframe)
     descr=None
     if show_desc:
-        descr = datastore.annotator.description()
+        descr = datastore.describe()
     ax1 = _plot_dataframe(dataframe, title=title, noshow=noshow, x=x, fields=fields_to_plot, descr=descr, plotargs=plotargs)
     return ax1
 
@@ -118,11 +119,13 @@ def _save_multi_plot(filename : str, dpi : float|Literal["figure"]="figure", for
             fig.savefig(filename, bbox_inches='tight', dpi=dpi, format=format, pad_inches=0.01) # type: ignore
     
 def plot_pointcounts(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, savecsv : bool=False) -> Axes:
+    engine.ensure(ds, "latency")
+    receiver = ds.applied_annotations["latency"]["receiver"]
     #
     # Plot receiver point counts
     #
-    dataFilter = TileCombiner("receiver.pc.renderer.*.points_per_cloud", "points per cloud", "sum", combined=True, keep=True)
-    predicate='"receiver.pc.renderer" in component_role'
+    dataFilter = TileCombiner(f"{receiver}.pc.renderer.*.points_per_cloud", "points per cloud", "sum", combined=True, keep=True)
+    predicate=f'"{receiver}.pc.renderer" in component_role'
     fields=['sessiontime', 'component_role.=points_per_cloud']
  
     ax = plot_simple(ds,
@@ -219,16 +222,16 @@ def plot_resources(ds : DataStore, dirname : Optional[str]=None, showplot : bool
         df.to_csv(os.path.join(dirname, "resources.csv"))
     return ax1, ax2, ax3
     
-def plot_latencies_for_tile(df : pd.DataFrame, tilenum : int, ax : Axes) -> Axes:
+def plot_latencies_for_tile(df : pd.DataFrame, tilenum : int, ax : Axes, sender : str="sender", receiver : str="receiver") -> Axes:
     fields = [
-        "sender.pc.grabber.downsample_ms",
-        "sender.pc.grabber.encoder_queue_ms",
-        "sender.pc.encoder.encoder_ms",
-        "sender.pc.encoder.transmitter_queue_ms",
-        f"receiver.pc.reader.{tilenum}.receive_ms",
-        f"receiver.pc.decoder.{tilenum}.decoder_queue_ms",
-        f"receiver.pc.decoder.{tilenum}.decoder_ms",
-        f"receiver.pc.renderer.{tilenum}.renderer_queue_ms"
+        f"{sender}.pc.grabber.downsample_ms",
+        f"{sender}.pc.grabber.encoder_queue_ms",
+        f"{sender}.pc.encoder.encoder_ms",
+        f"{sender}.pc.encoder.transmitter_queue_ms",
+        f"{receiver}.pc.reader.{tilenum}.receive_ms",
+        f"{receiver}.pc.decoder.{tilenum}.decoder_queue_ms",
+        f"{receiver}.pc.decoder.{tilenum}.decoder_ms",
+        f"{receiver}.pc.renderer.{tilenum}.renderer_queue_ms"
     ]
     todelete : List[str] = []
     for i in range(len(fields)):
@@ -242,9 +245,9 @@ def plot_latencies_for_tile(df : pd.DataFrame, tilenum : int, ax : Axes) -> Axes
     for f in todelete:
         fields.remove(f)
     latency_fields = [
-        "receiver.synchronizer.latency_ms",
-        f"receiver.pc.renderer.{tilenum}.latency_ms",
-        f"receiver.pc.renderer.{tilenum}.latency_max_ms",
+        f"{receiver}.synchronizer.latency_ms",
+        f"{receiver}.pc.renderer.{tilenum}.latency_ms",
+        f"{receiver}.pc.renderer.{tilenum}.latency_max_ms",
         ]
     ax = df.interpolate(method='pad').plot(x="sessiontime", y=fields, kind="area", colormap="Paired", ax=ax, legend=False)
     df.interpolate(method='pad').plot(x="sessiontime", y=latency_fields, ax=ax, color=["blue", "red", "yellow"], legend=False)
@@ -252,10 +255,11 @@ def plot_latencies_for_tile(df : pd.DataFrame, tilenum : int, ax : Axes) -> Axes
     return ax
  
 def plot_latencies_per_tile(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False) -> Axes:
-    # Per-tile
-    nTiles = ds.annotator.nTiles
+    engine.ensure(ds, "latency")
+    receiver = ds.applied_annotations["latency"]["receiver"]
+    nTiles = ds.applied_annotations["latency"].get("nTiles", 1)
     assert nTiles > 1
-    predicate='".pc." in component_role or component_role == "receiver.voice.renderer" or component_role == "receiver.synchronizer"'
+    predicate=f'".pc." in component_role or component_role == "{receiver}.voice.renderer" or component_role == "{receiver}.synchronizer"'
     fields=[
         'sessiontime',
         'component_role.=downsample_ms',
@@ -276,8 +280,9 @@ def plot_latencies_per_tile(ds : DataStore, dirname : Optional[str]=None, showpl
     fig, axs = pyplot.subplots(nTiles, 1, sharex=True, sharey=True) # type: ignore
     fig.set_figheight(fig.get_figheight()*(nTiles-1))
     fig.set_figwidth(fig.get_figwidth()*1.5)
+    sender = ds.applied_annotations["latency"]["sender"]
     for i in range(nTiles):
-        plot_latencies_for_tile(df, i, axs[i])
+        plot_latencies_for_tile(df, i, axs[i], sender=sender, receiver=receiver)
     handles, labels = axs[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc='center right') # type: ignore
     pyplot.subplots_adjust(right=0.66)
@@ -340,34 +345,30 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
     :return: Description
     :rtype: Axes
     """
+    engine.ensure(ds, "latency")
+    sender = ds.applied_annotations["latency"]["sender"]
+    receiver = ds.applied_annotations["latency"]["receiver"]
     #
     # Step 1 - Plot the area plot that shows things like queue durations and encoder durations.
     # These are plotted straight from the DataStore.
     #
     dataFilter = (
-        # removed by Gent: TileCombiner("sender.pc.grabber.downsample_ms", "downsample", "mean", combined=True) +
-        TileCombiner("sender.pc.grabber.encoder_queue_ms", "encoder queue", "mean", combined=True) +
-        TileCombiner("sender.pc.encoder.encoder_ms", "encoder", "mean", combined=True) +
-        TileCombiner("sender.pc.encoder.transmitter_queue_ms", "transmitter queue", "mean", combined=True) +
-        # removed by Gent: TileCombiner("receiver.pc.reader.*.receive_ms", "receivers", "mean", combined=True) +
-        TileCombiner("receiver.pc.decoder.*.decoder_queue_ms", "decoder queues", "mean", combined=True) +
-        TileCombiner("receiver.pc.decoder.*.decoder_ms", "decoders", "max", combined=True) +
-        TileCombiner("receiver.pc.renderer.*.renderer_queue_ms", "renderer queues", "mean", combined=True)
+        TileCombiner(f"{sender}.pc.grabber.encoder_queue_ms", "encoder queue", "mean", combined=True) +
+        TileCombiner(f"{sender}.pc.encoder.encoder_ms", "encoder", "mean", combined=True) +
+        TileCombiner(f"{sender}.pc.encoder.transmitter_queue_ms", "transmitter queue", "mean", combined=True) +
+        TileCombiner(f"{receiver}.pc.decoder.*.decoder_queue_ms", "decoder queues", "mean", combined=True) +
+        TileCombiner(f"{receiver}.pc.decoder.*.decoder_ms", "decoders", "max", combined=True) +
+        TileCombiner(f"{receiver}.pc.renderer.*.renderer_queue_ms", "renderer queues", "mean", combined=True)
         )
-        
-    
-    ax = plot_simple(ds, 
+
+    ax = plot_simple(ds,
         noshow=True,
-        title=title, 
-        predicate='"sender.pc.grabber" in component_role or "sender.pc.encoder" in component_role or "receiver.pc.decoder" in component_role or "receiver.pc.renderer" in component_role or component_role == "receiver.voice.renderer"', 
-        # xxxjack was: predicate='".pc." in component_role or component_role == "receiver.voice.renderer"', 
-        
+        title=title,
+        predicate=f'"{sender}.pc.grabber" in component_role or "{sender}.pc.encoder" in component_role or "{receiver}.pc.decoder" in component_role or "{receiver}.pc.renderer" in component_role or component_role == "{receiver}.voice.renderer"',
         fields=[
-            # removed by Gent: 'component_role.=downsample_ms',
             'component_role.=encoder_queue_ms',
             'component_role.=encoder_ms',
             'component_role.=transmitter_queue_ms',
-            # removed by Gent: 'component_role.=receive_ms',
             'component_role.=decoder_queue_ms',
             'component_role.=decoder_ms',
             'component_role.=renderer_queue_ms'
@@ -380,18 +381,17 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
     # Step 2 - plot some end-to-end latencies as line graphs.
     #
     dataframe_end2end_latencies = ds.get_dataframe(
-        predicate='"receiver.pc.renderer" in component_role or "receiver.synchronizer" in component_role', 
+        predicate=f'"{receiver}.pc.renderer" in component_role or "{receiver}.synchronizer" in component_role',
         fields=[
             'sessiontime',
             'component_role.=latency_ms',
             'component_role.=latency_max_ms',
             ],
         )
-    dataFilter_end2end_latencies = ()
     dataFilter_end2end_latencies = (
-        TileCombiner("receiver.synchronizer.latency_ms", "synchronizer latency", "max", combined=True) +
-        TileCombiner("receiver.pc.renderer.*.latency_ms", "renderer latency", "min", combined=True) +
-        TileCombiner("receiver.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True)
+        TileCombiner(f"{receiver}.synchronizer.latency_ms", "synchronizer latency", "max", combined=True) +
+        TileCombiner(f"{receiver}.pc.renderer.*.latency_ms", "renderer latency", "min", combined=True) +
+        TileCombiner(f"{receiver}.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True)
         )
     dataframe_end2end_latencies = dataFilter_end2end_latencies(dataframe_end2end_latencies)
     dataframe_end2end_latencies.interpolate().plot(x="sessiontime", y=["synchronizer latency", "renderer latency", "max renderer latency"], ax=ax, color=["blue", "red", "yellow"])
@@ -476,7 +476,7 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
     #
     if savecsv:
         assert dirname
-        predicate='".pc." in component_role or component_role == "receiver.voice.renderer"'
+        predicate=f'".pc." in component_role or component_role == "{receiver}.voice.renderer"'
         fields=[
             'sessiontime',
             'component_role.=downsample_ms',
@@ -490,56 +490,61 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
             'component_role.=latency_ms'
             ]
         dataframe_end2end_latencies = ds.get_dataframe(predicate=predicate, fields=fields)
-        dataframe_end2end_latencies.to_csv(os.path.join(dirname, "latencies.csv"))    
+        dataframe_end2end_latencies.to_csv(os.path.join(dirname, "latencies.csv"))
     return ax
 
 def plot_framerates(ds : DataStore, plotargs : Dict[str, Any]={}) -> Axes:
+    engine.ensure(ds, "latency")
+    sender = ds.applied_annotations["latency"]["sender"]
+    receiver = ds.applied_annotations["latency"]["receiver"]
     df = ds.get_dataframe(
-        predicate='component_role and "fps" in record', 
+        predicate='component_role and "fps" in record',
         fields=['sessiontime', 'component_role.=fps'],
         )
     dataFilter = (
-        TileCombiner("sender.voice.grabber.fps", "voice capturer", "min", combined=True, optional=True) +
-        TileCombiner("sender.voice.encoder.fps", "voice encoder", "min", combined=True, optional=True) +
-        TileCombiner("sender.voice.writer.fps", "voice transmitter", "min", combined=True, optional=True) +
-        TileCombiner("receiver.voice.reader.fps", "voice receiver", "min", combined=True, optional=True) +
-        TileCombiner("receiver.voice.preparer.fps", "voice preparer", "min", combined=True, optional=True) +
-        TileCombiner("sender.pc.grabber.fps", "capturer", "min", combined=True) +
-        TileCombiner("sender.pc.encoder.fps", "encoders", "min", combined=True) +
-        TileCombiner("sender.pc.writer.*.fps", "transmitters", "min", combined=True) +
-        TileCombiner("receiver.pc.reader.*.fps", "receivers", "min", combined=True) +
-        TileCombiner("receiver.pc.decoder.*.fps", "decoders", "min", combined=True) +
-        TileCombiner("receiver.synchronizer.fps", "synchronizer", "min", combined=True) +
-        TileCombiner("receiver.pc.preparer.*.fps", "preparers", "min", combined=True) +
-        TileCombiner("receiver.pc.renderer.*.fps", "renderers", "min", combined=True)
+        TileCombiner(f"{sender}.voice.grabber.fps", "voice capturer", "min", combined=True, optional=True) +
+        TileCombiner(f"{sender}.voice.encoder.fps", "voice encoder", "min", combined=True, optional=True) +
+        TileCombiner(f"{sender}.voice.writer.fps", "voice transmitter", "min", combined=True, optional=True) +
+        TileCombiner(f"{receiver}.voice.reader.fps", "voice receiver", "min", combined=True, optional=True) +
+        TileCombiner(f"{receiver}.voice.preparer.fps", "voice preparer", "min", combined=True, optional=True) +
+        TileCombiner(f"{sender}.pc.grabber.fps", "capturer", "min", combined=True) +
+        TileCombiner(f"{sender}.pc.encoder.fps", "encoders", "min", combined=True) +
+        TileCombiner(f"{sender}.pc.writer.*.fps", "transmitters", "min", combined=True) +
+        TileCombiner(f"{receiver}.pc.reader.*.fps", "receivers", "min", combined=True) +
+        TileCombiner(f"{receiver}.pc.decoder.*.fps", "decoders", "min", combined=True) +
+        TileCombiner(f"{receiver}.synchronizer.fps", "synchronizer", "min", combined=True) +
+        TileCombiner(f"{receiver}.pc.preparer.*.fps", "preparers", "min", combined=True) +
+        TileCombiner(f"{receiver}.pc.renderer.*.fps", "renderers", "min", combined=True)
         )
     df = dataFilter(df)
-    ax1 = _plot_dataframe(df, 
+    ax1 = _plot_dataframe(df,
         noshow=True,
-        title="Frames per second", 
+        title="Frames per second",
         x="sessiontime",
-        descr=ds.annotator.description(),
+        descr=ds.describe(),
         plotargs=plotargs
         )
     return ax1
 
 def plot_framerates_dropped(ds : DataStore, plotargs : Dict[str, Any]={}) -> Axes:
+    engine.ensure(ds, "latency")
+    sender = ds.applied_annotations["latency"]["sender"]
+    receiver = ds.applied_annotations["latency"]["receiver"]
     dataFilter = (
-        TileCombiner("sender.voice.grabber.fps_dropped", "voice capturer dropped", "min", combined=True, optional=True) +
-        TileCombiner("sender.voice.encoder.fps_dropped", "voice encoder dropped", "min", combined=True, optional=True) +
-        TileCombiner("receiver.voice.reader.fps_dropped", "voice receiver dropped", "min", combined=True, optional=True) +
-        TileCombiner("receiver.voice.preparer.fps_dropped", "voice preparer dropped", "min", combined=True, optional=True) +
-
-        TileCombiner("sender.pc.grabber.fps_dropped", "capturer dropped", "sum", combined=True) +
-        TileCombiner("sender.pc.encoder.fps_dropped", "encoders dropped", "sum", combined=True) +
-        TileCombiner("receiver.pc.reader.*.fps_dropped", "receivers dropped", "sum", combined=True) +
-        TileCombiner("receiver.pc.decoder.*.fps_dropped", "decoders dropped", "sum", combined=True) +
-        TileCombiner("receiver.pc.preparer.*.fps_dropped", "preparers dropped", "sum", combined=True)
+        TileCombiner(f"{sender}.voice.grabber.fps_dropped", "voice capturer dropped", "min", combined=True, optional=True) +
+        TileCombiner(f"{sender}.voice.encoder.fps_dropped", "voice encoder dropped", "min", combined=True, optional=True) +
+        TileCombiner(f"{receiver}.voice.reader.fps_dropped", "voice receiver dropped", "min", combined=True, optional=True) +
+        TileCombiner(f"{receiver}.voice.preparer.fps_dropped", "voice preparer dropped", "min", combined=True, optional=True) +
+        TileCombiner(f"{sender}.pc.grabber.fps_dropped", "capturer dropped", "sum", combined=True) +
+        TileCombiner(f"{sender}.pc.encoder.fps_dropped", "encoders dropped", "sum", combined=True) +
+        TileCombiner(f"{receiver}.pc.reader.*.fps_dropped", "receivers dropped", "sum", combined=True) +
+        TileCombiner(f"{receiver}.pc.decoder.*.fps_dropped", "decoders dropped", "sum", combined=True) +
+        TileCombiner(f"{receiver}.pc.preparer.*.fps_dropped", "preparers dropped", "sum", combined=True)
         )
-    ax2 = plot_simple(ds, 
+    ax2 = plot_simple(ds,
         noshow=True,
-        title="FPS dropped", 
-        predicate='component_role and "fps_dropped" in record', 
+        title="FPS dropped",
+        predicate='component_role and "fps_dropped" in record',
         fields=['component_role.=fps_dropped'],
         datafilter=dataFilter,
         plotargs=plotargs
@@ -567,6 +572,10 @@ def plot_framerates_and_dropped(ds : DataStore, dirname : Optional[str]=None, sh
     return ax1, ax2
     
 def plot_progress(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, savecsv : bool=False, plotargs : Dict[str, Any]={}) -> Axes:
+    engine.ensure(ds, "latency")
+    sender = ds.applied_annotations["latency"]["sender"]
+    nTiles = ds.applied_annotations["latency"].get("nTiles", 1)
+    nQualities = ds.applied_annotations["latency"].get("nQualities", 1)
     df = ds.get_dataframe(
         predicate='"aggregate_packets" in record and component_role',
         fields = ['sessiontime', 'component_role=aggregate_packets']
@@ -574,7 +583,7 @@ def plot_progress(ds : DataStore, dirname : Optional[str]=None, showplot : bool=
     columns = list(df.keys())
     columns.sort()
     columns.remove('sessiontime')
-    columns.remove('sender.pc.grabber') # It can drop frames without being a problem.
+    columns.remove(f'{sender}.pc.grabber') # It can drop frames without being a problem.
     marker=None
     ax=None
     for y in columns:
@@ -611,16 +620,16 @@ def plot_progress(ds : DataStore, dirname : Optional[str]=None, showplot : bool=
             markoffset += 15
         series = df.loc[:, ["sessiontime", y]]
         # Some columns need to be adjusted
-        if ds.annotator.nTiles > 1:
+        if nTiles > 1:
             if '.all' in y:
-                series[y] = series[y] / ds.annotator.nTiles
-            elif y == "sender.pc.encoder":
-                series[y] = series[y] / (ds.annotator.nTiles*ds.annotator.nQualities)
+                series[y] = series[y] / nTiles
+            elif y == f"{sender}.pc.encoder":
+                series[y] = series[y] / (nTiles * nQualities)
         ax = series.interpolate(method='pad').plot(x="sessiontime", marker=marker, markevery=(markoffset, markevery), color=color, alpha=0.5, ax=ax, plotargs=plotargs)
     assert ax
     ax.legend(loc='upper left', fontsize='small') # type: ignore
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-    descr = ds.annotator.description()
+    descr = ds.describe()
     ax.text(0.98, 0.98, descr, transform=ax.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props) # type: ignore
     ax.set_title("Pointcloud Progress") # type: ignore
     if saveplot:
@@ -630,151 +639,3 @@ def plot_progress(ds : DataStore, dirname : Optional[str]=None, showplot : bool=
         pyplot.show() # type: ignore
     return ax
 
-def plot_progress_latency(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, savecsv : bool=False, plotargs : Dict[str, Any]={}) -> Axes:
-    df = ds.get_dataframe(
-        predicate='"aggregate_packets" in record and component_role',
-        fields = ['sessiontime', 'component_role=aggregate_packets']
-        )
-    df0 = dataframe_to_pcindex_latencies_for_tile(df, 0)
-    ax = df0.plot(x="sessiontime", ax=ax, plotargs=plotargs)
-    if 'receiver.pc.reader.1' in df:
-        df1 = dataframe_to_pcindex_latencies_for_tile(df, 1)
-        ax = df1.plot(x="sessiontime", ax=ax, plotargs=plotargs)
-    if 'receiver.pc.reader.2' in df:
-        df2 = dataframe_to_pcindex_latencies_for_tile(df, 2)
-        ax = df2.plot(x="sessiontime", ax=ax, plotargs=plotargs)
-    if 'receiver.pc.reader.3' in df:
-        df3 = dataframe_to_pcindex_latencies_for_tile(df, 3)
-        ax = df3.plot(x="sessiontime", ax=ax, plotargs=plotargs)
-    assert not 'receiver.pc.reader.4' in df, "plot_progress_latency can only handle up to 4 tiles"
-
-    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-    descr = ds.annotator.description()
-    ax.text(0.98, 0.98, descr, transform=ax.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props) # type: ignore
-    ax.set_title("Pointcloud Receiver latencies") # type: ignore
-
-    if saveplot:
-        assert dirname
-        _save_multi_plot(os.path.join(dirname, "progress-latencies.pdf"))
-    if showplot:
-        pyplot.show() # type: ignore
-    return ax
-
-
-def plot_latencies_rev(ds : DataStore, dpi : float|Literal["figure"]="figure", format : str="pdf", file_name : str="latencies.pdf", title : str="Latency contributions (ms)", label_dict : Dict[str, Any]={}, tick_dict : Dict[str, Any]={}, legend_dict : Dict[str, Any]={}, labelspacing : float=0.5, ncols : int=1, use_row_major : bool=False, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, savecsv : bool=False, max_y : float=0, show_desc : bool=True, figsize : Tuple[int, int]=(6, 4), show_legend : bool=True) -> Axes:
-    dataFilter = (
-        TileCombiner("receiver.pc.grabber.encoder_queue_ms", "encoder queue", "mean", combined=True) +
-        TileCombiner("receiver.pc.encoder.encoder_ms", "encoder", "mean", combined=True) +
-        TileCombiner("receiver.pc.encoder.transmitter_queue_ms", "transmitter queue", "mean", combined=True) +
-        #TileCombiner("receiver.pc.reader.*.receive_ms", "receivers", "mean", combined=True) +
-        TileCombiner("sender.pc.decoder.*.decoder_queue_ms", "decoder queues", "mean", combined=True) +
-        TileCombiner("sender.pc.decoder.*.decoder_ms", "decoders", "max", combined=True) +
-        TileCombiner("sender.pc.renderer.*.renderer_queue_ms", "renderer queues", "mean", combined=True)
-        )
-        
-    #fig = pyplot.figure()
-    ax = plot_simple(ds, 
-        noshow=True,
-        title="", 
-        predicate='"receiver.pc.grabber" in component_role or "receiver.pc.encoder" in component_role or "sender.pc.decoder" in component_role or "sender.pc.renderer" in component_role or component_role == "sender.voice.renderer"', 
-        fields  =[
-            'component_role.=encoder_queue_ms',
-            'component_role.=encoder_ms',
-            'component_role.=transmitter_queue_ms',
-            #'component_role.=receive_ms',
-            'component_role.=decoder_queue_ms',
-            'component_role.=decoder_ms',
-            'component_role.=renderer_queue_ms'
-            ],
-        datafilter = dataFilter,
-        plotargs=dict(kind="area", colormap="Paired", figsize=figsize),
-        show_desc=show_desc
-        )
-    df = ds.get_dataframe(
-        predicate='"sender.pc.renderer" in component_role or "sender.synchronizer" in component_role', 
-        fields=[
-            'sessiontime',
-            'component_role.=latency_ms',
-            'component_role.=latency_max_ms',
-            ],
-        )
-    dataFilter2 = ()
-    avg_latency = 0
-    if show_sync:
-        dataFilter2 = (
-            TileCombiner("receiver.synchronizer.latency_ms", "synchronizer latency", "max", combined=True) +
-            TileCombiner("receiver.pc.renderer.*.latency_ms", "renderer latency", "min", combined=True) +
-            TileCombiner("receiver.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True)
-            )
-        df = dataFilter2(df)
-        df.interpolate().plot(x="sessiontime", y=["synchronizer latency", "renderer latency", "max renderer latency"], ax=ax, color=["blue", "red", "yellow"])
-        # Limit Y axis to reasonable values
-        avg_latency = df["renderer latency"].mean()
-        avg_max_latency = df["max renderer latency"].mean()
-        avg_sync_latency = df["synchronizer latency"].mean()
-        avg_latency = max(avg_latency, avg_max_latency, avg_sync_latency)
-    else:
-        dataFilter2 = (
-            TileCombiner("sender.pc.renderer.*.latency_ms", "renderer latency", "min", combined=True) +
-            TileCombiner("sender.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True)
-            )
-        df = dataFilter2(df)
-        df.interpolate().plot(x="sessiontime", y=["renderer latency", "max renderer latency"], ax=ax, color=["red", "yellow"])
-        # Limit Y axis to reasonable values
-        avg_latency = df["renderer latency"].mean()
-        avg_max_latency = df["max renderer latency"].mean()
-        avg_latency = max(avg_latency, avg_max_latency)
-    # Limit Y axis to reasonable values
-    if max_y != 0:
-        ax.set_ylim(0, max_y)
-    else:
-        ax.set_ylim(0, avg_latency*2)
-    ax.set_xlim(0, 60)
-    handles, labels = pyplot.gca().get_legend_handles_labels()
-    nrows = -(-len(labels) // ncols)  # Ceiling division
-    reordered_handles = handles
-    reordered_labels = [label.capitalize() for label in labels]
-    if use_row_major and ncols > 1:
-        reordered_handles = []
-        reordered_labels = []
-        for i in range(ncols):
-            for j in range(nrows):
-                index = i + j * ncols
-                print(index)
-                if index < len(labels):
-                    reordered_handles.append(handles[index])
-                    reordered_labels.append(labels[index].capitalize())
-    ax.legend(reordered_handles[::-1], reordered_labels[::-1], loc='upper left', fontsize='small', prop=legend_dict, labelspacing=labelspacing, ncols=ncols) # type: ignore
-    if not show_legend:
-        ax.legend().set_visible(False) # type: ignore
-    pyplot.xticks(**tick_dict) # type: ignore
-    pyplot.yticks(**tick_dict) # type: ignore
-    pyplot.xlabel("Session time (s)", **label_dict) # type: ignore
-    pyplot.ylabel("Latency (ms)", **label_dict) # type: ignore
-    if saveplot:
-        assert dirname
-        _save_multi_plot(os.path.join(dirname, file_name), dpi, format=format)
-    if showplot:
-        pyplot.show() # type: ignore
-        
-    #
-    # Save to csv file, in raw form
-    #
-    if savecsv:
-        assert dirname
-        predicate='".pc." in component_role or component_role == "receiver.voice.renderer"'
-        fields=[
-            'sessiontime',
-            'component_role.=downsample_ms',
-            'component_role.=encoder_queue_ms',
-            'component_role.=encoder_ms',
-            'component_role.=transmitter_queue_ms',
-            'component_role.=receive_ms',
-            'component_role.=decoder_queue_ms',
-            'component_role.=decoder_ms',
-            'component_role.=renderer_queue_ms',
-            'component_role.=latency_ms'
-            ]
-        df = ds.get_dataframe(predicate=predicate, fields=fields)
-        df.to_csv(os.path.join(dirname, "latencies.csv"))    
-    return ax

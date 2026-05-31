@@ -85,6 +85,10 @@ stats: component=PointCloudRenderer#7, seq=1234, ts=12.345, fps=30, ...
 
 Predicates are Python boolean expressions evaluated with the record fields as globals. The special name `record` refers to the whole dict, e.g. `'"fps" in record'`.
 
+#### combined.json versioning
+
+Saved files include `"fileversion": YYYYMMDD` (integer). `FILEVERSION` and `OLDEST_COMPATIBLE_VERSION` are constants at the top of `datastore.py`. **Bump `FILEVERSION` whenever the on-disk schema changes; also bump `OLDEST_COMPATIBLE_VERSION` if the change is breaking (old files can no longer be read).** Use the date of the change as YYYYMMDD; if two incompatible changes land on the same day, use YYYYMMDD+1 for the second. Loading errors if the file's version is outside `[OLDEST_COMPATIBLE_VERSION, FILEVERSION]`. Files without `fileversion` are treated as pre-versioning (old format handled via the `metadata` key, or new-schema files from before versioning was added).
+
 ### FieldSpecifier syntax
 
 When calling `get_dataframe(fields=[...])` or `filter(fields=[...])`:
