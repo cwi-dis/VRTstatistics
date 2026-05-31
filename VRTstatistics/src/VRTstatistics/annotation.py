@@ -101,12 +101,13 @@ class ComponentRoleAnnotation(AnnotationStep):
     params: Dict[str, str] = {}
 
     def apply(self, ds: DataStore, **params) -> Dict[str, Any]:
-        component_map: Dict[str, str] = ds.session_metadata.get("component_map", {})
+        component_map: Dict[str, Dict[str, str]] = ds.session_metadata.get("component_map", {})
         if not component_map:
             raise DataStoreError("component_map not found in session_metadata — was SessionNormalizer run?")
         for record in ds.data:
             comp = record.get("component", "")
-            record["component_role"] = component_map.get(comp, "")
+            role = record.get("role", "")
+            record["component_role"] = component_map.get(role, {}).get(comp, "")
         roles = ds.session_metadata.get("roles", [])
         return {"roles": roles}
 

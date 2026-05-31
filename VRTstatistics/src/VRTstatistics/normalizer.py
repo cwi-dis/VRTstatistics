@@ -88,10 +88,6 @@ class SessionNormalizer:
         self._output.load_data(all_data)
         self._output.sort(key=lambda r: r["sessiontime"])
 
-        combined_component_map: Dict[str, str] = {}
-        for info in roles:
-            combined_component_map.update(info.component_map)
-
         self._output.session_metadata = {
             "session_id": roles[0].session_id,
             "session_start_time": session_start_time,
@@ -99,7 +95,7 @@ class SessionNormalizer:
             "user_names": {r.role: r.user_name for r in roles},
             "desyncs": {r.role: r.desync for r in roles},
             "desync_uncertainties": {r.role: r.desync_uncertainty for r in roles},
-            "component_map": combined_component_map,
+            "component_map": {r.role: r.component_map for r in roles},
             "role_topology": {r.role: r.topology for r in roles},
         }
 
