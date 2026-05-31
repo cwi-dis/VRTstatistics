@@ -5,3 +5,7 @@ requires = [
     "wheel"
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+search_parent_directories = true
+fallback_version = "0.0.0.dev0"
