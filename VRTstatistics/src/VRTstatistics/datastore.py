@@ -8,6 +8,16 @@ import pandas
 
 __all__ = ["DataStoreRecord", "DataStore", "DataStoreError"]
 
+# Combined-JSON file versioning.
+# FILEVERSION is written into every saved file.
+# OLDEST_COMPATIBLE_VERSION is the oldest version this code can read.
+# Bump FILEVERSION (and OLDEST_COMPATIBLE_VERSION if the change is breaking)
+# whenever the on-disk schema changes. Use the date of the change as an integer
+# (YYYYMMDD). If two incompatible changes happen on the same day, use YYYYMMDD+1
+# for the second one.
+FILEVERSION = 20260531
+OLDEST_COMPATIBLE_VERSION = 20260531
+
 class DataStoreError(RuntimeError):
     pass
 
@@ -88,7 +98,18 @@ class DataStore:
             # Bare list — no metadata at all
             self.data = raw
         elif "session" in raw:
-            # New schema
+            # New schema (with or without fileversion)
+            fv = raw.get("fileversion")
+            if fv is not None:
+                if fv < OLDEST_COMPATIBLE_VERSION:
+                    raise DataStoreError(
+                        f"{self.filename}: fileversion {fv} is older than oldest supported {OLDEST_COMPATIBLE_VERSION}"
+                    )
+                if fv > FILEVERSION:
+                    print(
+                        f"Warning: {self.filename}: fileversion {fv} is newer than this code ({FILEVERSION}); proceeding anyway",
+                        file=sys.stderr,
+                    )
             self.session_metadata = raw.get("session", {})
             self.applied_annotations = raw.get("annotations", {})
             self.data = raw["data"]
@@ -268,6 +289,7 @@ class DataStore:
 
     def _save_json(self) -> None:
         out: Dict[str, Any] = {}
+        out["fileversion"] = FILEVERSION
         if self.session_metadata:
             out["session"] = self.session_metadata
         if self.applied_annotations:
