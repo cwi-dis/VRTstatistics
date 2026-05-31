@@ -3,6 +3,7 @@ import os
 import argparse
 import importlib
 import re
+from importlib.metadata import version as _pkg_version
 from typing import Dict, List, Tuple, Any
 
 from ..datastore import DataStore
@@ -34,6 +35,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Apply annotations to a combined.json DataStore produced by VRTstatistics-ingest"
     )
+    parser.add_argument("--version", action="version", version=f"%(prog)s {_pkg_version('VRTstatistics')}")
     parser.add_argument(
         "--list",
         action="store_true",
