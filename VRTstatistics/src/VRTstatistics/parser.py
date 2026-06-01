@@ -56,7 +56,10 @@ class StatsFileParser:
             if not line.startswith("stats: "):
                 continue
             line = line[7:]  # Remove the stats:
-            entry = self._extractstats_single_new(line)
+            try:
+                entry = self._extractstats_single_new(line)
+            except ValueError as e:
+                raise ValueError(f"{self.filename}:{linenum}: {e}") from None
             #
             # See if we have info to allow conversion of timestamps already
             #
@@ -94,6 +97,13 @@ class StatsFileParser:
             field = field.strip()
             splitfield = field.split("=")
             k = splitfield[0]
+            if k.lstrip('-').isdigit():
+                raise ValueError(
+                    f"Bare numeric key {k!r} in stats line — likely caused by a locale "
+                    f"using comma as decimal separator (e.g. 'fps=109,22' parsed as two fields). "
+                    f"Fix the locale on the machine that produced this log, or set "
+                    f"CultureInfo.InvariantCulture in VR2Gather (see cwi-dis/VR2Gather#318)."
+                )
             v = "=".join(splitfield[1:])
             # Try to convert v to natural value
             try:
