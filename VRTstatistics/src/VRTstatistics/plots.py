@@ -381,7 +381,7 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
     # Step 2 - plot some end-to-end latencies as line graphs.
     #
     dataframe_end2end_latencies = ds.get_dataframe(
-        predicate=f'"{receiver}.pc.renderer" in component_role or "{receiver}.synchronizer" in component_role',
+        predicate=f'"{receiver}.pc.renderer" in component_role or "{receiver}.synchronizer" in component_role or component_role == "{receiver}.voice.renderer"',
         fields=[
             'sessiontime',
             'component_role.=latency_ms',
@@ -391,10 +391,16 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
     dataFilter_end2end_latencies = (
         TileCombiner(f"{receiver}.synchronizer.latency_ms", "synchronizer latency", "max", combined=True) +
         TileCombiner(f"{receiver}.pc.renderer.*.latency_ms", "renderer latency", "min", combined=True) +
-        TileCombiner(f"{receiver}.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True)
+        TileCombiner(f"{receiver}.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True) +
+        TileCombiner(f"{receiver}.voice.renderer.latency_ms", "voice latency", "mean", combined=True, optional=True)
         )
     dataframe_end2end_latencies = dataFilter_end2end_latencies(dataframe_end2end_latencies)
-    dataframe_end2end_latencies.interpolate().plot(x="sessiontime", y=["synchronizer latency", "renderer latency", "max renderer latency"], ax=ax, color=["blue", "red", "yellow"])
+    latency_cols = ["synchronizer latency", "renderer latency", "max renderer latency"]
+    latency_colors = ["blue", "red", "yellow"]
+    if "voice latency" in dataframe_end2end_latencies.columns:
+        latency_cols.append("voice latency")
+        latency_colors.append("green")
+    dataframe_end2end_latencies.interpolate().plot(x="sessiontime", y=latency_cols, ax=ax, color=latency_colors)
     #
     # Step 3 - Show disruptions
     #
@@ -427,6 +433,10 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
     max_max_latency = dataframe_end2end_latencies["max renderer latency"].max()
     max_sync_latency = dataframe_end2end_latencies["synchronizer latency"].max()
     max_latency = max(max_latency, max_max_latency, max_sync_latency)
+    if "voice latency" in dataframe_end2end_latencies.columns:
+        max_voice_latency = dataframe_end2end_latencies["voice latency"].max()
+        if not pd.isna(max_voice_latency):
+            max_latency = max(max_latency, max_voice_latency)
     # Limit Y axis to reasonable values
     if max_y != 0:
         ax.set_ylim(0, max_y)
