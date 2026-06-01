@@ -9,6 +9,10 @@ combined.json format version scheme).
 
 ## [Unreleased] — targeting 1.4.0
 
+- Add voice latency to `plot_latencies`; fix x-axis auto-scaling; role names in description
+- Parser: fail fast on malformed stats lines (locale-induced comma decimal separators, cwi-dis/VR2Gather#318)
+- Add `examples/latency-tiled-voice`; update `examples/latency` config
+- readme: document NTP sync tools and Windows decimal separator workaround
 - Refactor annotator into `SessionNormalizer` + declarative `AnnotationEngine` (closes #25)
 - New `VRTstatistics-annotate` CLI for re-annotating existing combined.json files
 - Add `--list` to `VRTstatistics-annotate` to show available annotation steps
