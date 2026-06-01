@@ -1,12 +1,12 @@
 {
     "configVersion": 20260311,
     "StatisticsConfig": {
-        "interval": 10.0,
+        "interval": 0.2,
         "outputFile": "stats.log",
         "outputFileAppend": false
     },
     "AutoStartConfig": {
-        "autoCreateForUser": "sap",
+        "autoCreateForUser": "sender",
         "sessionName": "vrtrun-latency-test",
         "sessionScenario": "Pilot 0",
         "sessionTransportProtocol": "socketio",

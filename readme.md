@@ -113,6 +113,7 @@ This is what the `prerecorded` variant in the VR2Gather `RepresentationPointclou
 
 ## Running an experiment
 
+- Ensure clocks are synchronized on all machines. Desync above ~30 ms (one frame time) will distort latency measurements and may cause plots to fail. Use **ChronyControl** on Mac and **NetTime** (also known as `timesynctool`) on Windows.
 - Ensure the correct _VRTrunserver_ is running on all end-user computers.
 - On the controlling computer, in the experiment directory:
 	- Activate the venv with `source .venv/bin/activate` (Mac/Linux) or `.venv\Scripts\activate` (Windows)
