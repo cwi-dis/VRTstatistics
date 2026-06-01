@@ -10,6 +10,10 @@ This repo contains three Python packages with a shared `.venv`, managed as a mon
 | `VRTrun` | `VRTrun` | Remote-control client: reads `config/runconfig.json`, uploads per-machine configs, starts players, collects results |
 | `VRTstatistics` | `VRTstatistics-ingest`, `-filter`, `-plot`, `-stats2json` | Parses log files, annotates and aligns multi-machine data, produces matplotlib plots and CSV exports |
 
+## Development workflow
+
+- Update `CHANGELOG.md` for any user-visible change: new features, bug fixes, behaviour changes, new examples. Keep entries concise (one line each). Do not update it for pure refactors with no behaviour change or for chores (CI, tooling).
+
 ## Use Cases and Experiment Structure
 
 See `readme.md` for the full description of use cases and system-oriented experiment structure. Key points for suggesting code or configs:
