@@ -79,6 +79,7 @@ This is what the `prerecorded` variant in the VR2Gather `RepresentationPointclou
 	- This means that you can setup a Windows machine to auto-login after boot, and you can set `VRTrunserver.ps1` as a `Startup` program. This will prepare the machine for remote control automatically after booting.
 - On every end-user machine (Mac, for development only):
 	- Install the built VR2Gather as `VRTApp-Develop-built.app`.
+	- **macOS Gatekeeper:** the app is not code-signed, so macOS will block it on first launch. After attempting to open it and seeing "app can't be opened", go to **System Settings → Privacy & Security → Security**, click **Open Anyway** next to the blocked app, then click **Open Anyway** again in the security dialog.
 	- Run with `./VRTApp-Develop-built.app/Contents/MacOS/VRTrunservermac.sh`
 	- Note: you may have to add some symlinks here and there (specifically in the `.app` folder) to make the content work.
 
