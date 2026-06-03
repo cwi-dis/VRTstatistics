@@ -74,6 +74,7 @@ This is what the `prerecorded` variant in the VR2Gather `RepresentationPointclou
 - Zip, copy to all end-user machines, unzip
 - On every end-user machine (Windows):
 	- Ensure a compatible version of Python is installed
+	- **Windows SmartScreen:** the app is not code-signed, so Windows will show a "Windows protected your PC" dialog on first launch. Click **More info**, then **Run anyway**.
 	- Run `VRTrunserver.ps1` with Powershell. This should install the VRTrunserver in a local (venv-based) Python. The _VRTrunserver_ is then started.
 	- The installation should happen only the first time. So after that running the powershell script will start VRTrunserver directly.
 	- This means that you can setup a Windows machine to auto-login after boot, and you can set `VRTrunserver.ps1` as a `Startup` program. This will prepare the machine for remote control automatically after booting.
