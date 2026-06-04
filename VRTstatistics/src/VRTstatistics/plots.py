@@ -442,7 +442,7 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
         ax.set_ylim(0, max_y)
     else:
         ax.set_ylim(0, max_latency*1.1)
-    ax.set_xlim(0, dataframe_end2end_latencies["sessiontime"].max())
+    ax.set_xlim(left=0)
     #
     # Optionally create a multicolumn legend.
     #
