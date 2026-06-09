@@ -189,7 +189,12 @@ def copy_stats_file(logfile : str, workdir : str):
                 except ValueError:
                     print(f"WARNING: parse error in stats: line: {line}")
     if stats_filename:
-        shutil.copy(stats_filename, workdir)
+        stats_dir = os.path.dirname(stats_filename)
+        if os.path.samefile(stats_dir, workdir):
+            print("Not copying statsfile, already in correct directory")
+        else:
+            print(f"Copy {stats_filename} to {workdir}")
+            shutil.copy(stats_filename, workdir)
 
 @app.route("/putfile", methods=["POST"])
 def putfile():
