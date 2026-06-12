@@ -1,7 +1,9 @@
 import os
+import warnings
 from typing import Tuple, Optional, List, Dict, Any, cast, Literal
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+import matplotlib.colors as mcolors
 import pandas as pd
 import matplotlib.pyplot as pyplot
 from matplotlib.backends.backend_pdf import PdfPages
@@ -17,164 +19,199 @@ from .views import (
 
 __all__ = [
     "plot_simple",
-    "plot_pointcounts",
-    "plot_framerates_and_dropped",
-    "plot_framerates_dropped",
-    "plot_framerates",
-    "plot_progress",
-    "plot_resources",
-    "plot_resource_cpu",
-    "plot_resource_mem",
-    "plot_resource_bandwidth",
-    "plot_latencies",
-    "plot_latencies_per_tile",
-    "render_latencies",
-    "render_latencies_per_tile",
-    "render_resources",
-    "render_resource_cpu",
-    "render_resource_mem",
-    "render_resource_bandwidth",
-    "render_framerates",
-    "render_framerates_dropped",
-    "render_framerates_and_dropped",
-    "render_pointcounts",
-    "render_progress",
+    "plot_pointcounts", "plot_framerates_and_dropped", "plot_framerates_dropped",
+    "plot_framerates", "plot_progress", "plot_resources",
+    "plot_resource_cpu", "plot_resource_mem", "plot_resource_bandwidth",
+    "plot_latencies", "plot_latencies_per_tile",
+    "render_latencies", "render_latencies_per_tile",
+    "render_resources", "render_resource_cpu", "render_resource_mem", "render_resource_bandwidth",
+    "render_framerates", "render_framerates_dropped", "render_framerates_and_dropped",
+    "render_pointcounts", "render_progress",
+    "publish_plots", "extract_legend",
 ]
 
-def plot_simple(datastore : DataStore, *, predicate : Optional[Predicate]=None, title : Optional[str]=None, noshow : bool=False, x : str="sessiontime", fields : List[str]=[], datafilter : Optional[DataFrameFilter]=None, plotargs : Dict[str, Any]={}, show_desc : bool=True) -> Axes:
+
+def plot_simple(datastore: DataStore, *, predicate: Optional[Predicate]=None, title: Optional[str]=None, noshow: bool=False, x: str="sessiontime", fields: List[str]=[], datafilter: Optional[DataFrameFilter]=None, plotargs: Dict[str, Any]={}, show_desc: bool=True) -> Axes:
     """
     Plot data (optionally after converting to pandas.DataFrame).
     output is optional output file (default: show in a window)
     x is name of x-axis field
     fields is list of fields to plot (default: all, except x)
     """
-    fields_to_retrieve : Optional[List[str]]= list(fields)
-    fields_to_plot = fields
-    # If we have specified fields to retrieve ensure our x-axis is in the list
-    if fields_to_retrieve and x and not x in fields_to_retrieve:
+    fields_to_retrieve: Optional[List[str]] = list(fields)
+    if fields_to_retrieve and x and x not in fields_to_retrieve:
         fields_to_retrieve.append(x)
-    fields_to_plot = None # For simple plots we use all fields (except x, which is automatically ignored)
     if not fields_to_retrieve:
         fields_to_retrieve = None
     dataframe = datastore.get_dataframe(predicate=predicate, fields=fields_to_retrieve)
     if datafilter:
         dataframe = datafilter(dataframe)
-    descr=None
-    if show_desc:
-        descr = datastore.describe()
-    ax1 = _plot_dataframe(dataframe, title=title, noshow=noshow, x=x, fields=fields_to_plot, descr=descr, plotargs=plotargs)
-    return ax1
+    descr = datastore.describe() if show_desc else None
+    return _plot_dataframe(dataframe, title=title, noshow=noshow, x=x, fields=None, descr=descr, plotargs=plotargs)
 
-def _plot_dataframe(dataframe : pd.DataFrame, *, title : Optional[str]=None, noshow : bool=False, x : Any=None, fields : Optional[List[str]]=None, descr : Optional[str]=None, plotargs : Dict[str, Any]={}, interpolate : str='linear') -> Axes:
-    """
-    Convenience method: plot a pandas DataFrame.
 
-    The plot is returned (as an Axes) but it is also the pyplot default current plot, so it is easy to save it after this call.
-
-    :param dataframe: the dataframe to plot
-    :type dataframe: pd.DataFrame
-    :param title: Optional title for the plot
-    :type title: Optional[str]
-    :param noshow: By default plot is shown on-screen, set to true to not do so.
-    :type noshow: bool
-    :param x: x-axis column. Default supplied by DataFrame
-    :type x: Any
-    :param fields: Column names to plot.
-    :type fields: Optional[List[str]]
-    :param descr: Description to show on the plot
-    :type descr: Optional[str]
-    :param plotargs: Extra arguments to plot()
-    :type plotargs: Dict[str, Any]
-    :param interpolate: Method used to interpolate() the dataframe
-    :type interpolate: str
-    :return: the plot Axes object
-    :rtype: Axes
-    """
+def _plot_dataframe(dataframe: pd.DataFrame, *, title: Optional[str]=None, noshow: bool=False, x: Any=None, fields: Optional[List[str]]=None, descr: Optional[str]=None, plotargs: Dict[str, Any]={}, interpolate: str='linear') -> Axes:
     if dataframe.empty:
         raise DataStoreError("dataframe is empty, nothing to plot")
-    df_tmp = dataframe.interpolate(method=interpolate) # type: ignore
+    df_tmp = dataframe.interpolate(method=interpolate)  # type: ignore
     if fields:
-        plot : Axes = cast(Axes, df_tmp.plot(x=x, y=fields, **plotargs))
+        plot: Axes = cast(Axes, df_tmp.plot(x=x, y=fields, **plotargs))
     else:
-        plot : Axes = cast(Axes, df_tmp.plot(x=x, **plotargs))
+        plot: Axes = cast(Axes, df_tmp.plot(x=x, **plotargs))
     assert plot
     if descr:
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-        plot.text(0.98, 0.98, descr, transform=plot.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props) # type: ignore
+        plot.text(0.98, 0.98, descr, transform=plot.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props)  # type: ignore
     if title:
-        pyplot.title(title) # type: ignore
-    plot.legend(loc='upper left', fontsize='small') # type: ignore
+        pyplot.title(title)  # type: ignore
+    plot.legend(loc='upper left', fontsize='small')  # type: ignore
     if not noshow:
-        pyplot.show() # type: ignore
+        pyplot.show()  # type: ignore
     return plot
 
-def _save_multi_plot(filename : str, dpi : float|Literal["figure"]="figure", format : str="pdf") -> None:
+
+def _handle_color(handle) -> Optional[tuple]:
+    """Extract normalised RGBA colour from a legend handle for comparison."""
+    try:
+        if hasattr(handle, 'get_facecolor'):
+            color = handle.get_facecolor()
+            if hasattr(color, 'ndim') and color.ndim == 2:
+                color = color[0]
+            return tuple(round(float(c), 3) for c in color[:4])
+        if hasattr(handle, 'get_color'):
+            return mcolors.to_rgba(handle.get_color())
+    except Exception:
+        pass
+    return None
+
+
+def publish_plots(
+    axes: List[Axes],
+    *,
+    dirname: Optional[str] = None,
+    file_name: Optional[str] = None,
+    format: str = "pdf",
+    dpi: float | Literal["figure"] = "figure",
+    showplot: bool = True,
+    saveplot: bool = False,
+) -> None:
+    """Save and/or show a list of axes (and their figures).
+
+    Recovers figures from axes preserving order. PDF saves all figures as pages.
+    Other formats require a single figure; raises DataStoreError if more than one.
     """
-    Convenience method: save the current pyplot figures as a multipage PDF or other file.
+    if saveplot:
+        if not dirname:
+            raise DataStoreError("publish_plots: saveplot=True requires dirname")
+        if not file_name:
+            raise DataStoreError("publish_plots: saveplot=True requires file_name")
+        path = os.path.join(dirname, file_name)
+        figs = list(dict.fromkeys(ax.get_figure() for ax in axes))
+        if format == "pdf":
+            pp = PdfPages(path)
+            for fig in figs:
+                fig.savefig(pp, bbox_inches='tight', format="pdf", pad_inches=0.05)  # type: ignore
+            pp.close()
+        else:
+            if len(figs) > 1:
+                raise DataStoreError(
+                    f"publish_plots: cannot save {len(figs)} figures to a single {format} file; "
+                    "use format='pdf' or call publish_plots once per figure"
+                )
+            figs[0].savefig(path, bbox_inches='tight', dpi=dpi, format=format, pad_inches=0.01)  # type: ignore
+    if showplot:
+        pyplot.show()  # type: ignore
 
-    :param filename: Filename to save to
-    :type filename: str
-    :param dpi: Description
-    :type dpi: Any
-    :param format: Description
-    :type format: str
+
+def extract_legend(axes: List[Axes], **legend_kwargs) -> List[Axes]:
+    """Remove per-axes legends and create a shared standalone legend axes.
+
+    Collects all legend handles/labels from the given axes; warns if label
+    sets are asymmetric across axes (subset is fine, superset is taken);
+    raises ValueError if the same label maps to different colours on different
+    axes (that would produce a silently wrong shared legend).
+
+    Returns the original axes list with the new legend-only axes appended.
     """
-    if format=="pdf":
-        pp = PdfPages(filename)
-        fig_nums = pyplot.get_fignums()
-        figs = [pyplot.figure(n) for n in fig_nums] # type: ignore
-        for fig in figs:
-            fig.savefig(pp, bbox_inches='tight', format="pdf", pad_inches=0.05) # type: ignore
-        pp.close()
-    else:
-        fig_nums = pyplot.get_fignums()
-        figs = [pyplot.figure(n) for n in fig_nums] # type: ignore
-        for fig in figs:
-            fig.savefig(filename, bbox_inches='tight', dpi=dpi, format=format, pad_inches=0.01) # type: ignore
+    combined: Dict[str, Any] = {}  # label -> first handle seen
+
+    for ax in axes:
+        legend = ax.get_legend()
+        if legend is None:
+            continue
+        for handle, text in zip(legend.legend_handles, legend.get_texts()):
+            label = text.get_text()
+            if label not in combined:
+                combined[label] = handle
+            else:
+                existing_color = _handle_color(combined[label])
+                new_color = _handle_color(handle)
+                if existing_color is not None and new_color is not None and existing_color != new_color:
+                    raise ValueError(
+                        f"extract_legend: label '{label}' has inconsistent colours across axes: "
+                        f"{existing_color} vs {new_color}"
+                    )
+
+    if combined:
+        all_labels = set(combined.keys())
+        warned = False
+        for ax in axes:
+            legend = ax.get_legend()
+            ax_labels = {t.get_text() for t in legend.get_texts()} if legend is not None else set()
+            if ax_labels and all_labels - ax_labels and not warned:
+                warnings.warn(f"extract_legend: some axes are missing labels {all_labels - ax_labels}; using superset")
+                warned = True
+
+    for ax in axes:
+        legend = ax.get_legend()
+        if legend is not None:
+            legend.remove()
+
+    fig_legend = pyplot.figure()
+    ax_legend: Axes = fig_legend.add_subplot(111)
+    ax_legend.axis('off')
+    ax_legend.legend(list(combined.values()), list(combined.keys()), loc='center', **legend_kwargs)
+
+    return list(axes) + [ax_legend]
 
 
-def render_resource_cpu(view: ResourceView) -> Axes:
+# ── render_* functions: View → List[Axes] ─────────────────────────────────────
+# Pure plot creation: always renders everything (legend, description box, etc.).
+# No output control — use publish_plots() for saving/showing.
+
+def render_resource_cpu(view: ResourceView) -> List[Axes]:
     """Render CPU usage from a ResourceView."""
     cpu_cols = [c for c in view.resources.columns if c != 'sessiontime' and c.endswith('.cpu')]
     ax = _plot_dataframe(view.resources, noshow=True, title="CPU usage", x="sessiontime", fields=cpu_cols, descr=view.description)
     _, top = ax.get_ylim()
     ax.set_ylim(0, top * 1.5)
-    return ax
+    return [ax]
 
 
-def render_resource_mem(view: ResourceView) -> Axes:
+def render_resource_mem(view: ResourceView) -> List[Axes]:
     """Render memory usage from a ResourceView."""
     mem_cols = [c for c in view.resources.columns if c != 'sessiontime' and c.endswith('.mem')]
     ax = _plot_dataframe(view.resources, noshow=True, title="Memory usage", x="sessiontime", fields=mem_cols, descr=view.description)
     _, top = ax.get_ylim()
     ax.set_ylim(0, top * 1.5)
-    return ax
+    return [ax]
 
 
-def render_resource_bandwidth(view: ResourceView) -> Axes:
+def render_resource_bandwidth(view: ResourceView) -> List[Axes]:
     """Render bandwidth usage from a ResourceView."""
     bw_cols = [c for c in view.resources.columns if c != 'sessiontime' and (c.endswith('.recv_bandwidth') or c.endswith('.sent_bandwidth'))]
     ax = _plot_dataframe(view.resources, noshow=True, title="Bandwidth usage", x="sessiontime", fields=bw_cols, descr=view.description)
     _, top = ax.get_ylim()
     ax.set_ylim(0, top * 1.5)
-    return ax
+    return [ax]
 
 
-def render_resources(view: ResourceView, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False) -> Tuple[Axes, Axes, Axes]:
+def render_resources(view: ResourceView) -> List[Axes]:
     """Render CPU, memory, and bandwidth subplots from a ResourceView."""
-    ax1 = render_resource_cpu(view)
-    ax2 = render_resource_mem(view)
-    ax3 = render_resource_bandwidth(view)
-    if saveplot:
-        if not dirname:
-            raise DataStoreError("saveplot=True requires dirname to be set")
-        _save_multi_plot(os.path.join(dirname, "resources.pdf"))
-    if showplot:
-        pyplot.show() # type: ignore
-    return ax1, ax2, ax3
+    return render_resource_cpu(view) + render_resource_mem(view) + render_resource_bandwidth(view)
 
 
-def _plot_latencies_for_tile(df : pd.DataFrame, tilenum : int, ax : Axes, sender : str="sender", receiver : str="receiver") -> Axes:
+def _plot_latencies_for_tile(df: pd.DataFrame, tilenum: int, ax: Axes, sender: str="sender", receiver: str="receiver") -> Axes:
     fields = [
         f"{sender}.pc.grabber.downsample_ms",
         f"{sender}.pc.grabber.encoder_queue_ms",
@@ -185,9 +222,9 @@ def _plot_latencies_for_tile(df : pd.DataFrame, tilenum : int, ax : Axes, sender
         f"{receiver}.pc.decoder.{tilenum}.decoder_ms",
         f"{receiver}.pc.renderer.{tilenum}.renderer_queue_ms"
     ]
-    todelete : List[str] = []
+    todelete: List[str] = []
     for i in range(len(fields)):
-        if not fields[i] in df.columns:
+        if fields[i] not in df.columns:
             alt = fields[i].replace(f'.{tilenum}.', '.all.')
             if alt in df.columns:
                 fields[i] = alt
@@ -200,69 +237,52 @@ def _plot_latencies_for_tile(df : pd.DataFrame, tilenum : int, ax : Axes, sender
         f"{receiver}.synchronizer.latency_ms",
         f"{receiver}.pc.renderer.{tilenum}.latency_ms",
         f"{receiver}.pc.renderer.{tilenum}.latency_max_ms",
-        ]
+    ]
     ax = df.ffill().plot(x="sessiontime", y=fields, kind="area", colormap="Paired", ax=ax, legend=False)
     df.ffill().plot(x="sessiontime", y=latency_fields, ax=ax, color=["blue", "red", "yellow"], legend=False)
-    ax.set_title(f"Per-tile Latency contributions, tile={tilenum}") # type: ignore
+    ax.set_title(f"Per-tile Latency contributions, tile={tilenum}")  # type: ignore
     return ax
 
 
-def render_latencies_per_tile(view: LatencyPerTileView, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False) -> List[Axes]:
+def render_latencies_per_tile(view: LatencyPerTileView) -> List[Axes]:
     """Render per-tile latency subplots from a LatencyPerTileView."""
-    fig : Figure
-    axs : List[Axes]
-    fig, axs = pyplot.subplots(view.nTiles, 1, sharex=True, sharey=True) # type: ignore
+    fig: Figure
+    fig, axs = pyplot.subplots(view.nTiles, 1, sharex=True, sharey=True)  # type: ignore
     fig.set_figheight(fig.get_figheight() * (view.nTiles - 1))
     fig.set_figwidth(fig.get_figwidth() * 1.5)
     for i in range(view.nTiles):
         _plot_latencies_for_tile(view.per_tile, i, axs[i], sender=view.sender, receiver=view.receiver)
     handles, labels = axs[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc='center right') # type: ignore
+    fig.legend(handles, labels, loc='center right')  # type: ignore
     pyplot.subplots_adjust(right=0.66)
-    if saveplot:
-        if not dirname:
-            raise DataStoreError("saveplot=True requires dirname to be set")
-        _save_multi_plot(os.path.join(dirname, "latencies-per-tile.pdf"))
-    if showplot:
-        pyplot.show() # type: ignore
-    return axs
+    return list(axs)
 
 
-def render_latencies(view: LatencyView, dpi: float|Literal["figure"]="figure", format: str="pdf", file_name: str="latencies.pdf", title: str="Latency contributions (ms)", label_dict: Dict[str, Any]={}, tick_dict: Dict[str, Any]={}, legend_dict: Dict[str, Any]={}, labelspacing: float=0.5, ncols: int=1, use_row_major: bool=False, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False, max_y: float=0, show_desc: bool=True, figsize: Tuple[int, int]=(6, 4), show_legend: bool=True, show_disruptions: bool=False, plotargs: Dict[str, Any]={}) -> Axes:
+def render_latencies(view: LatencyView, title: str="Latency contributions (ms)", label_dict: Dict[str, Any]={}, tick_dict: Dict[str, Any]={}, legend_dict: Dict[str, Any]={}, labelspacing: float=0.5, ncols: int=1, use_row_major: bool=False, max_y: float=0, figsize: Tuple[int, int]=(6, 4), show_disruptions: bool=False, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """
     Render latency contributions from a LatencyView.
 
     Produces a stacked area plot of pipeline stage durations with end-to-end latency
     line overlays. Optionally overlays disruption events (frame drops, tile switches).
     """
-    descr = view.description if show_desc else None
     ax = _plot_dataframe(view.area,
         noshow=True,
         title=title,
         x="sessiontime",
-        descr=descr,
+        descr=view.description,
         plotargs=dict(kind="area", colormap="Paired", figsize=figsize) | plotargs,
     )
-    #
-    # Overlay end-to-end latency lines
-    #
     latency_cols = ["synchronizer latency", "renderer latency", "max renderer latency"]
     latency_colors = ["blue", "red", "yellow"]
     if "voice latency" in view.end2end.columns:
         latency_cols.append("voice latency")
         latency_colors.append("green")
     view.end2end.interpolate().plot(x="sessiontime", y=latency_cols, ax=ax, color=latency_colors)
-    #
-    # Overlay disruption event markers
-    #
     if show_disruptions:
         if view.framedrops is not None:
             view.framedrops.plot(x='sessiontime', y=['PC Drop event'], marker='|', linestyle='None', color='red', ax=ax, zorder=4)
         if view.tileswitches is not None:
             view.tileswitches.plot(x='sessiontime', y=['Tile switch event'], marker='x', linestyle='None', color='blue', ax=ax, zorder=5)
-    #
-    # Y-axis limits
-    #
     max_latency = view.end2end["renderer latency"].max()
     max_max_latency = view.end2end["max renderer latency"].max()
     max_sync_latency = view.end2end["synchronizer latency"].max()
@@ -276,11 +296,8 @@ def render_latencies(view: LatencyView, dpi: float|Literal["figure"]="figure", f
     else:
         ax.set_ylim(0, max_latency * 1.1)
     ax.set_xlim(left=0)
-    #
-    # Legend (optionally multi-column, optionally row-major ordering)
-    #
     handles, labels = pyplot.gca().get_legend_handles_labels()
-    nrows = -(-len(labels) // ncols)  # Ceiling division
+    nrows = -(-len(labels) // ncols)  # ceiling division
     reordered_handles = handles
     reordered_labels = [label.capitalize() for label in labels]
     if use_row_major and ncols > 1:
@@ -293,59 +310,37 @@ def render_latencies(view: LatencyView, dpi: float|Literal["figure"]="figure", f
                     reordered_handles.append(handles[index])
                     reordered_labels.append(labels[index].capitalize())
     ax.legend(reordered_handles[::-1], reordered_labels[::-1], loc='upper left', fontsize='small', prop=legend_dict, labelspacing=labelspacing, ncols=ncols)
-    if not show_legend:
-        ax.legend().set_visible(False)
     pyplot.xticks(**tick_dict)
     pyplot.yticks(**tick_dict)
     pyplot.xlabel("Session time (s)", **label_dict)
     pyplot.ylabel("Latency (ms)", **label_dict)
-    if saveplot:
-        if not dirname:
-            raise DataStoreError("saveplot=True requires dirname to be set")
-        _save_multi_plot(os.path.join(dirname, file_name), dpi, format=format)
-    if showplot:
-        pyplot.show() # type: ignore
-    return ax
+    return [ax]
 
 
-def render_framerates(view: FramerateView, plotargs: Dict[str, Any]={}) -> Axes:
+def render_framerates(view: FramerateView, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render frames-per-second from a FramerateView."""
-    return _plot_dataframe(view.fps, noshow=True, title="Frames per second", x="sessiontime", descr=view.description, plotargs=plotargs)
+    return [_plot_dataframe(view.fps, noshow=True, title="Frames per second", x="sessiontime", descr=view.description, plotargs=plotargs)]
 
 
-def render_framerates_dropped(view: FramerateView, plotargs: Dict[str, Any]={}) -> Axes:
+def render_framerates_dropped(view: FramerateView, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render dropped-frames-per-second from a FramerateView."""
-    return _plot_dataframe(view.fps_dropped, noshow=True, title="FPS dropped", x="sessiontime", descr=view.description, plotargs=plotargs)
+    return [_plot_dataframe(view.fps_dropped, noshow=True, title="FPS dropped", x="sessiontime", descr=view.description, plotargs=plotargs)]
 
 
-def render_framerates_and_dropped(view: FramerateView, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False, plotargs: Dict[str, Any]={}) -> Tuple[Axes, Axes]:
+def render_framerates_and_dropped(view: FramerateView, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render fps and dropped-fps subplots from a FramerateView."""
-    ax1 = render_framerates(view, plotargs=plotargs)
-    ax2 = render_framerates_dropped(view, plotargs=plotargs)
-    if saveplot:
-        if not dirname:
-            raise DataStoreError("saveplot=True requires dirname to be set")
-        _save_multi_plot(os.path.join(dirname, "framerates.pdf"))
-    if showplot:
-        pyplot.show() # type: ignore
-    return ax1, ax2
+    return render_framerates(view, plotargs=plotargs) + render_framerates_dropped(view, plotargs=plotargs)
 
 
-def render_pointcounts(view: PointcountView, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False) -> Axes:
+def render_pointcounts(view: PointcountView) -> List[Axes]:
     """Render receiver point counts from a PointcountView."""
     ax = _plot_dataframe(view.pointcounts, noshow=True, title="Receiver point counts", x="sessiontime", descr=view.description)
     _, top = ax.get_ylim()
     ax.set_ylim(0, top * 1.5)
-    if saveplot:
-        if not dirname:
-            raise DataStoreError("saveplot=True requires dirname to be set")
-        _save_multi_plot(os.path.join(dirname, "pointcounts.pdf"))
-    if showplot:
-        pyplot.show() # type: ignore
-    return ax
+    return [ax]
 
 
-def render_progress(view: ProgressView, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False, plotargs: Dict[str, Any]={}) -> Axes:
+def render_progress(view: ProgressView, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render point cloud pipeline progress from a ProgressView."""
     df = view.progress
     columns = [c for c in df.columns if c != 'sessiontime']
@@ -385,48 +380,57 @@ def render_progress(view: ProgressView, dirname: Optional[str]=None, showplot: b
         series = df.loc[:, ["sessiontime", y]]
         ax = series.ffill().plot(x="sessiontime", marker=marker, markevery=(markoffset, markevery), color=color, alpha=0.5, ax=ax, **plotargs)
     assert ax
-    ax.legend(loc='upper left', fontsize='small') # type: ignore
+    ax.legend(loc='upper left', fontsize='small')  # type: ignore
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-    ax.text(0.98, 0.98, view.description, transform=ax.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props) # type: ignore
-    ax.set_title("Pointcloud Progress") # type: ignore
-    if saveplot:
-        if not dirname:
-            raise DataStoreError("saveplot=True requires dirname to be set")
-        _save_multi_plot(os.path.join(dirname, "progress.pdf"))
-    if showplot:
-        pyplot.show() # type: ignore
-    return ax
+    ax.text(0.98, 0.98, view.description, transform=ax.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props)  # type: ignore
+    ax.set_title("Pointcloud Progress")  # type: ignore
+    return [ax]
 
 
-def plot_pointcounts(ds: DataStore, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False) -> Axes:
-    return render_pointcounts(extract_pointcounts(ds), dirname=dirname, showplot=showplot, saveplot=saveplot)
+# ── plot_* convenience wrappers: DataStore → List[Axes] ───────────────────────
+# Each calls extract_*() + render_*() + publish_plots().
 
-def plot_resource_cpu(ds: DataStore) -> Axes:
+def plot_pointcounts(ds: DataStore, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False) -> List[Axes]:
+    axes = render_pointcounts(extract_pointcounts(ds))
+    publish_plots(axes, dirname=dirname, file_name="pointcounts.pdf", showplot=showplot, saveplot=saveplot)
+    return axes
+
+def plot_resource_cpu(ds: DataStore) -> List[Axes]:
     return render_resource_cpu(extract_resources(ds))
 
-def plot_resource_mem(ds: DataStore) -> Axes:
+def plot_resource_mem(ds: DataStore) -> List[Axes]:
     return render_resource_mem(extract_resources(ds))
 
-def plot_resource_bandwidth(ds: DataStore) -> Axes:
+def plot_resource_bandwidth(ds: DataStore) -> List[Axes]:
     return render_resource_bandwidth(extract_resources(ds))
 
-def plot_resources(ds: DataStore, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False) -> Tuple[Axes, Axes, Axes]:
-    return render_resources(extract_resources(ds), dirname=dirname, showplot=showplot, saveplot=saveplot)
+def plot_resources(ds: DataStore, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False) -> List[Axes]:
+    axes = render_resources(extract_resources(ds))
+    publish_plots(axes, dirname=dirname, file_name="resources.pdf", showplot=showplot, saveplot=saveplot)
+    return axes
 
 def plot_latencies_per_tile(ds: DataStore, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False) -> List[Axes]:
-    return render_latencies_per_tile(extract_latencies_per_tile(ds), dirname=dirname, showplot=showplot, saveplot=saveplot)
+    axes = render_latencies_per_tile(extract_latencies_per_tile(ds))
+    publish_plots(axes, dirname=dirname, file_name="latencies-per-tile.pdf", showplot=showplot, saveplot=saveplot)
+    return axes
 
-def plot_latencies(ds: DataStore, dpi: float|Literal["figure"]="figure", format: str="pdf", file_name: str="latencies.pdf", title: str="Latency contributions (ms)", label_dict: Dict[str, Any]={}, tick_dict: Dict[str, Any]={}, legend_dict: Dict[str, Any]={}, labelspacing: float=0.5, ncols: int=1, use_row_major: bool=False, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False, max_y: float=0, show_desc: bool=True, figsize: Tuple[int, int]=(6, 4), show_legend: bool=True, show_disruptions: bool=False, plotargs: Dict[str, Any]={}) -> Axes:
-    return render_latencies(extract_latencies(ds), dpi=dpi, format=format, file_name=file_name, title=title, label_dict=label_dict, tick_dict=tick_dict, legend_dict=legend_dict, labelspacing=labelspacing, ncols=ncols, use_row_major=use_row_major, dirname=dirname, showplot=showplot, saveplot=saveplot, max_y=max_y, show_desc=show_desc, figsize=figsize, show_legend=show_legend, show_disruptions=show_disruptions, plotargs=plotargs)
+def plot_latencies(ds: DataStore, dpi: float|Literal["figure"]="figure", format: str="pdf", file_name: str="latencies.pdf", title: str="Latency contributions (ms)", label_dict: Dict[str, Any]={}, tick_dict: Dict[str, Any]={}, legend_dict: Dict[str, Any]={}, labelspacing: float=0.5, ncols: int=1, use_row_major: bool=False, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False, max_y: float=0, figsize: Tuple[int, int]=(6, 4), show_disruptions: bool=False, plotargs: Dict[str, Any]={}) -> List[Axes]:
+    axes = render_latencies(extract_latencies(ds), title=title, label_dict=label_dict, tick_dict=tick_dict, legend_dict=legend_dict, labelspacing=labelspacing, ncols=ncols, use_row_major=use_row_major, max_y=max_y, figsize=figsize, show_disruptions=show_disruptions, plotargs=plotargs)
+    publish_plots(axes, dirname=dirname, file_name=file_name, format=format, dpi=dpi, showplot=showplot, saveplot=saveplot)
+    return axes
 
-def plot_framerates(ds: DataStore, plotargs: Dict[str, Any]={}) -> Axes:
+def plot_framerates(ds: DataStore, plotargs: Dict[str, Any]={}) -> List[Axes]:
     return render_framerates(extract_framerates(ds), plotargs=plotargs)
 
-def plot_framerates_dropped(ds: DataStore, plotargs: Dict[str, Any]={}) -> Axes:
+def plot_framerates_dropped(ds: DataStore, plotargs: Dict[str, Any]={}) -> List[Axes]:
     return render_framerates_dropped(extract_framerates(ds), plotargs=plotargs)
 
-def plot_framerates_and_dropped(ds: DataStore, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False, plotargs: Dict[str, Any]={}) -> Tuple[Axes, Axes]:
-    return render_framerates_and_dropped(extract_framerates(ds), dirname=dirname, showplot=showplot, saveplot=saveplot, plotargs=plotargs)
+def plot_framerates_and_dropped(ds: DataStore, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False, plotargs: Dict[str, Any]={}) -> List[Axes]:
+    axes = render_framerates_and_dropped(extract_framerates(ds), plotargs=plotargs)
+    publish_plots(axes, dirname=dirname, file_name="framerates.pdf", showplot=showplot, saveplot=saveplot)
+    return axes
 
-def plot_progress(ds: DataStore, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False, plotargs: Dict[str, Any]={}) -> Axes:
-    return render_progress(extract_progress(ds), dirname=dirname, showplot=showplot, saveplot=saveplot, plotargs=plotargs)
+def plot_progress(ds: DataStore, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False, plotargs: Dict[str, Any]={}) -> List[Axes]:
+    axes = render_progress(extract_progress(ds), plotargs=plotargs)
+    publish_plots(axes, dirname=dirname, file_name="progress.pdf", showplot=showplot, saveplot=saveplot)
+    return axes

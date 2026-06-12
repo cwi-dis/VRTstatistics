@@ -75,7 +75,7 @@ def process_dir(run_dir: str) -> None:
         dirname=run_dir, file_name="latency.png",
         dpi=150, format="png",
         ncols=2, use_row_major=False, labelspacing=0.2,
-        show_desc=True, figsize=(6.4, 3.5),
+        figsize=(6.4, 3.5),
         title="Latency contributions",
         show_disruptions=True,
         plotargs=PLOTARGS,
