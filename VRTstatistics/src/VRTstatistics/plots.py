@@ -138,7 +138,8 @@ def plot_pointcounts(ds : DataStore, dirname : Optional[str]=None, showplot : bo
     _, top = ax.get_ylim()
     ax.set_ylim(0, top*1.5)
     if saveplot:
-        assert dirname
+        if not dirname:
+            raise DataStoreError("saveplot=True requires dirname to be set")
         _save_multi_plot(os.path.join(dirname, "pointcounts.pdf"))
     if showplot:
         pyplot.show() # type: ignore
@@ -199,7 +200,8 @@ def plot_resources(ds : DataStore, dirname : Optional[str]=None, showplot : bool
     ax3 = plot_resource_bandwidth(ds)
 
     if saveplot:
-        assert dirname
+        if not dirname:
+            raise DataStoreError("saveplot=True requires dirname to be set")
         _save_multi_plot(os.path.join(dirname, "resources.pdf"))
     if showplot:
         pyplot.show() # type: ignore
@@ -270,7 +272,8 @@ def plot_latencies_per_tile(ds : DataStore, dirname : Optional[str]=None, showpl
     fig.legend(handles, labels, loc='center right') # type: ignore
     pyplot.subplots_adjust(right=0.66)
     if saveplot:
-        assert dirname
+        if not dirname:
+            raise DataStoreError("saveplot=True requires dirname to be set")
         _save_multi_plot(os.path.join(dirname, "latencies-per-tile.pdf"))
     if showplot:
         pyplot.show() # type: ignore
@@ -455,7 +458,8 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
     # Final processing: show or save the plot.
     #
     if saveplot:
-        assert dirname
+        if not dirname:
+            raise DataStoreError("saveplot=True requires dirname to be set")
         _save_multi_plot(os.path.join(dirname, file_name), dpi, format=format)
     if showplot:
         pyplot.show() # type: ignore
@@ -525,7 +529,8 @@ def plot_framerates_and_dropped(ds : DataStore, dirname : Optional[str]=None, sh
     ax2 = plot_framerates_dropped(ds, plotargs=plotargs)
 
     if saveplot:
-        assert dirname
+        if not dirname:
+            raise DataStoreError("saveplot=True requires dirname to be set")
         _save_multi_plot(os.path.join(dirname, "framerates.pdf"))
     if showplot:
         pyplot.show() # type: ignore
@@ -593,7 +598,8 @@ def plot_progress(ds : DataStore, dirname : Optional[str]=None, showplot : bool=
     ax.text(0.98, 0.98, descr, transform=ax.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props) # type: ignore
     ax.set_title("Pointcloud Progress") # type: ignore
     if saveplot:
-        assert dirname
+        if not dirname:
+            raise DataStoreError("saveplot=True requires dirname to be set")
         _save_multi_plot(os.path.join(dirname, "progress.pdf"))
     if showplot:
         pyplot.show() # type: ignore
