@@ -11,20 +11,18 @@ from .analyze import DataFrameFilter, TileCombiner, SessionTimeFilter
 from .annotation import engine
 
 __all__ = [
-    "plot_simple", 
-    "_plot_dataframe", 
-    "plot_pointcounts", 
-    "plot_framerates_and_dropped", 
-    "plot_framerates_dropped", 
-    "plot_framerates", 
-    "plot_progress", 
-    "plot_resources", 
-    "plot_resource_cpu", 
-    "plot_resource_mem", 
-    "plot_resource_bandwidth", 
-    "plot_latencies", 
-    "plot_latencies_for_tile", 
-    "plot_latencies_per_tile", 
+    "plot_simple",
+    "plot_pointcounts",
+    "plot_framerates_and_dropped",
+    "plot_framerates_dropped",
+    "plot_framerates",
+    "plot_progress",
+    "plot_resources",
+    "plot_resource_cpu",
+    "plot_resource_mem",
+    "plot_resource_bandwidth",
+    "plot_latencies",
+    "plot_latencies_per_tile",
     ]
 
 def plot_simple(datastore : DataStore, *, predicate : Optional[Predicate]=None, title : Optional[str]=None, noshow : bool=False, x : str="sessiontime", fields : List[str]=[], datafilter : Optional[DataFrameFilter]=None, plotargs : Dict[str, Any]={}, show_desc : bool=True) -> Axes:
