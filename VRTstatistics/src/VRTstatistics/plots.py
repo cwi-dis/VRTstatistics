@@ -1,5 +1,6 @@
 import os
 import warnings
+from dataclasses import dataclass, field
 from typing import Tuple, Optional, List, Dict, Any, cast, Literal
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
@@ -17,7 +18,21 @@ from .views import (
     extract_framerates, extract_pointcounts, extract_progress,
 )
 
+
+@dataclass
+class PlotStyle:
+    """Visual styling for render_* functions. Construct once, reuse across plots in an experiment."""
+    figsize: Optional[Tuple[int, int]] = None
+    ylim_top: float = 0                              # 0 = auto-scale
+    plot_kwargs: Dict[str, Any] = field(default_factory=dict)    # → pandas .plot()
+    label_kwargs: Dict[str, Any] = field(default_factory=dict)   # → xlabel()/ylabel()
+    tick_kwargs: Dict[str, Any] = field(default_factory=dict)    # → xticks()/yticks()
+    legend_kwargs: Dict[str, Any] = field(default_factory=dict)  # → ax.legend()
+    legend_row_major: bool = False
+
+
 __all__ = [
+    "PlotStyle",
     "plot_simple",
     "plot_pointcounts", "plot_framerates_and_dropped", "plot_framerates_dropped",
     "plot_framerates", "plot_progress", "plot_resources",
@@ -175,43 +190,79 @@ def extract_legend(axes: List[Axes], **legend_kwargs) -> List[Axes]:
     return list(axes) + [ax_legend]
 
 
+def _apply_style(ax: Axes, style: PlotStyle, *, reverse_legend: bool = False, capitalize_labels: bool = False) -> None:
+    """Apply PlotStyle to an axes after rendering: ylim, axis labels, ticks, legend."""
+    if style.ylim_top:
+        ax.set_ylim(top=style.ylim_top)
+    if style.label_kwargs:
+        pyplot.xlabel(ax.get_xlabel(), **style.label_kwargs)
+        pyplot.ylabel(ax.get_ylabel(), **style.label_kwargs)
+    if style.tick_kwargs:
+        pyplot.xticks(**style.tick_kwargs)
+        pyplot.yticks(**style.tick_kwargs)
+    handles, labels = ax.get_legend_handles_labels()
+    if capitalize_labels:
+        labels = [label.capitalize() for label in labels]
+    ncols = style.legend_kwargs.get('ncols', style.legend_kwargs.get('ncol', 1))
+    if style.legend_row_major and ncols > 1:
+        nrows = -(-len(labels) // ncols)
+        reordered_handles: List[Any] = []
+        reordered_labels: List[str] = []
+        for i in range(ncols):
+            for j in range(nrows):
+                idx = i + j * ncols
+                if idx < len(labels):
+                    reordered_handles.append(handles[idx])
+                    reordered_labels.append(labels[idx])
+        handles, labels = reordered_handles, reordered_labels
+    if reverse_legend:
+        handles, labels = handles[::-1], labels[::-1]
+    legend_kw: Dict[str, Any] = {'loc': 'upper left', 'fontsize': 'small'} | style.legend_kwargs
+    ax.legend(handles, labels, **legend_kw)
+
+
 # ── render_* functions: View → List[Axes] ─────────────────────────────────────
 # Pure plot creation: always renders everything (legend, description box, etc.).
 # No output control — use publish_plots() for saving/showing.
 
-def render_resource_cpu(view: ResourceView, *, title: str="CPU usage", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_resource_cpu(view: ResourceView, *, title: str="CPU usage", style: PlotStyle=PlotStyle()) -> List[Axes]:
     """Render CPU usage from a ResourceView."""
     cpu_cols = [c for c in view.resources.columns if c != 'sessiontime' and c.endswith('.cpu')]
-    actual_plotargs = ({} if figsize is None else {"figsize": figsize}) | plotargs
+    actual_plotargs = ({} if style.figsize is None else {"figsize": style.figsize}) | style.plot_kwargs
     ax = _plot_dataframe(view.resources, noshow=True, title=title, x="sessiontime", fields=cpu_cols, descr=view.description, plotargs=actual_plotargs)
     _, top = ax.get_ylim()
     ax.set_ylim(0, top * 1.5)
+    _apply_style(ax, style)
     return [ax]
 
 
-def render_resource_mem(view: ResourceView, *, title: str="Memory usage", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_resource_mem(view: ResourceView, *, title: str="Memory usage", style: PlotStyle=PlotStyle()) -> List[Axes]:
     """Render memory usage from a ResourceView."""
     mem_cols = [c for c in view.resources.columns if c != 'sessiontime' and c.endswith('.mem')]
-    actual_plotargs = ({} if figsize is None else {"figsize": figsize}) | plotargs
+    actual_plotargs = ({} if style.figsize is None else {"figsize": style.figsize}) | style.plot_kwargs
     ax = _plot_dataframe(view.resources, noshow=True, title=title, x="sessiontime", fields=mem_cols, descr=view.description, plotargs=actual_plotargs)
     _, top = ax.get_ylim()
     ax.set_ylim(0, top * 1.5)
+    _apply_style(ax, style)
     return [ax]
 
 
-def render_resource_bandwidth(view: ResourceView, *, title: str="Bandwidth usage", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_resource_bandwidth(view: ResourceView, *, title: str="Bandwidth usage", style: PlotStyle=PlotStyle()) -> List[Axes]:
     """Render bandwidth usage from a ResourceView."""
     bw_cols = [c for c in view.resources.columns if c != 'sessiontime' and (c.endswith('.recv_bandwidth') or c.endswith('.sent_bandwidth'))]
-    actual_plotargs = ({} if figsize is None else {"figsize": figsize}) | plotargs
+    actual_plotargs = ({} if style.figsize is None else {"figsize": style.figsize}) | style.plot_kwargs
     ax = _plot_dataframe(view.resources, noshow=True, title=title, x="sessiontime", fields=bw_cols, descr=view.description, plotargs=actual_plotargs)
     _, top = ax.get_ylim()
     ax.set_ylim(0, top * 1.5)
+    _apply_style(ax, style)
     return [ax]
 
 
-def render_resources(view: ResourceView, *, figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_resources(view: ResourceView, *, style: PlotStyle=PlotStyle()) -> List[Axes]:
     """Render CPU, memory, and bandwidth subplots from a ResourceView."""
-    return render_resource_cpu(view, figsize=figsize, plotargs=plotargs) + render_resource_mem(view, figsize=figsize, plotargs=plotargs) + render_resource_bandwidth(view, figsize=figsize, plotargs=plotargs)
+    return (render_resource_cpu(view, style=style) +
+            render_resource_mem(view, style=style) +
+            render_resource_bandwidth(view, style=style))
 
 
 def _plot_latencies_for_tile(df: pd.DataFrame, tilenum: int, ax: Axes, sender: str="sender", receiver: str="receiver", plotargs: Dict[str, Any]={}) -> Axes:
@@ -247,36 +298,37 @@ def _plot_latencies_for_tile(df: pd.DataFrame, tilenum: int, ax: Axes, sender: s
     return ax
 
 
-def render_latencies_per_tile(view: LatencyPerTileView, *, figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_latencies_per_tile(view: LatencyPerTileView, *, style: PlotStyle=PlotStyle()) -> List[Axes]:
     """Render per-tile latency subplots from a LatencyPerTileView."""
     fig: Figure
     fig, axs = pyplot.subplots(view.nTiles, 1, sharex=True, sharey=True)  # type: ignore
-    if figsize is not None:
-        fig.set_size_inches(figsize)
+    if style.figsize is not None:
+        fig.set_size_inches(style.figsize)
     else:
         fig.set_figheight(fig.get_figheight() * (view.nTiles - 1))
         fig.set_figwidth(fig.get_figwidth() * 1.5)
     for i in range(view.nTiles):
-        _plot_latencies_for_tile(view.per_tile, i, axs[i], sender=view.sender, receiver=view.receiver, plotargs=plotargs)
+        _plot_latencies_for_tile(view.per_tile, i, axs[i], sender=view.sender, receiver=view.receiver, plotargs=style.plot_kwargs)
     handles, labels = axs[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc='center right')  # type: ignore
     pyplot.subplots_adjust(right=0.66)
     return list(axs)
 
 
-def render_latencies(view: LatencyView, *, title: str="Latency contributions (ms)", label_dict: Dict[str, Any]={}, tick_dict: Dict[str, Any]={}, legend_dict: Dict[str, Any]={}, labelspacing: float=0.5, ncols: int=1, use_row_major: bool=False, max_y: float=0, figsize: Tuple[int, int]=(6, 4), show_disruptions: bool=False, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_latencies(view: LatencyView, *, title: str="Latency contributions (ms)", style: PlotStyle=PlotStyle(), show_disruptions: bool=False) -> List[Axes]:
     """
     Render latency contributions from a LatencyView.
 
     Produces a stacked area plot of pipeline stage durations with end-to-end latency
     line overlays. Optionally overlays disruption events (frame drops, tile switches).
     """
+    figsize = style.figsize if style.figsize is not None else (6, 4)
     ax = _plot_dataframe(view.area,
         noshow=True,
         title=title,
         x="sessiontime",
         descr=view.description,
-        plotargs=dict(kind="area", colormap="Paired", figsize=figsize) | plotargs,
+        plotargs=dict(kind="area", colormap="Paired", figsize=figsize) | style.plot_kwargs,
     )
     latency_cols = ["synchronizer latency", "renderer latency", "max renderer latency"]
     latency_colors = ["blue", "red", "yellow"]
@@ -297,59 +349,46 @@ def render_latencies(view: LatencyView, *, title: str="Latency contributions (ms
         max_voice_latency = view.end2end["voice latency"].max()
         if not pd.isna(max_voice_latency):
             max_latency = max(max_latency, max_voice_latency)
-    if max_y != 0:
-        ax.set_ylim(0, max_y)
-    else:
-        ax.set_ylim(0, max_latency * 1.1)
+    ax.set_ylim(0, max_latency * 1.1)  # auto-scale; _apply_style overrides top if ylim_top is set
     ax.set_xlim(left=0)
-    handles, labels = pyplot.gca().get_legend_handles_labels()
-    nrows = -(-len(labels) // ncols)  # ceiling division
-    reordered_handles = handles
-    reordered_labels = [label.capitalize() for label in labels]
-    if use_row_major and ncols > 1:
-        reordered_handles = []
-        reordered_labels = []
-        for i in range(ncols):
-            for j in range(nrows):
-                index = i + j * ncols
-                if index < len(labels):
-                    reordered_handles.append(handles[index])
-                    reordered_labels.append(labels[index].capitalize())
-    ax.legend(reordered_handles[::-1], reordered_labels[::-1], loc='upper left', fontsize='small', prop=legend_dict, labelspacing=labelspacing, ncols=ncols)
-    pyplot.xticks(**tick_dict)
-    pyplot.yticks(**tick_dict)
-    pyplot.xlabel("Session time (s)", **label_dict)
-    pyplot.ylabel("Latency (ms)", **label_dict)
+    pyplot.xlabel("Session time (s)")
+    pyplot.ylabel("Latency (ms)")
+    _apply_style(ax, style, reverse_legend=True, capitalize_labels=True)
     return [ax]
 
 
-def render_framerates(view: FramerateView, *, title: str="Frames per second", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_framerates(view: FramerateView, *, title: str="Frames per second", style: PlotStyle=PlotStyle()) -> List[Axes]:
     """Render frames-per-second from a FramerateView."""
-    actual_plotargs = ({} if figsize is None else {"figsize": figsize}) | plotargs
-    return [_plot_dataframe(view.fps, noshow=True, title=title, x="sessiontime", descr=view.description, plotargs=actual_plotargs)]
+    actual_plotargs = ({} if style.figsize is None else {"figsize": style.figsize}) | style.plot_kwargs
+    ax = _plot_dataframe(view.fps, noshow=True, title=title, x="sessiontime", descr=view.description, plotargs=actual_plotargs)
+    _apply_style(ax, style)
+    return [ax]
 
 
-def render_framerates_dropped(view: FramerateView, *, title: str="FPS dropped", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_framerates_dropped(view: FramerateView, *, title: str="FPS dropped", style: PlotStyle=PlotStyle()) -> List[Axes]:
     """Render dropped-frames-per-second from a FramerateView."""
-    actual_plotargs = ({} if figsize is None else {"figsize": figsize}) | plotargs
-    return [_plot_dataframe(view.fps_dropped, noshow=True, title=title, x="sessiontime", descr=view.description, plotargs=actual_plotargs)]
+    actual_plotargs = ({} if style.figsize is None else {"figsize": style.figsize}) | style.plot_kwargs
+    ax = _plot_dataframe(view.fps_dropped, noshow=True, title=title, x="sessiontime", descr=view.description, plotargs=actual_plotargs)
+    _apply_style(ax, style)
+    return [ax]
 
 
-def render_framerates_and_dropped(view: FramerateView, *, figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_framerates_and_dropped(view: FramerateView, *, style: PlotStyle=PlotStyle()) -> List[Axes]:
     """Render fps and dropped-fps subplots from a FramerateView."""
-    return render_framerates(view, figsize=figsize, plotargs=plotargs) + render_framerates_dropped(view, figsize=figsize, plotargs=plotargs)
+    return render_framerates(view, style=style) + render_framerates_dropped(view, style=style)
 
 
-def render_pointcounts(view: PointcountView, *, title: str="Receiver point counts", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_pointcounts(view: PointcountView, *, title: str="Receiver point counts", style: PlotStyle=PlotStyle()) -> List[Axes]:
     """Render receiver point counts from a PointcountView."""
-    actual_plotargs = ({} if figsize is None else {"figsize": figsize}) | plotargs
+    actual_plotargs = ({} if style.figsize is None else {"figsize": style.figsize}) | style.plot_kwargs
     ax = _plot_dataframe(view.pointcounts, noshow=True, title=title, x="sessiontime", descr=view.description, plotargs=actual_plotargs)
     _, top = ax.get_ylim()
     ax.set_ylim(0, top * 1.5)
+    _apply_style(ax, style)
     return [ax]
 
 
-def render_progress(view: ProgressView, *, title: str="Pointcloud Progress", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_progress(view: ProgressView, *, title: str="Pointcloud Progress", style: PlotStyle=PlotStyle()) -> List[Axes]:
     """Render point cloud pipeline progress from a ProgressView."""
     df = view.progress
     columns = [c for c in df.columns if c != 'sessiontime']
@@ -387,19 +426,20 @@ def render_progress(view: ProgressView, *, title: str="Pointcloud Progress", fig
             marker = '*'
             markoffset += 15
         series = df.loc[:, ["sessiontime", y]]
-        ax = series.ffill().plot(x="sessiontime", marker=marker, markevery=(markoffset, markevery), color=color, alpha=0.5, ax=ax, **plotargs)
+        ax = series.ffill().plot(x="sessiontime", marker=marker, markevery=(markoffset, markevery), color=color, alpha=0.5, ax=ax, **style.plot_kwargs)
     assert ax
-    if figsize is not None:
-        ax.get_figure().set_size_inches(figsize)  # type: ignore
-    ax.legend(loc='upper left', fontsize='small')  # type: ignore
+    if style.figsize is not None:
+        ax.get_figure().set_size_inches(style.figsize)  # type: ignore
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
     ax.text(0.98, 0.98, view.description, transform=ax.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props)  # type: ignore
     ax.set_title(title)  # type: ignore
+    _apply_style(ax, style)
     return [ax]
 
 
 # ── plot_* convenience wrappers: DataStore → List[Axes] ───────────────────────
 # Each calls extract_*() + render_*() + publish_plots().
+# Signatures are kept backward-compatible; styling params are bridged to PlotStyle.
 
 def plot_pointcounts(ds: DataStore, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False) -> List[Axes]:
     axes = render_pointcounts(extract_pointcounts(ds))
@@ -426,22 +466,34 @@ def plot_latencies_per_tile(ds: DataStore, dirname: Optional[str]=None, showplot
     return axes
 
 def plot_latencies(ds: DataStore, dpi: float|Literal["figure"]="figure", format: str="pdf", file_name: str="latencies.pdf", title: str="Latency contributions (ms)", label_dict: Dict[str, Any]={}, tick_dict: Dict[str, Any]={}, legend_dict: Dict[str, Any]={}, labelspacing: float=0.5, ncols: int=1, use_row_major: bool=False, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False, max_y: float=0, figsize: Tuple[int, int]=(6, 4), show_disruptions: bool=False, plotargs: Dict[str, Any]={}) -> List[Axes]:
-    axes = render_latencies(extract_latencies(ds), title=title, label_dict=label_dict, tick_dict=tick_dict, legend_dict=legend_dict, labelspacing=labelspacing, ncols=ncols, use_row_major=use_row_major, max_y=max_y, figsize=figsize, show_disruptions=show_disruptions, plotargs=plotargs)
+    legend_kwargs: Dict[str, Any] = {'labelspacing': labelspacing, 'ncols': ncols}
+    if legend_dict:
+        legend_kwargs['prop'] = legend_dict
+    style = PlotStyle(
+        figsize=figsize,
+        ylim_top=max_y,
+        plot_kwargs=plotargs,
+        label_kwargs=label_dict,
+        tick_kwargs=tick_dict,
+        legend_kwargs=legend_kwargs,
+        legend_row_major=use_row_major,
+    )
+    axes = render_latencies(extract_latencies(ds), title=title, style=style, show_disruptions=show_disruptions)
     publish_plots(axes, dirname=dirname, file_name=file_name, format=format, dpi=dpi, showplot=showplot, saveplot=saveplot)
     return axes
 
 def plot_framerates(ds: DataStore, plotargs: Dict[str, Any]={}) -> List[Axes]:
-    return render_framerates(extract_framerates(ds), plotargs=plotargs)
+    return render_framerates(extract_framerates(ds), style=PlotStyle(plot_kwargs=plotargs))
 
 def plot_framerates_dropped(ds: DataStore, plotargs: Dict[str, Any]={}) -> List[Axes]:
-    return render_framerates_dropped(extract_framerates(ds), plotargs=plotargs)
+    return render_framerates_dropped(extract_framerates(ds), style=PlotStyle(plot_kwargs=plotargs))
 
 def plot_framerates_and_dropped(ds: DataStore, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False, plotargs: Dict[str, Any]={}) -> List[Axes]:
-    axes = render_framerates_and_dropped(extract_framerates(ds), plotargs=plotargs)
+    axes = render_framerates_and_dropped(extract_framerates(ds), style=PlotStyle(plot_kwargs=plotargs))
     publish_plots(axes, dirname=dirname, file_name="framerates.pdf", showplot=showplot, saveplot=saveplot)
     return axes
 
 def plot_progress(ds: DataStore, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False, plotargs: Dict[str, Any]={}) -> List[Axes]:
-    axes = render_progress(extract_progress(ds), plotargs=plotargs)
+    axes = render_progress(extract_progress(ds), style=PlotStyle(plot_kwargs=plotargs))
     publish_plots(axes, dirname=dirname, file_name="progress.pdf", showplot=showplot, saveplot=saveplot)
     return axes
