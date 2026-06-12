@@ -174,7 +174,7 @@ def render_resources(view: ResourceView, dirname: Optional[str]=None, showplot: 
     return ax1, ax2, ax3
 
 
-def plot_latencies_for_tile(df : pd.DataFrame, tilenum : int, ax : Axes, sender : str="sender", receiver : str="receiver") -> Axes:
+def _plot_latencies_for_tile(df : pd.DataFrame, tilenum : int, ax : Axes, sender : str="sender", receiver : str="receiver") -> Axes:
     fields = [
         f"{sender}.pc.grabber.downsample_ms",
         f"{sender}.pc.grabber.encoder_queue_ms",
@@ -215,7 +215,7 @@ def render_latencies_per_tile(view: LatencyPerTileView, dirname: Optional[str]=N
     fig.set_figheight(fig.get_figheight() * (view.nTiles - 1))
     fig.set_figwidth(fig.get_figwidth() * 1.5)
     for i in range(view.nTiles):
-        plot_latencies_for_tile(view.per_tile, i, axs[i], sender=view.sender, receiver=view.receiver)
+        _plot_latencies_for_tile(view.per_tile, i, axs[i], sender=view.sender, receiver=view.receiver)
     handles, labels = axs[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc='center right') # type: ignore
     pyplot.subplots_adjust(right=0.66)
