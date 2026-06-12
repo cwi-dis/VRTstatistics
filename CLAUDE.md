@@ -179,8 +179,6 @@ The specific case that motivated this: VR2Gather on Windows with a European loca
 ## Known Issues / Historical Artifacts
 
 - **`VRTstatistics-combine`** appears in the installed `.venv/bin` but is not in the current `setup.cfg` — leftover from an older version.
-- **`scripts/` at repo root** (`getlogs.sh`, `genplots.sh`, etc.) — explicitly documented as outdated in `readme.md`. Probably dead.
-- **`plot_latencies_rev()`** in `plots.py` — an experimental variant (sender/receiver roles reversed?), not in `__all__`, not documented. Needs review.
 - **`analyze.py` TileCombiner logic** — the interaction between `combined`, `keep`, and `previous_filter` is subtle and the code has some rough edges (e.g. the length-adjustment loop at lines 95-99). Worth a cleanup pass.
 - **No example Jupyter notebooks** despite Jupyter being a stated dependency and the readme recommending it.
 - **`readme.md`** still has an "Analyzing the results: To be provided" section and an "Old readme" section that contradicts the current workflow.
