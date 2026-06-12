@@ -8,7 +8,7 @@ This repo contains three Python packages with a shared `.venv`, managed as a mon
 |---|---|---|
 | `VRTrunserver` | `VRTrunserver` | Flask HTTP server (port 5002) embedded in VR2Gather builds; responds to commands from VRTrun |
 | `VRTrun` | `VRTrun` | Remote-control client: reads `config/runconfig.json`, uploads per-machine configs, starts players, collects results |
-| `VRTstatistics` | `VRTstatistics-ingest`, `-filter`, `-plot`, `-stats2json` | Parses log files, annotates and aligns multi-machine data, produces matplotlib plots and CSV exports |
+| `VRTstatistics` | `VRTstatistics-ingest`, `-annotate`, `-filter`, `-plot`, `-stats2json` | Parses log files, annotates and aligns multi-machine data, produces matplotlib plots; `-filter` exports selected fields to CSV |
 
 ## Development workflow
 
@@ -82,9 +82,8 @@ stats: component=PointCloudRenderer#7, seq=1234, ts=12.345, fps=30, ...
 
 ### DataStore
 
-`datastore.py` is the central data container. It loads `.log`, `.json`, or `.csv` files and exposes:
+`datastore.py` is the central data container. It loads `.log` or `.json` files and exposes:
 - `get_dataframe(predicate, fields)` — returns a pandas DataFrame
-- `filter(predicate, fields)` — returns a filtered DataStore
 - `find_first_record(predicate)` / `find_all_records(predicate)`
 
 Predicates are Python boolean expressions evaluated with the record fields as globals. The special name `record` refers to the whole dict, e.g. `'"fps" in record'`.

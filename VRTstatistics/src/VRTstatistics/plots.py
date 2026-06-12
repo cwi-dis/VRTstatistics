@@ -306,7 +306,7 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
     :type ncols: int
     :param use_row_major: If ncols > 1 use row-major ordering in stead of column-major ordering for legend.
     :type use_row_major: bool
-    :param dirname: Name of directory where plots and CSV files are saved
+    :param dirname: Name of directory where plots are saved
     :type dirname: Optional[str]
     :param showplot: If true also show the plot on-screen
     :type showplot: bool

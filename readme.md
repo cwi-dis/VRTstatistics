@@ -268,28 +268,19 @@ For example, the latency annotator will lookup the `component` field (which may 
 
 > **Note**: This section is outdated.
 
-Converting to CSV and filtering can be done with
-`VRTstatistics.scripts.filter`. It has a predicate argument allowing you to select the records you want to save. Each field can be addressed by name, so `sessiontime > 1 and sessiontime < 5` selects on sessiontime. Also, `record` has all fields, so `"fps" in record` can be used to select all records with an `fps` field.
+Exporting to CSV can be done with `VRTstatistics-filter` (`VRTstatistics.scripts.filter`). It has a predicate argument allowing you to select the records you want to save. Each field can be addressed by name, so `sessiontime > 1 and sessiontime < 5` selects on sessiontime. Also, `record` has all fields, so `"fps" in record` can be used to select all records with an `fps` field.
 
-You can specify the fields to be in the output file (default: all), which is especially good for CSV output.
+You can specify the fields to be in the output file (default: all).
 
-You can also specify that that output field name is taken from an input field. So something like `role=fps` will add a column per `role`, and fill in the value from `fps` in that column.
+You can also specify that the output field name is taken from an input field. So something like `role=fps` will add a column per `role`, and fill in the value from `fps` in that column.
 
 Example, for untiled session:
 
 ```
-python -m VRTstatistics.scripts.filter combined/sessionname.json sessionname-latency.csv -p '"PointBufferRenderer" in component' sessiontime role=pc_latency_ms
+VRTstatistics-filter -d combined/sessionname.json -o sessionname-latency.csv -p '"PointBufferRenderer" in component' sessiontime role=pc_latency_ms
 ```
 
 Will create a 3-column CSV file with latencies for sender (self view) and receiver.
-
-You can then plot the data:
-
-```
-python -m VRTstatistics.scripts.plot sessionname-latency.csv
-```
-
-The plotter has options to save to file, select the X axis, more. Use `--help` to see the options.
 
 ### Filtering observer camera
 
