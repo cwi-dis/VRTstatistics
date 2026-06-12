@@ -79,7 +79,7 @@ class ProgressView(View):
     progress: pd.DataFrame
 
 
-def extract_latencies(ds: DataStore) -> LatencyView:
+def extract_latencies(ds: DataStore, *, show_framedrops: bool = False, show_tileswitches: bool = False) -> LatencyView:
     """Extract latency contribution data from a DataStore."""
     engine.ensure(ds, "latency")
     sender = ds.applied_annotations["latency"]["sender"]
@@ -123,27 +123,25 @@ def extract_latencies(ds: DataStore) -> LatencyView:
     )
     end2end = end2end_filter(end2end)
 
-    framedrops_df = ds.get_dataframe(fields=['component', 'sessiontime', 'fps_dropped'])
-    framedrops_df = framedrops_df[framedrops_df['fps_dropped'] > 0].copy()
-    framedrops: Optional[pd.DataFrame]
-    if framedrops_df.shape[0] > 0:
-        framedrops_df.loc[:, 'fps_dropped'] = 1
-        framedrops_df.rename(columns={'fps_dropped': 'PC Drop event'}, inplace=True)
-        framedrops = framedrops_df
-    else:
-        framedrops = None
+    framedrops: Optional[pd.DataFrame] = None
+    if show_framedrops:
+        framedrops_df = ds.get_dataframe(fields=['component', 'sessiontime', 'fps_dropped'])
+        framedrops_df = framedrops_df[framedrops_df['fps_dropped'] > 0].copy()
+        if framedrops_df.shape[0] > 0:
+            framedrops_df.loc[:, 'fps_dropped'] = 1
+            framedrops_df.rename(columns={'fps_dropped': 'PC Drop event'}, inplace=True)
+            framedrops = framedrops_df
 
-    tileswitches_df = ds.get_dataframe(
-        predicate='"component_role" in record and component_role == "receiver.pc.tileselector" and "tile0" in record',
-        fields=['sessiontime', 'component']
-    )
-    tileswitches: Optional[pd.DataFrame]
-    if tileswitches_df.shape[0] > 0:
-        tileswitches_df = tileswitches_df.assign(tile_switch=0)
-        tileswitches_df.rename(columns={'tile_switch': 'Tile switch event'}, inplace=True)
-        tileswitches = tileswitches_df
-    else:
-        tileswitches = None
+    tileswitches: Optional[pd.DataFrame] = None
+    if show_tileswitches:
+        tileswitches_df = ds.get_dataframe(
+            predicate='"component_role" in record and component_role == "receiver.pc.tileselector" and "tile0" in record',
+            fields=['sessiontime', 'component']
+        )
+        if tileswitches_df.shape[0] > 0:
+            tileswitches_df = tileswitches_df.assign(tile_switch=0)
+            tileswitches_df.rename(columns={'tile_switch': 'Tile switch event'}, inplace=True)
+            tileswitches = tileswitches_df
 
     return LatencyView(
         description=ds.describe(),

@@ -315,7 +315,7 @@ def render_latencies_per_tile(view: LatencyPerTileView, *, style: PlotStyle=Plot
     return list(axs)
 
 
-def render_latencies(view: LatencyView, *, title: str="Latency contributions (ms)", style: PlotStyle=PlotStyle(), show_disruptions: bool=False) -> List[Axes]:
+def render_latencies(view: LatencyView, *, title: str="Latency contributions (ms)", style: PlotStyle=PlotStyle()) -> List[Axes]:
     """
     Render latency contributions from a LatencyView.
 
@@ -336,11 +336,10 @@ def render_latencies(view: LatencyView, *, title: str="Latency contributions (ms
         latency_cols.append("voice latency")
         latency_colors.append("green")
     view.end2end.interpolate().plot(x="sessiontime", y=latency_cols, ax=ax, color=latency_colors)
-    if show_disruptions:
-        if view.framedrops is not None:
-            view.framedrops.plot(x='sessiontime', y=['PC Drop event'], marker='|', linestyle='None', color='red', ax=ax, zorder=4)
-        if view.tileswitches is not None:
-            view.tileswitches.plot(x='sessiontime', y=['Tile switch event'], marker='x', linestyle='None', color='blue', ax=ax, zorder=5)
+    if view.framedrops is not None:
+        view.framedrops.plot(x='sessiontime', y=['PC Drop event'], marker='|', linestyle='None', color='red', ax=ax, zorder=4)
+    if view.tileswitches is not None:
+        view.tileswitches.plot(x='sessiontime', y=['Tile switch event'], marker='x', linestyle='None', color='blue', ax=ax, zorder=5)
     max_latency = view.end2end["renderer latency"].max()
     max_max_latency = view.end2end["max renderer latency"].max()
     max_sync_latency = view.end2end["synchronizer latency"].max()
@@ -478,7 +477,7 @@ def plot_latencies(ds: DataStore, dpi: float|Literal["figure"]="figure", format:
         legend_kwargs=legend_kwargs,
         legend_row_major=use_row_major,
     )
-    axes = render_latencies(extract_latencies(ds), title=title, style=style, show_disruptions=show_disruptions)
+    axes = render_latencies(extract_latencies(ds, show_framedrops=show_disruptions, show_tileswitches=show_disruptions), title=title, style=style)
     publish_plots(axes, dirname=dirname, file_name=file_name, format=format, dpi=dpi, showplot=showplot, saveplot=saveplot)
     return axes
 
