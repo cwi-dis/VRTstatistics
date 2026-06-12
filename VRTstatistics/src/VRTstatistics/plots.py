@@ -238,7 +238,7 @@ def plot_latencies_for_tile(df : pd.DataFrame, tilenum : int, ax : Axes, sender 
     ax.set_title(f"Per-tile Latency contributions, tile={tilenum}") # type: ignore
     return ax
  
-def plot_latencies_per_tile(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False) -> Axes:
+def plot_latencies_per_tile(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False) -> List[Axes]:
     engine.ensure(ds, "latency")
     receiver = ds.applied_annotations["latency"]["receiver"]
     nTiles = ds.applied_annotations["latency"].get("nTiles", 1)
@@ -258,7 +258,6 @@ def plot_latencies_per_tile(ds : DataStore, dirname : Optional[str]=None, showpl
         'component_role.=latency_max_ms',
         ]
     df = ds.get_dataframe(predicate=predicate, fields=fields)
-    ax = None
     fig : Figure
     axs : List[Axes]
     fig, axs = pyplot.subplots(nTiles, 1, sharex=True, sharey=True) # type: ignore
@@ -275,7 +274,7 @@ def plot_latencies_per_tile(ds : DataStore, dirname : Optional[str]=None, showpl
         _save_multi_plot(os.path.join(dirname, "latencies-per-tile.pdf"))
     if showplot:
         pyplot.show() # type: ignore
-    return ax
+    return axs
    
 def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", format : str="pdf", file_name : str="latencies.pdf", title : str="Latency contributions (ms)", label_dict : Dict[str, Any]={}, tick_dict : Dict[str, Any]={}, legend_dict : Dict[str, Any]={}, labelspacing : float=0.5, ncols : int=1, use_row_major : bool=False, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, max_y : float=0, show_desc : bool=True, figsize : Tuple[int, int]=(6, 4), show_legend : bool=True, show_disruptions : bool=False, plotargs : Dict[str, Any]={}) -> Axes:
     """
