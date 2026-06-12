@@ -201,8 +201,8 @@ def plot_latencies_for_tile(df : pd.DataFrame, tilenum : int, ax : Axes, sender 
         f"{receiver}.pc.renderer.{tilenum}.latency_ms",
         f"{receiver}.pc.renderer.{tilenum}.latency_max_ms",
         ]
-    ax = df.interpolate(method='pad').plot(x="sessiontime", y=fields, kind="area", colormap="Paired", ax=ax, legend=False)
-    df.interpolate(method='pad').plot(x="sessiontime", y=latency_fields, ax=ax, color=["blue", "red", "yellow"], legend=False)
+    ax = df.ffill().plot(x="sessiontime", y=fields, kind="area", colormap="Paired", ax=ax, legend=False)
+    df.ffill().plot(x="sessiontime", y=latency_fields, ax=ax, color=["blue", "red", "yellow"], legend=False)
     ax.set_title(f"Per-tile Latency contributions, tile={tilenum}") # type: ignore
     return ax
 
@@ -383,7 +383,7 @@ def render_progress(view: ProgressView, dirname: Optional[str]=None, showplot: b
             marker = '*'
             markoffset += 15
         series = df.loc[:, ["sessiontime", y]]
-        ax = series.interpolate(method='pad').plot(x="sessiontime", marker=marker, markevery=(markoffset, markevery), color=color, alpha=0.5, ax=ax, **plotargs)
+        ax = series.ffill().plot(x="sessiontime", marker=marker, markevery=(markoffset, markevery), color=color, alpha=0.5, ax=ax, **plotargs)
     assert ax
     ax.legend(loc='upper left', fontsize='small') # type: ignore
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
