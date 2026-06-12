@@ -496,3 +496,13 @@ def plot_progress(ds: DataStore, dirname: Optional[str]=None, showplot: bool=Tru
     axes = render_progress(extract_progress(ds), style=PlotStyle(plot_kwargs=plotargs))
     publish_plots(axes, dirname=dirname, file_name="progress.pdf", showplot=showplot, saveplot=saveplot)
     return axes
+
+
+# ── Register renderers ─────────────────────────────────────────────────────────
+
+LatencyView.register_renderer(render_latencies)
+LatencyPerTileView.register_renderer(render_latencies_per_tile)
+ResourceView.register_renderer(render_resources)
+FramerateView.register_renderer(render_framerates_and_dropped)
+PointcountView.register_renderer(render_pointcounts)
+ProgressView.register_renderer(render_progress)

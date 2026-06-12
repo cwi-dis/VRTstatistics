@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import ClassVar, Optional
+from typing import Any, Callable, ClassVar, Dict, Optional, Type
 import pandas as pd
 
 from .datastore import DataStore
@@ -27,13 +27,48 @@ __all__ = [
 @dataclass
 class View:
     """Base class for extracted plot data. Carries named DataFrames ready for rendering or CSV export."""
-    description: str
+    _registry: ClassVar[Dict[str, Type[View]]] = {}
+    name: ClassVar[str] = ""
+    default_filename: ClassVar[str] = ""
     required_annotation: ClassVar[Optional[str]] = None
+    description: str
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        if cls.name:
+            View._registry[cls.name] = cls
+
+    @classmethod
+    def register_extractor(cls, extractor: Callable) -> None:
+        """Register a function as the extractor for this View type. Can be called again to override."""
+        cls._extractor = extractor
+
+    @classmethod
+    def register_renderer(cls, renderer: Callable) -> None:
+        """Register a function as the renderer for this View type. Can be called again to override."""
+        cls._renderer = renderer
+
+    @classmethod
+    def extract(cls, ds: DataStore, **kwargs: Any) -> View:
+        """Extract a View from a DataStore using the registered extractor."""
+        extractor = getattr(cls, '_extractor', None)
+        if extractor is None:
+            raise NotImplementedError(f"No extractor registered for {cls.__name__}")
+        return extractor(ds, **kwargs)
+
+    def render(self, **kwargs: Any) -> list:
+        """Render this View using the registered renderer."""
+        renderer = getattr(type(self), '_renderer', None)
+        if renderer is None:
+            raise NotImplementedError(f"No renderer registered for {type(self).__name__}")
+        return renderer(self, **kwargs)
 
 
 @dataclass
 class LatencyView(View):
-    """Extracted latency contribution data: pipeline stage durations, end-to-end latencies, and disruption events."""
+    """Latency contributions: pipeline stage durations and end-to-end latency."""
+    name: ClassVar[str] = "latencies"
+    default_filename: ClassVar[str] = "latencies.pdf"
     required_annotation: ClassVar[str] = "latency"
     area: pd.DataFrame
     end2end: pd.DataFrame
@@ -43,7 +78,9 @@ class LatencyView(View):
 
 @dataclass
 class LatencyPerTileView(View):
-    """Extracted per-tile latency data for multi-tile sessions."""
+    """Per-tile latency breakdown for multi-tile sessions."""
+    name: ClassVar[str] = "latencies-per-tile"
+    default_filename: ClassVar[str] = "latencies-per-tile.pdf"
     required_annotation: ClassVar[str] = "latency"
     per_tile: pd.DataFrame
     nTiles: int
@@ -53,13 +90,17 @@ class LatencyPerTileView(View):
 
 @dataclass
 class ResourceView(View):
-    """Extracted resource usage data: CPU, memory, and bandwidth per role."""
+    """Resource usage: CPU, memory, and bandwidth per role."""
+    name: ClassVar[str] = "resources"
+    default_filename: ClassVar[str] = "resources.pdf"
     resources: pd.DataFrame
 
 
 @dataclass
 class FramerateView(View):
-    """Extracted framerate data: frames per second and dropped frames per pipeline stage."""
+    """Frame rates and dropped frames per pipeline stage."""
+    name: ClassVar[str] = "framerates"
+    default_filename: ClassVar[str] = "framerates.pdf"
     required_annotation: ClassVar[str] = "latency"
     fps: pd.DataFrame
     fps_dropped: pd.DataFrame
@@ -67,14 +108,18 @@ class FramerateView(View):
 
 @dataclass
 class PointcountView(View):
-    """Extracted receiver point count data."""
+    """Receiver point counts over session time."""
+    name: ClassVar[str] = "pointcounts"
+    default_filename: ClassVar[str] = "pointcounts.pdf"
     required_annotation: ClassVar[str] = "latency"
     pointcounts: pd.DataFrame
 
 
 @dataclass
 class ProgressView(View):
-    """Extracted point cloud pipeline progress data (aggregate packet sequence numbers per stage)."""
+    """Point cloud pipeline progress: aggregate packet sequence numbers per stage."""
+    name: ClassVar[str] = "progress"
+    default_filename: ClassVar[str] = "progress.pdf"
     required_annotation: ClassVar[str] = "latency"
     progress: pd.DataFrame
 
@@ -280,3 +325,13 @@ def extract_progress(ds: DataStore) -> ProgressView:
                 df[col] = df[col] / (nTiles * nQualities)
 
     return ProgressView(description=ds.describe(), progress=df)
+
+
+# ── Register extractors ────────────────────────────────────────────────────────
+
+LatencyView.register_extractor(extract_latencies)
+LatencyPerTileView.register_extractor(extract_latencies_per_tile)
+ResourceView.register_extractor(extract_resources)
+FramerateView.register_extractor(extract_framerates)
+PointcountView.register_extractor(extract_pointcounts)
+ProgressView.register_extractor(extract_progress)
