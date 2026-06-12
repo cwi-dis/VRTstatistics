@@ -160,7 +160,18 @@ def _df_to_pc_index(df : pd.DataFrame, columns : List[str]) -> pd.DataFrame:
     return rv
     
 def dataframe_to_pcindex_for_tile(dataframe : pd.DataFrame, tilenum : int, include_sender : bool=False, sender : str="sender", receiver : str="receiver") -> pd.DataFrame:
-    """Convert a sessiontime-indexed dataframe to a pcindex-indexed dataframe"""
+    """
+    Re-index a progress dataframe from session-time rows to per-pointcloud rows for one tile.
+
+    Input: a dataframe with sessiontime rows and aggregate_packets columns per pipeline stage
+    (e.g. receiver.pc.reader.0, receiver.pc.decoder.0, receiver.pc.preparer.0).
+    Each column value is a point-cloud sequence number; each row is when that stage
+    reported receiving that sequence number.
+
+    Output: a dataframe indexed by point-cloud sequence number, with one column per stage
+    holding the session time when that stage received that point cloud.
+    Stages that never received a given point cloud have NaN for that row.
+    """
     cols = [
         f'{receiver}.pc.reader.{tilenum}',
         f'{receiver}.pc.decoder.{tilenum}',
@@ -171,6 +182,18 @@ def dataframe_to_pcindex_for_tile(dataframe : pd.DataFrame, tilenum : int, inclu
     return _df_to_pc_index(dataframe, cols)
 
 def dataframe_to_pcindex_latencies_for_tile(dataframe : pd.DataFrame, tilenum : int, sender : str="sender", receiver : str="receiver") -> pd.DataFrame:
+    """
+    For each point cloud received on one tile, compute how long after reader arrival each
+    subsequent receiver stage (decoder, preparer) received that same point cloud.
+
+    Input: same progress dataframe as dataframe_to_pcindex_for_tile.
+    Output: a dataframe with one row per point cloud, columns:
+      - sessiontime: when the reader received this point cloud (x-axis for plotting)
+      - receiver.pc.decoder.{tilenum}.latency: seconds after reader arrival the decoder received it
+      - receiver.pc.preparer.{tilenum}.latency: seconds after reader arrival the preparer received it
+
+    Used by plot_progress_latency (in mmsys_2025; not yet in VRTstatistics — see issue #21).
+    """
     rv = dataframe_to_pcindex_for_tile(dataframe, tilenum, include_sender=False, sender=sender, receiver=receiver)
     basecol = rv[f'{receiver}.pc.reader.{tilenum}.sessiontime']
 
