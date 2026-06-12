@@ -264,33 +264,6 @@ Another option is the export only the data you want as a CSV file, for easy proc
 
 For example, the latency annotator will lookup the `component` field (which may be something like `PointCloudRenderer#7`) and create a `component_role` field like `receiver.pointcloud.renderer.tile.2` which tells you what this record is about in the context of your measurements.
 
-## Getting the data
-
-> **Note**: This section is outdated.
-
-### Two-machine runs
-
-Edit `getlogs.sh` and fix the hostnames and log file paths.
-
-Create a directory to store the data.
-
-Get the statistics logfiles from the machines and give them a logical name:
-
-```
-cd .../data
-mkdir todays-measurements
-cd todays-measurements
-.../scripts/getlogs.sh
-```
-
-This will get the logfiles, turn them into json and combine them. It will also show an initial plot, to give you some confidence you've gotten the correct data (plotting the pointcounts of the renderers over time).
-
-The file `combined.json` contains all the combined data from the run.
-
-### One-machine run
-
-If you're only interested in statistics of a single machine, inspect the `getlogs.sh` script and simply execute the corresponding (python) commands.
-
 ## Analysing the data
 
 > **Note**: This section is outdated.
@@ -339,9 +312,7 @@ accurate data. Please double check the results.
 
 ## Performance testing guidelines
 
-Writing this down here because I keep forgetting.
-
-The `getlogs-jitter.sh` script shows some graphs after getting the data and processing it that help you judge whether the data makes sense.
+Writing this down here because I keep forgetting. After running the plots, check:
 
 1. First graph is points per cloud. Ensure that this has the shape you expect, given the prerecorded stream you think you've selected, or however the subject moved in front of the camera.
 2. Second graph is latencies, end-to-end and from different components. Eyeball and apply common sense.
