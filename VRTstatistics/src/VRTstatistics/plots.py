@@ -7,7 +7,7 @@ import matplotlib.pyplot as pyplot
 from matplotlib.backends.backend_pdf import PdfPages
 
 from .datastore import DataStore, DataStoreError, Predicate
-from .analyze import DataFrameFilter, TileCombiner, SessionTimeFilter, dataframe_to_pcindex_latencies_for_tile
+from .analyze import DataFrameFilter, TileCombiner, SessionTimeFilter
 from .annotation import engine
 
 __all__ = [
@@ -277,7 +277,7 @@ def plot_latencies_per_tile(ds : DataStore, dirname : Optional[str]=None, showpl
         pyplot.show() # type: ignore
     return ax
    
-def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", format : str="pdf", file_name : str="latencies.pdf", title : str="Latency contributions (ms)", label_dict : Dict[str, Any]={}, tick_dict : Dict[str, Any]={}, legend_dict : Dict[str, Any]={}, labelspacing : float=0.5, ncols : int=1, use_row_major : bool=False, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, max_y : float=0, show_sync : bool=True, show_desc : bool=True, figsize : Tuple[int, int]=(6, 4), show_legend : bool=True, show_disruptions : bool=False, plotargs : Dict[str, Any]={}) -> Axes:
+def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", format : str="pdf", file_name : str="latencies.pdf", title : str="Latency contributions (ms)", label_dict : Dict[str, Any]={}, tick_dict : Dict[str, Any]={}, legend_dict : Dict[str, Any]={}, labelspacing : float=0.5, ncols : int=1, use_row_major : bool=False, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, max_y : float=0, show_desc : bool=True, figsize : Tuple[int, int]=(6, 4), show_legend : bool=True, show_disruptions : bool=False, plotargs : Dict[str, Any]={}) -> Axes:
     """
     Plot latency contributions over time.
 
@@ -439,10 +439,8 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
         for i in range(ncols):
             for j in range(nrows):
                 index = i + j * ncols
-                print(index)
                 if index < len(labels):
                     reordered_handles.append(handles[index])
-                    print(handles[index].get_color())
                     reordered_labels.append(labels[index].capitalize())
     #
     # Set legend, ticks and axis labels.

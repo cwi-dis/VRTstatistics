@@ -43,7 +43,6 @@ def main():
         sys.stderr.write(f"Attach debugger to pid={os.getpid()}. Press return to continue - ")
         sys.stderr.flush()
         sys.stdin.readline()
-    predicate = None
     datastore = DataStore(args.datastore)
     datastore.load()
     plt = plot_simple(datastore, title=args.title, noshow=not not args.output, predicate=args.predicate, x=args.x, fields=args.fields)

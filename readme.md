@@ -132,7 +132,7 @@ This is what the `prerecorded` variant in the VR2Gather `RepresentationPointclou
 
 See [testing.md](testing.md) for a full end-to-end walkthrough including ingesting logs and producing plots.
 
-Quick summary: after a run, use `VRTstatistics-ingest -a LatencyCombinedAnnotator` (or `--norun <dir>` to re-ingest an existing run). Results land in `run-YYYYMMDD-HHMM/combined.json`. Plot with:
+Quick summary: after a run, use `VRTstatistics-ingest -a latency` (or `--norun <dir>` to re-ingest an existing run). Results land in `run-YYYYMMDD-HHMM/combined.json`. Plot with:
 
 ```python
 from VRTstatistics.datastore import DataStore

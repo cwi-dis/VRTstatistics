@@ -123,13 +123,11 @@ The `Annotator` examines structure records early in each log to identify pipelin
 
 ### Annotators
 
-`annotator.py` contains the annotator hierarchy:
-- `Annotator` — base: aligns timestamps, adds `sessiontime` and `role` fields
-- `LatencySenderAnnotator` / `LatencyReceiverAnnotator` — add `component_role`; discover protocol, nTiles, nQualities
-- `LatencyCombinedAnnotator` — merges sender + receiver into one sorted DataStore; records experiment metadata (protocol, nTiles, desync, usernames)
-
-The `combine()` function drives the full annotation pipeline.
-The `deserialize()` function reconstructs an Annotator from the metadata embedded in `combined.json`.
+`annotation.py` contains the annotation system:
+- `AnnotationStep` — base class for a single annotation pass
+- `AnnotationEngine` — registry and driver; `engine.ensure(ds, "latency")` runs the named step if not already applied
+- `ComponentRoleAnnotation` — adds `component_role` field; discovers protocol, nTiles, nQualities
+- `LatencyAnnotation` — aligns clocks, merges sender + receiver, records experiment metadata
 
 ### Plotting (plots.py)
 
