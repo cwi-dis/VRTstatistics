@@ -179,7 +179,7 @@ def extract_legend(axes: List[Axes], **legend_kwargs) -> List[Axes]:
 # Pure plot creation: always renders everything (legend, description box, etc.).
 # No output control — use publish_plots() for saving/showing.
 
-def render_resource_cpu(view: ResourceView, title: str="CPU usage", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_resource_cpu(view: ResourceView, *, title: str="CPU usage", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render CPU usage from a ResourceView."""
     cpu_cols = [c for c in view.resources.columns if c != 'sessiontime' and c.endswith('.cpu')]
     actual_plotargs = ({} if figsize is None else {"figsize": figsize}) | plotargs
@@ -189,7 +189,7 @@ def render_resource_cpu(view: ResourceView, title: str="CPU usage", figsize: Opt
     return [ax]
 
 
-def render_resource_mem(view: ResourceView, title: str="Memory usage", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_resource_mem(view: ResourceView, *, title: str="Memory usage", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render memory usage from a ResourceView."""
     mem_cols = [c for c in view.resources.columns if c != 'sessiontime' and c.endswith('.mem')]
     actual_plotargs = ({} if figsize is None else {"figsize": figsize}) | plotargs
@@ -199,7 +199,7 @@ def render_resource_mem(view: ResourceView, title: str="Memory usage", figsize: 
     return [ax]
 
 
-def render_resource_bandwidth(view: ResourceView, title: str="Bandwidth usage", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_resource_bandwidth(view: ResourceView, *, title: str="Bandwidth usage", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render bandwidth usage from a ResourceView."""
     bw_cols = [c for c in view.resources.columns if c != 'sessiontime' and (c.endswith('.recv_bandwidth') or c.endswith('.sent_bandwidth'))]
     actual_plotargs = ({} if figsize is None else {"figsize": figsize}) | plotargs
@@ -209,7 +209,7 @@ def render_resource_bandwidth(view: ResourceView, title: str="Bandwidth usage", 
     return [ax]
 
 
-def render_resources(view: ResourceView, figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_resources(view: ResourceView, *, figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render CPU, memory, and bandwidth subplots from a ResourceView."""
     return render_resource_cpu(view, figsize=figsize, plotargs=plotargs) + render_resource_mem(view, figsize=figsize, plotargs=plotargs) + render_resource_bandwidth(view, figsize=figsize, plotargs=plotargs)
 
@@ -247,7 +247,7 @@ def _plot_latencies_for_tile(df: pd.DataFrame, tilenum: int, ax: Axes, sender: s
     return ax
 
 
-def render_latencies_per_tile(view: LatencyPerTileView, figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_latencies_per_tile(view: LatencyPerTileView, *, figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render per-tile latency subplots from a LatencyPerTileView."""
     fig: Figure
     fig, axs = pyplot.subplots(view.nTiles, 1, sharex=True, sharey=True)  # type: ignore
@@ -264,7 +264,7 @@ def render_latencies_per_tile(view: LatencyPerTileView, figsize: Optional[Tuple[
     return list(axs)
 
 
-def render_latencies(view: LatencyView, title: str="Latency contributions (ms)", label_dict: Dict[str, Any]={}, tick_dict: Dict[str, Any]={}, legend_dict: Dict[str, Any]={}, labelspacing: float=0.5, ncols: int=1, use_row_major: bool=False, max_y: float=0, figsize: Tuple[int, int]=(6, 4), show_disruptions: bool=False, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_latencies(view: LatencyView, *, title: str="Latency contributions (ms)", label_dict: Dict[str, Any]={}, tick_dict: Dict[str, Any]={}, legend_dict: Dict[str, Any]={}, labelspacing: float=0.5, ncols: int=1, use_row_major: bool=False, max_y: float=0, figsize: Tuple[int, int]=(6, 4), show_disruptions: bool=False, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """
     Render latency contributions from a LatencyView.
 
@@ -323,24 +323,24 @@ def render_latencies(view: LatencyView, title: str="Latency contributions (ms)",
     return [ax]
 
 
-def render_framerates(view: FramerateView, title: str="Frames per second", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_framerates(view: FramerateView, *, title: str="Frames per second", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render frames-per-second from a FramerateView."""
     actual_plotargs = ({} if figsize is None else {"figsize": figsize}) | plotargs
     return [_plot_dataframe(view.fps, noshow=True, title=title, x="sessiontime", descr=view.description, plotargs=actual_plotargs)]
 
 
-def render_framerates_dropped(view: FramerateView, title: str="FPS dropped", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_framerates_dropped(view: FramerateView, *, title: str="FPS dropped", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render dropped-frames-per-second from a FramerateView."""
     actual_plotargs = ({} if figsize is None else {"figsize": figsize}) | plotargs
     return [_plot_dataframe(view.fps_dropped, noshow=True, title=title, x="sessiontime", descr=view.description, plotargs=actual_plotargs)]
 
 
-def render_framerates_and_dropped(view: FramerateView, figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_framerates_and_dropped(view: FramerateView, *, figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render fps and dropped-fps subplots from a FramerateView."""
     return render_framerates(view, figsize=figsize, plotargs=plotargs) + render_framerates_dropped(view, figsize=figsize, plotargs=plotargs)
 
 
-def render_pointcounts(view: PointcountView, title: str="Receiver point counts", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_pointcounts(view: PointcountView, *, title: str="Receiver point counts", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render receiver point counts from a PointcountView."""
     actual_plotargs = ({} if figsize is None else {"figsize": figsize}) | plotargs
     ax = _plot_dataframe(view.pointcounts, noshow=True, title=title, x="sessiontime", descr=view.description, plotargs=actual_plotargs)
@@ -349,7 +349,7 @@ def render_pointcounts(view: PointcountView, title: str="Receiver point counts",
     return [ax]
 
 
-def render_progress(view: ProgressView, title: str="Pointcloud Progress", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_progress(view: ProgressView, *, title: str="Pointcloud Progress", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render point cloud pipeline progress from a ProgressView."""
     df = view.progress
     columns = [c for c in df.columns if c != 'sessiontime']
