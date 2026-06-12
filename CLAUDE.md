@@ -8,7 +8,7 @@ This repo contains three Python packages with a shared `.venv`, managed as a mon
 |---|---|---|
 | `VRTrunserver` | `VRTrunserver` | Flask HTTP server (port 5002) embedded in VR2Gather builds; responds to commands from VRTrun |
 | `VRTrun` | `VRTrun` | Remote-control client: reads `config/runconfig.json`, uploads per-machine configs, starts players, collects results |
-| `VRTstatistics` | `VRTstatistics-ingest`, `-annotate`, `-filter`, `-plot`, `-stats2json` | Parses log files, annotates and aligns multi-machine data, produces matplotlib plots; `-filter` exports selected fields to CSV |
+| `VRTstatistics` | `VRTstatistics-ingest`, `-annotate`, `-filter`, `-plot` | Parses log files, annotates and aligns multi-machine data, produces matplotlib plots; `-filter` exports selected fields to CSV |
 
 ## Development workflow
 
