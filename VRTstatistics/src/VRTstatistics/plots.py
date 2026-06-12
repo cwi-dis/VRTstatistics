@@ -9,6 +9,11 @@ from matplotlib.backends.backend_pdf import PdfPages
 from .datastore import DataStore, DataStoreError, Predicate
 from .analyze import DataFrameFilter, TileCombiner, SessionTimeFilter
 from .annotation import engine
+from .views import (
+    LatencyView, LatencyPerTileView, ResourceView, FramerateView, PointcountView, ProgressView,
+    extract_latencies, extract_latencies_per_tile, extract_resources,
+    extract_framerates, extract_pointcounts, extract_progress,
+)
 
 __all__ = [
     "plot_simple",
@@ -23,7 +28,18 @@ __all__ = [
     "plot_resource_bandwidth",
     "plot_latencies",
     "plot_latencies_per_tile",
-    ]
+    "render_latencies",
+    "render_latencies_per_tile",
+    "render_resources",
+    "render_resource_cpu",
+    "render_resource_mem",
+    "render_resource_bandwidth",
+    "render_framerates",
+    "render_framerates_dropped",
+    "render_framerates_and_dropped",
+    "render_pointcounts",
+    "render_progress",
+]
 
 def plot_simple(datastore : DataStore, *, predicate : Optional[Predicate]=None, title : Optional[str]=None, noshow : bool=False, x : str="sessiontime", fields : List[str]=[], datafilter : Optional[DataFrameFilter]=None, plotargs : Dict[str, Any]={}, show_desc : bool=True) -> Axes:
     """
@@ -54,7 +70,7 @@ def _plot_dataframe(dataframe : pd.DataFrame, *, title : Optional[str]=None, nos
     Convenience method: plot a pandas DataFrame.
 
     The plot is returned (as an Axes) but it is also the pyplot default current plot, so it is easy to save it after this call.
-    
+
     :param dataframe: the dataframe to plot
     :type dataframe: pd.DataFrame
     :param title: Optional title for the plot
@@ -95,7 +111,7 @@ def _plot_dataframe(dataframe : pd.DataFrame, *, title : Optional[str]=None, nos
 def _save_multi_plot(filename : str, dpi : float|Literal["figure"]="figure", format : str="pdf") -> None:
     """
     Convenience method: save the current pyplot figures as a multipage PDF or other file.
-    
+
     :param filename: Filename to save to
     :type filename: str
     :param dpi: Description
@@ -115,97 +131,49 @@ def _save_multi_plot(filename : str, dpi : float|Literal["figure"]="figure", for
         figs = [pyplot.figure(n) for n in fig_nums] # type: ignore
         for fig in figs:
             fig.savefig(filename, bbox_inches='tight', dpi=dpi, format=format, pad_inches=0.01) # type: ignore
-    
-def plot_pointcounts(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False) -> Axes:
-    engine.ensure(ds, "latency")
-    receiver = ds.applied_annotations["latency"]["receiver"]
-    #
-    # Plot receiver point counts
-    #
-    dataFilter = TileCombiner(f"{receiver}.pc.renderer.*.points_per_cloud", "points per cloud", "sum", combined=True, keep=True)
-    predicate=f'"{receiver}.pc.renderer" in component_role'
-    fields=['sessiontime', 'component_role.=points_per_cloud']
- 
-    ax = plot_simple(ds,
-        noshow=True, 
-        title="Receiver point counts", 
-        predicate=predicate, 
-        fields=fields,
-        datafilter=dataFilter
-        )
+
+
+def render_resource_cpu(view: ResourceView) -> Axes:
+    """Render CPU usage from a ResourceView."""
+    cpu_cols = [c for c in view.resources.columns if c != 'sessiontime' and c.endswith('.cpu')]
+    ax = _plot_dataframe(view.resources, noshow=True, title="CPU usage", x="sessiontime", fields=cpu_cols, descr=view.description)
     _, top = ax.get_ylim()
-    ax.set_ylim(0, top*1.5)
-    if saveplot:
-        if not dirname:
-            raise DataStoreError("saveplot=True requires dirname to be set")
-        _save_multi_plot(os.path.join(dirname, "pointcounts.pdf"))
-    if showplot:
-        pyplot.show() # type: ignore
+    ax.set_ylim(0, top * 1.5)
     return ax
-    
-def plot_resource_cpu(ds : DataStore) -> Axes:
-    dataFilter=SessionTimeFilter()
-    predicate='component == "ResourceConsumption"'
-    ax1 = plot_simple(ds, 
-        noshow=True, 
-        title="CPU usage", 
-        predicate=predicate, 
-        fields=[
-            'role.=cpu'
-            ],
-        datafilter=dataFilter
-        )
-    _, top = ax1.get_ylim()
-    ax1.set_ylim(0, top*1.5)
-    return ax1
 
-def plot_resource_mem(ds : DataStore) -> Axes:
-    dataFilter=SessionTimeFilter()
-    predicate='component == "ResourceConsumption"'
-    ax2 = plot_simple(ds, 
-        noshow=True, 
-        title="Memory usage", 
-        predicate=predicate, 
-        fields=[
-            'role.=mem'
-            ],
-        datafilter=dataFilter
-        )
-    _, top = ax2.get_ylim()
-    ax2.set_ylim(0, top*1.5)
-    return ax2
 
-def plot_resource_bandwidth(ds : DataStore) -> Axes:
-    dataFilter=SessionTimeFilter()
-    predicate='component == "ResourceConsumption"'
-    ax3 = plot_simple(ds, 
-        noshow=True, 
-        title="Bandwidth usage", 
-        predicate=predicate, 
-        fields=[
-            'role.=recv_bandwidth',
-            'role.=sent_bandwidth'
-            ],
-        datafilter=dataFilter
-        )
-    _, top = ax3.get_ylim()
-    ax3.set_ylim(0, top*1.5)
-    return ax3
+def render_resource_mem(view: ResourceView) -> Axes:
+    """Render memory usage from a ResourceView."""
+    mem_cols = [c for c in view.resources.columns if c != 'sessiontime' and c.endswith('.mem')]
+    ax = _plot_dataframe(view.resources, noshow=True, title="Memory usage", x="sessiontime", fields=mem_cols, descr=view.description)
+    _, top = ax.get_ylim()
+    ax.set_ylim(0, top * 1.5)
+    return ax
 
-def plot_resources(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False) -> Tuple[Axes, Axes, Axes]:
-    ax1 = plot_resource_cpu(ds)
-    ax2 = plot_resource_mem(ds)
-    ax3 = plot_resource_bandwidth(ds)
 
+def render_resource_bandwidth(view: ResourceView) -> Axes:
+    """Render bandwidth usage from a ResourceView."""
+    bw_cols = [c for c in view.resources.columns if c != 'sessiontime' and (c.endswith('.recv_bandwidth') or c.endswith('.sent_bandwidth'))]
+    ax = _plot_dataframe(view.resources, noshow=True, title="Bandwidth usage", x="sessiontime", fields=bw_cols, descr=view.description)
+    _, top = ax.get_ylim()
+    ax.set_ylim(0, top * 1.5)
+    return ax
+
+
+def render_resources(view: ResourceView, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False) -> Tuple[Axes, Axes, Axes]:
+    """Render CPU, memory, and bandwidth subplots from a ResourceView."""
+    ax1 = render_resource_cpu(view)
+    ax2 = render_resource_mem(view)
+    ax3 = render_resource_bandwidth(view)
     if saveplot:
         if not dirname:
             raise DataStoreError("saveplot=True requires dirname to be set")
         _save_multi_plot(os.path.join(dirname, "resources.pdf"))
     if showplot:
         pyplot.show() # type: ignore
-
     return ax1, ax2, ax3
-    
+
+
 def plot_latencies_for_tile(df : pd.DataFrame, tilenum : int, ax : Axes, sender : str="sender", receiver : str="receiver") -> Axes:
     fields = [
         f"{sender}.pc.grabber.downsample_ms",
@@ -237,35 +205,17 @@ def plot_latencies_for_tile(df : pd.DataFrame, tilenum : int, ax : Axes, sender 
     df.interpolate(method='pad').plot(x="sessiontime", y=latency_fields, ax=ax, color=["blue", "red", "yellow"], legend=False)
     ax.set_title(f"Per-tile Latency contributions, tile={tilenum}") # type: ignore
     return ax
- 
-def plot_latencies_per_tile(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False) -> List[Axes]:
-    engine.ensure(ds, "latency")
-    receiver = ds.applied_annotations["latency"]["receiver"]
-    nTiles = ds.applied_annotations["latency"].get("nTiles", 1)
-    assert nTiles > 1
-    predicate=f'".pc." in component_role or component_role == "{receiver}.voice.renderer" or component_role == "{receiver}.synchronizer"'
-    fields=[
-        'sessiontime',
-        'component_role.=downsample_ms',
-        'component_role.=encoder_queue_ms',
-        'component_role.=encoder_ms',
-        'component_role.=transmitter_queue_ms',
-        'component_role.=receive_ms',
-        'component_role.=decoder_queue_ms',
-        'component_role.=decoder_ms',
-        'component_role.=renderer_queue_ms',
-        'component_role.=latency_ms',
-        'component_role.=latency_max_ms',
-        ]
-    df = ds.get_dataframe(predicate=predicate, fields=fields)
+
+
+def render_latencies_per_tile(view: LatencyPerTileView, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False) -> List[Axes]:
+    """Render per-tile latency subplots from a LatencyPerTileView."""
     fig : Figure
     axs : List[Axes]
-    fig, axs = pyplot.subplots(nTiles, 1, sharex=True, sharey=True) # type: ignore
-    fig.set_figheight(fig.get_figheight()*(nTiles-1))
-    fig.set_figwidth(fig.get_figwidth()*1.5)
-    sender = ds.applied_annotations["latency"]["sender"]
-    for i in range(nTiles):
-        plot_latencies_for_tile(df, i, axs[i], sender=sender, receiver=receiver)
+    fig, axs = pyplot.subplots(view.nTiles, 1, sharex=True, sharey=True) # type: ignore
+    fig.set_figheight(fig.get_figheight() * (view.nTiles - 1))
+    fig.set_figwidth(fig.get_figwidth() * 1.5)
+    for i in range(view.nTiles):
+        plot_latencies_for_tile(view.per_tile, i, axs[i], sender=view.sender, receiver=view.receiver)
     handles, labels = axs[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc='center right') # type: ignore
     pyplot.subplots_adjust(right=0.66)
@@ -276,163 +226,63 @@ def plot_latencies_per_tile(ds : DataStore, dirname : Optional[str]=None, showpl
     if showplot:
         pyplot.show() # type: ignore
     return axs
-   
-def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", format : str="pdf", file_name : str="latencies.pdf", title : str="Latency contributions (ms)", label_dict : Dict[str, Any]={}, tick_dict : Dict[str, Any]={}, legend_dict : Dict[str, Any]={}, labelspacing : float=0.5, ncols : int=1, use_row_major : bool=False, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, max_y : float=0, show_desc : bool=True, figsize : Tuple[int, int]=(6, 4), show_legend : bool=True, show_disruptions : bool=False, plotargs : Dict[str, Any]={}) -> Axes:
-    """
-    Plot latency contributions over time.
 
-    Some fields (such as queue durations) are plotted as a stacked area graph.
-    Some other fields (like eventual end-to-end latency) are plotted as a line graph.
-    
-    :param ds: DataStore to plot
-    :type ds: DataStore
-    :param dpi: See pyplot
-    :type dpi: float | Literal["figure"]
-    :param format: Output file format.
-    :type format: str
-    :param file_name: Output file name.
-    :type file_name: str
-    :param title: Optional title for the plot.
-    :type title: str
-    :param label_dict: Extra argument to pyplot.xlabel() and ylabel()
-    :type label_dict: Dict[str, Any]
-    :param tick_dict: Extra arguments to pyplot.xticks() and yticks()
-    :type tick_dict: Dict[str, Any]
-    :param legend_dict: FontProperties prop argument to pyplot.legend()
-    :type legend_dict: Dict[str, Any]
-    :param labelspacing: labelspacing argument to pyplot.legend()
-    :type labelspacing: float
-    :param ncols: ncols argument to pyplot.legend()
-    :type ncols: int
-    :param use_row_major: If ncols > 1 use row-major ordering in stead of column-major ordering for legend.
-    :type use_row_major: bool
-    :param dirname: Name of directory where plots are saved
-    :type dirname: Optional[str]
-    :param showplot: If true also show the plot on-screen
-    :type showplot: bool
-    :param saveplot: If true also save the plot
-    :type saveplot: bool
-    :param max_y: If specified: gives maximum y. Default is to compute a reasonable value.
-    :type max_y: float
-    :param show_desc: Don't remember
-    :type show_desc: bool
-    :param figsize: Description
-    :type figsize: Tuple[int, int]
-    :param show_legend: Can be set to False to hide the legend (can be used in case the legend is printed once for many figures which share it)
-    :type show_legend: bool
-    :param show_disruptions: Set to True to show disruption events (frame drops, quality switches)
-    :type show_disruptions: bool
-    :param plotargs: Description
-    :type plotargs: Dict[str, Any]
-    :return: Description
-    :rtype: Axes
-    """
-    engine.ensure(ds, "latency")
-    sender = ds.applied_annotations["latency"]["sender"]
-    receiver = ds.applied_annotations["latency"]["receiver"]
-    #
-    # Step 1 - Plot the area plot that shows things like queue durations and encoder durations.
-    # These are plotted straight from the DataStore.
-    #
-    dataFilter = (
-        TileCombiner(f"{sender}.pc.grabber.encoder_queue_ms", "encoder queue", "mean", combined=True) +
-        TileCombiner(f"{sender}.pc.encoder.encoder_ms", "encoder", "mean", combined=True) +
-        TileCombiner(f"{sender}.pc.encoder.transmitter_queue_ms", "transmitter queue", "mean", combined=True) +
-        TileCombiner(f"{receiver}.pc.decoder.*.decoder_queue_ms", "decoder queues", "mean", combined=True) +
-        TileCombiner(f"{receiver}.pc.decoder.*.decoder_ms", "decoders", "max", combined=True) +
-        TileCombiner(f"{receiver}.pc.renderer.*.renderer_queue_ms", "renderer queues", "mean", combined=True)
-        )
 
-    ax = plot_simple(ds,
+def render_latencies(view: LatencyView, dpi: float|Literal["figure"]="figure", format: str="pdf", file_name: str="latencies.pdf", title: str="Latency contributions (ms)", label_dict: Dict[str, Any]={}, tick_dict: Dict[str, Any]={}, legend_dict: Dict[str, Any]={}, labelspacing: float=0.5, ncols: int=1, use_row_major: bool=False, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False, max_y: float=0, show_desc: bool=True, figsize: Tuple[int, int]=(6, 4), show_legend: bool=True, show_disruptions: bool=False, plotargs: Dict[str, Any]={}) -> Axes:
+    """
+    Render latency contributions from a LatencyView.
+
+    Produces a stacked area plot of pipeline stage durations with end-to-end latency
+    line overlays. Optionally overlays disruption events (frame drops, tile switches).
+    """
+    descr = view.description if show_desc else None
+    ax = _plot_dataframe(view.area,
         noshow=True,
         title=title,
-        predicate=f'"{sender}.pc.grabber" in component_role or "{sender}.pc.encoder" in component_role or "{receiver}.pc.decoder" in component_role or "{receiver}.pc.renderer" in component_role or component_role == "{receiver}.voice.renderer"',
-        fields=[
-            'component_role.=encoder_queue_ms',
-            'component_role.=encoder_ms',
-            'component_role.=transmitter_queue_ms',
-            'component_role.=decoder_queue_ms',
-            'component_role.=decoder_ms',
-            'component_role.=renderer_queue_ms'
-            ],
-        datafilter = dataFilter,
+        x="sessiontime",
+        descr=descr,
         plotargs=dict(kind="area", colormap="Paired", figsize=figsize) | plotargs,
-        show_desc=show_desc
-        )
+    )
     #
-    # Step 2 - plot some end-to-end latencies as line graphs.
+    # Overlay end-to-end latency lines
     #
-    dataframe_end2end_latencies = ds.get_dataframe(
-        predicate=f'"{receiver}.pc.renderer" in component_role or "{receiver}.synchronizer" in component_role or component_role == "{receiver}.voice.renderer"',
-        fields=[
-            'sessiontime',
-            'component_role.=latency_ms',
-            'component_role.=latency_max_ms',
-            ],
-        )
-    dataFilter_end2end_latencies = (
-        TileCombiner(f"{receiver}.synchronizer.latency_ms", "synchronizer latency", "max", combined=True) +
-        TileCombiner(f"{receiver}.pc.renderer.*.latency_ms", "renderer latency", "min", combined=True) +
-        TileCombiner(f"{receiver}.pc.renderer.*.latency_max_ms", "max renderer latency", "max", combined=True) +
-        TileCombiner(f"{receiver}.voice.renderer.latency_ms", "voice latency", "mean", combined=True, optional=True)
-        )
-    dataframe_end2end_latencies = dataFilter_end2end_latencies(dataframe_end2end_latencies)
     latency_cols = ["synchronizer latency", "renderer latency", "max renderer latency"]
     latency_colors = ["blue", "red", "yellow"]
-    if "voice latency" in dataframe_end2end_latencies.columns:
+    if "voice latency" in view.end2end.columns:
         latency_cols.append("voice latency")
         latency_colors.append("green")
-    dataframe_end2end_latencies.interpolate().plot(x="sessiontime", y=latency_cols, ax=ax, color=latency_colors)
+    view.end2end.interpolate().plot(x="sessiontime", y=latency_cols, ax=ax, color=latency_colors)
     #
-    # Step 3 - Show disruptions
+    # Overlay disruption event markers
     #
     if show_disruptions:
-        # Get timestamps when anything was dropped
-        dataframe_framedrops = ds.get_dataframe(fields=['component', 'sessiontime', 'fps_dropped'])
-        filter = dataframe_framedrops['fps_dropped'] > 0
-        dataframe_framedrops = dataframe_framedrops[filter]
-        # xxxjack should only continue if there are any
-        dataframe_framedrops.loc[:,'fps_dropped'] = 1
-        if dataframe_framedrops.shape[0] > 0:
-            dataframe_framedrops.rename(columns={'fps_dropped':'PC Drop event'},inplace=True)
-            dataframe_framedrops.plot(x='sessiontime',y=['PC Drop event'],marker='|', linestyle='None', color='red', ax=ax, zorder=4)
-        else:
-            print("xxxjack no framedrops")
-        # Get timestamps when the tileselector made any decision
-        dataframe_tileswitch = ds.get_dataframe(predicate='"component_role" in record and component_role == "receiver.pc.tileselector" and "tile0" in record', fields=['sessiontime', 'component'])
-        if dataframe_tileswitch.shape[0] > 0:
-            dataframe_tileswitch = dataframe_tileswitch.assign(tile_switch=0)
-            dataframe_tileswitch.rename(columns={'tile_switch':'Tile switch event'}, inplace=True)
-            dataframe_tileswitch.plot(x='sessiontime', y=['Tile switch event'], marker='x', linestyle='None', color='blue', ax=ax, zorder=5)
-        else:
-            print("xxxjack no tileswitches")
-
+        if view.framedrops is not None:
+            view.framedrops.plot(x='sessiontime', y=['PC Drop event'], marker='|', linestyle='None', color='red', ax=ax, zorder=4)
+        if view.tileswitches is not None:
+            view.tileswitches.plot(x='sessiontime', y=['Tile switch event'], marker='x', linestyle='None', color='blue', ax=ax, zorder=5)
     #
-    # Overall handling of the graph.
+    # Y-axis limits
     #
-    # Limit Y axis to reasonable values
-    max_latency = dataframe_end2end_latencies["renderer latency"].max()
-    max_max_latency = dataframe_end2end_latencies["max renderer latency"].max()
-    max_sync_latency = dataframe_end2end_latencies["synchronizer latency"].max()
+    max_latency = view.end2end["renderer latency"].max()
+    max_max_latency = view.end2end["max renderer latency"].max()
+    max_sync_latency = view.end2end["synchronizer latency"].max()
     max_latency = max(max_latency, max_max_latency, max_sync_latency)
-    if "voice latency" in dataframe_end2end_latencies.columns:
-        max_voice_latency = dataframe_end2end_latencies["voice latency"].max()
+    if "voice latency" in view.end2end.columns:
+        max_voice_latency = view.end2end["voice latency"].max()
         if not pd.isna(max_voice_latency):
             max_latency = max(max_latency, max_voice_latency)
-    # Limit Y axis to reasonable values
     if max_y != 0:
         ax.set_ylim(0, max_y)
     else:
-        ax.set_ylim(0, max_latency*1.1)
+        ax.set_ylim(0, max_latency * 1.1)
     ax.set_xlim(left=0)
     #
-    # Optionally create a multicolumn legend.
+    # Legend (optionally multi-column, optionally row-major ordering)
     #
     handles, labels = pyplot.gca().get_legend_handles_labels()
     nrows = -(-len(labels) // ncols)  # Ceiling division
     reordered_handles = handles
     reordered_labels = [label.capitalize() for label in labels]
-    
     if use_row_major and ncols > 1:
         reordered_handles = []
         reordered_labels = []
@@ -442,9 +292,6 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
                 if index < len(labels):
                     reordered_handles.append(handles[index])
                     reordered_labels.append(labels[index].capitalize())
-    #
-    # Set legend, ticks and axis labels.
-    #
     ax.legend(reordered_handles[::-1], reordered_labels[::-1], loc='upper left', fontsize='small', prop=legend_dict, labelspacing=labelspacing, ncols=ncols)
     if not show_legend:
         ax.legend().set_visible(False)
@@ -452,80 +299,29 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
     pyplot.yticks(**tick_dict)
     pyplot.xlabel("Session time (s)", **label_dict)
     pyplot.ylabel("Latency (ms)", **label_dict)
-    #
-    # Final processing: show or save the plot.
-    #
     if saveplot:
         if not dirname:
             raise DataStoreError("saveplot=True requires dirname to be set")
         _save_multi_plot(os.path.join(dirname, file_name), dpi, format=format)
     if showplot:
         pyplot.show() # type: ignore
-        
     return ax
 
-def plot_framerates(ds : DataStore, plotargs : Dict[str, Any]={}) -> Axes:
-    engine.ensure(ds, "latency")
-    sender = ds.applied_annotations["latency"]["sender"]
-    receiver = ds.applied_annotations["latency"]["receiver"]
-    df = ds.get_dataframe(
-        predicate='component_role and "fps" in record',
-        fields=['sessiontime', 'component_role.=fps'],
-        )
-    dataFilter = (
-        TileCombiner(f"{sender}.voice.grabber.fps", "voice capturer", "min", combined=True, optional=True) +
-        TileCombiner(f"{sender}.voice.encoder.fps", "voice encoder", "min", combined=True, optional=True) +
-        TileCombiner(f"{sender}.voice.writer.fps", "voice transmitter", "min", combined=True, optional=True) +
-        TileCombiner(f"{receiver}.voice.reader.fps", "voice receiver", "min", combined=True, optional=True) +
-        TileCombiner(f"{receiver}.voice.preparer.fps", "voice preparer", "min", combined=True, optional=True) +
-        TileCombiner(f"{sender}.pc.grabber.fps", "capturer", "min", combined=True) +
-        TileCombiner(f"{sender}.pc.encoder.fps", "encoders", "min", combined=True) +
-        TileCombiner(f"{sender}.pc.writer.*.fps", "transmitters", "min", combined=True) +
-        TileCombiner(f"{receiver}.pc.reader.*.fps", "receivers", "min", combined=True) +
-        TileCombiner(f"{receiver}.pc.decoder.*.fps", "decoders", "min", combined=True) +
-        TileCombiner(f"{receiver}.synchronizer.fps", "synchronizer", "min", combined=True) +
-        TileCombiner(f"{receiver}.pc.preparer.*.fps", "preparers", "min", combined=True) +
-        TileCombiner(f"{receiver}.pc.renderer.*.fps", "renderers", "min", combined=True)
-        )
-    df = dataFilter(df)
-    ax1 = _plot_dataframe(df,
-        noshow=True,
-        title="Frames per second",
-        x="sessiontime",
-        descr=ds.describe(),
-        plotargs=plotargs
-        )
-    return ax1
 
-def plot_framerates_dropped(ds : DataStore, plotargs : Dict[str, Any]={}) -> Axes:
-    engine.ensure(ds, "latency")
-    sender = ds.applied_annotations["latency"]["sender"]
-    receiver = ds.applied_annotations["latency"]["receiver"]
-    dataFilter = (
-        TileCombiner(f"{sender}.voice.grabber.fps_dropped", "voice capturer dropped", "min", combined=True, optional=True) +
-        TileCombiner(f"{sender}.voice.encoder.fps_dropped", "voice encoder dropped", "min", combined=True, optional=True) +
-        TileCombiner(f"{receiver}.voice.reader.fps_dropped", "voice receiver dropped", "min", combined=True, optional=True) +
-        TileCombiner(f"{receiver}.voice.preparer.fps_dropped", "voice preparer dropped", "min", combined=True, optional=True) +
-        TileCombiner(f"{sender}.pc.grabber.fps_dropped", "capturer dropped", "sum", combined=True) +
-        TileCombiner(f"{sender}.pc.encoder.fps_dropped", "encoders dropped", "sum", combined=True) +
-        TileCombiner(f"{receiver}.pc.reader.*.fps_dropped", "receivers dropped", "sum", combined=True) +
-        TileCombiner(f"{receiver}.pc.decoder.*.fps_dropped", "decoders dropped", "sum", combined=True) +
-        TileCombiner(f"{receiver}.pc.preparer.*.fps_dropped", "preparers dropped", "sum", combined=True)
-        )
-    ax2 = plot_simple(ds,
-        noshow=True,
-        title="FPS dropped",
-        predicate='component_role and "fps_dropped" in record',
-        fields=['component_role.=fps_dropped'],
-        datafilter=dataFilter,
-        plotargs=plotargs
-        )
-    return ax2
+def render_framerates(view: FramerateView, plotargs: Dict[str, Any]={}) -> Axes:
+    """Render frames-per-second from a FramerateView."""
+    return _plot_dataframe(view.fps, noshow=True, title="Frames per second", x="sessiontime", descr=view.description, plotargs=plotargs)
 
-def plot_framerates_and_dropped(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot: bool=False, plotargs : Dict[str, Any]={}) -> Tuple[Axes, Axes]:
-    ax1 = plot_framerates(ds, plotargs=plotargs)
-    ax2 = plot_framerates_dropped(ds, plotargs=plotargs)
 
+def render_framerates_dropped(view: FramerateView, plotargs: Dict[str, Any]={}) -> Axes:
+    """Render dropped-frames-per-second from a FramerateView."""
+    return _plot_dataframe(view.fps_dropped, noshow=True, title="FPS dropped", x="sessiontime", descr=view.description, plotargs=plotargs)
+
+
+def render_framerates_and_dropped(view: FramerateView, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False, plotargs: Dict[str, Any]={}) -> Tuple[Axes, Axes]:
+    """Render fps and dropped-fps subplots from a FramerateView."""
+    ax1 = render_framerates(view, plotargs=plotargs)
+    ax2 = render_framerates_dropped(view, plotargs=plotargs)
     if saveplot:
         if not dirname:
             raise DataStoreError("saveplot=True requires dirname to be set")
@@ -533,38 +329,43 @@ def plot_framerates_and_dropped(ds : DataStore, dirname : Optional[str]=None, sh
     if showplot:
         pyplot.show() # type: ignore
     return ax1, ax2
-    
-def plot_progress(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, plotargs : Dict[str, Any]={}) -> Axes:
-    engine.ensure(ds, "latency")
-    sender = ds.applied_annotations["latency"]["sender"]
-    nTiles = ds.applied_annotations["latency"].get("nTiles", 1)
-    nQualities = ds.applied_annotations["latency"].get("nQualities", 1)
-    df = ds.get_dataframe(
-        predicate='"aggregate_packets" in record and component_role',
-        fields = ['sessiontime', 'component_role=aggregate_packets']
-        )
-    columns = list(df.keys())
-    columns.sort()
-    columns.remove('sessiontime')
-    columns.remove(f'{sender}.pc.grabber') # It can drop frames without being a problem.
-    marker=None
-    ax=None
+
+
+def render_pointcounts(view: PointcountView, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False) -> Axes:
+    """Render receiver point counts from a PointcountView."""
+    ax = _plot_dataframe(view.pointcounts, noshow=True, title="Receiver point counts", x="sessiontime", descr=view.description)
+    _, top = ax.get_ylim()
+    ax.set_ylim(0, top * 1.5)
+    if saveplot:
+        if not dirname:
+            raise DataStoreError("saveplot=True requires dirname to be set")
+        _save_multi_plot(os.path.join(dirname, "pointcounts.pdf"))
+    if showplot:
+        pyplot.show() # type: ignore
+    return ax
+
+
+def render_progress(view: ProgressView, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False, plotargs: Dict[str, Any]={}) -> Axes:
+    """Render point cloud pipeline progress from a ProgressView."""
+    df = view.progress
+    columns = [c for c in df.columns if c != 'sessiontime']
+    ax = None
     for y in columns:
-        color='black'
-        marker=None
+        color = 'black'
+        marker = None
         markevery = 100
         markoffset = 0
         if '.0' in y:
-            color='red'
+            color = 'red'
             markoffset = 20
         elif '.1' in y:
-            color='blue'
+            color = 'blue'
             markoffset = 40
         elif '.2' in y:
-            color='green'
+            color = 'green'
             markoffset = 60
         elif '.3' in y:
-            color='purple'
+            color = 'purple'
             markoffset = 80
         if '.encoder' in y:
             marker = '+'
@@ -582,18 +383,11 @@ def plot_progress(ds : DataStore, dirname : Optional[str]=None, showplot : bool=
             marker = '*'
             markoffset += 15
         series = df.loc[:, ["sessiontime", y]]
-        # Some columns need to be adjusted
-        if nTiles > 1:
-            if '.all' in y:
-                series[y] = series[y] / nTiles
-            elif y == f"{sender}.pc.encoder":
-                series[y] = series[y] / (nTiles * nQualities)
-        ax = series.interpolate(method='pad').plot(x="sessiontime", marker=marker, markevery=(markoffset, markevery), color=color, alpha=0.5, ax=ax, plotargs=plotargs)
+        ax = series.interpolate(method='pad').plot(x="sessiontime", marker=marker, markevery=(markoffset, markevery), color=color, alpha=0.5, ax=ax, **plotargs)
     assert ax
     ax.legend(loc='upper left', fontsize='small') # type: ignore
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-    descr = ds.describe()
-    ax.text(0.98, 0.98, descr, transform=ax.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props) # type: ignore
+    ax.text(0.98, 0.98, view.description, transform=ax.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props) # type: ignore
     ax.set_title("Pointcloud Progress") # type: ignore
     if saveplot:
         if not dirname:
@@ -603,3 +397,36 @@ def plot_progress(ds : DataStore, dirname : Optional[str]=None, showplot : bool=
         pyplot.show() # type: ignore
     return ax
 
+
+def plot_pointcounts(ds: DataStore, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False) -> Axes:
+    return render_pointcounts(extract_pointcounts(ds), dirname=dirname, showplot=showplot, saveplot=saveplot)
+
+def plot_resource_cpu(ds: DataStore) -> Axes:
+    return render_resource_cpu(extract_resources(ds))
+
+def plot_resource_mem(ds: DataStore) -> Axes:
+    return render_resource_mem(extract_resources(ds))
+
+def plot_resource_bandwidth(ds: DataStore) -> Axes:
+    return render_resource_bandwidth(extract_resources(ds))
+
+def plot_resources(ds: DataStore, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False) -> Tuple[Axes, Axes, Axes]:
+    return render_resources(extract_resources(ds), dirname=dirname, showplot=showplot, saveplot=saveplot)
+
+def plot_latencies_per_tile(ds: DataStore, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False) -> List[Axes]:
+    return render_latencies_per_tile(extract_latencies_per_tile(ds), dirname=dirname, showplot=showplot, saveplot=saveplot)
+
+def plot_latencies(ds: DataStore, dpi: float|Literal["figure"]="figure", format: str="pdf", file_name: str="latencies.pdf", title: str="Latency contributions (ms)", label_dict: Dict[str, Any]={}, tick_dict: Dict[str, Any]={}, legend_dict: Dict[str, Any]={}, labelspacing: float=0.5, ncols: int=1, use_row_major: bool=False, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False, max_y: float=0, show_desc: bool=True, figsize: Tuple[int, int]=(6, 4), show_legend: bool=True, show_disruptions: bool=False, plotargs: Dict[str, Any]={}) -> Axes:
+    return render_latencies(extract_latencies(ds), dpi=dpi, format=format, file_name=file_name, title=title, label_dict=label_dict, tick_dict=tick_dict, legend_dict=legend_dict, labelspacing=labelspacing, ncols=ncols, use_row_major=use_row_major, dirname=dirname, showplot=showplot, saveplot=saveplot, max_y=max_y, show_desc=show_desc, figsize=figsize, show_legend=show_legend, show_disruptions=show_disruptions, plotargs=plotargs)
+
+def plot_framerates(ds: DataStore, plotargs: Dict[str, Any]={}) -> Axes:
+    return render_framerates(extract_framerates(ds), plotargs=plotargs)
+
+def plot_framerates_dropped(ds: DataStore, plotargs: Dict[str, Any]={}) -> Axes:
+    return render_framerates_dropped(extract_framerates(ds), plotargs=plotargs)
+
+def plot_framerates_and_dropped(ds: DataStore, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False, plotargs: Dict[str, Any]={}) -> Tuple[Axes, Axes]:
+    return render_framerates_and_dropped(extract_framerates(ds), dirname=dirname, showplot=showplot, saveplot=saveplot, plotargs=plotargs)
+
+def plot_progress(ds: DataStore, dirname: Optional[str]=None, showplot: bool=True, saveplot: bool=False, plotargs: Dict[str, Any]={}) -> Axes:
+    return render_progress(extract_progress(ds), dirname=dirname, showplot=showplot, saveplot=saveplot, plotargs=plotargs)
