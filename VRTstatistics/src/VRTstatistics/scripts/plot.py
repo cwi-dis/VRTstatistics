@@ -7,9 +7,9 @@ from ..datastore import DataStore
 from ..plots import plot_simple
 
 def main():
-    parser = argparse.ArgumentParser(description="Plot datastore or CSV file")
+    parser = argparse.ArgumentParser(description="Plot datastore file")
     parser.add_argument("--version", action="version", version=f"%(prog)s {_pkg_version('VRTstatistics')}")
-    parser.add_argument("-d", "--datastore", required=True, help="datastore or CSV datafile to plot")
+    parser.add_argument("-d", "--datastore", required=True, help="datastore file to plot")
     parser.add_argument(
         "-o", "--output", metavar="FILE", help="Output plot image file (default: show)"
     )

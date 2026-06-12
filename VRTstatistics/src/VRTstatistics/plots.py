@@ -118,7 +118,7 @@ def _save_multi_plot(filename : str, dpi : float|Literal["figure"]="figure", for
         for fig in figs:
             fig.savefig(filename, bbox_inches='tight', dpi=dpi, format=format, pad_inches=0.01) # type: ignore
     
-def plot_pointcounts(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, savecsv : bool=False) -> Axes:
+def plot_pointcounts(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False) -> Axes:
     engine.ensure(ds, "latency")
     receiver = ds.applied_annotations["latency"]["receiver"]
     #
@@ -142,15 +142,6 @@ def plot_pointcounts(ds : DataStore, dirname : Optional[str]=None, showplot : bo
         _save_multi_plot(os.path.join(dirname, "pointcounts.pdf"))
     if showplot:
         pyplot.show() # type: ignore
-    if savecsv:
-        assert dirname
-        #
-        # Save point counts to file (including non-aggregated)
-        #
-        dataFilter.keep = True
-        df = ds.get_dataframe(predicate=predicate, fields=fields)
-        df = dataFilter(df)
-        df.to_csv(os.path.join(dirname, "pointcounts.csv"))
     return ax
     
 def plot_resource_cpu(ds : DataStore) -> Axes:
@@ -202,7 +193,7 @@ def plot_resource_bandwidth(ds : DataStore) -> Axes:
     ax3.set_ylim(0, top*1.5)
     return ax3
 
-def plot_resources(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, savecsv : bool=False) -> Tuple[Axes, Axes, Axes]:
+def plot_resources(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False) -> Tuple[Axes, Axes, Axes]:
     ax1 = plot_resource_cpu(ds)
     ax2 = plot_resource_mem(ds)
     ax3 = plot_resource_bandwidth(ds)
@@ -213,13 +204,6 @@ def plot_resources(ds : DataStore, dirname : Optional[str]=None, showplot : bool
     if showplot:
         pyplot.show() # type: ignore
 
-    if savecsv:
-        assert dirname
-        dataFilter=SessionTimeFilter()
-        predicate='component == "ResourceConsumption"'
-        df = ds.get_dataframe(predicate=predicate, fields=['sessiontime', 'role.=cpu', 'role.=mem', 'role.=recv_bandwidth', 'role.=sent_bandwidth' ])
-        df = dataFilter(df)
-        df.to_csv(os.path.join(dirname, "resources.csv"))
     return ax1, ax2, ax3
     
 def plot_latencies_for_tile(df : pd.DataFrame, tilenum : int, ax : Axes, sender : str="sender", receiver : str="receiver") -> Axes:
@@ -293,7 +277,7 @@ def plot_latencies_per_tile(ds : DataStore, dirname : Optional[str]=None, showpl
         pyplot.show() # type: ignore
     return ax
    
-def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", format : str="pdf", file_name : str="latencies.pdf", title : str="Latency contributions (ms)", label_dict : Dict[str, Any]={}, tick_dict : Dict[str, Any]={}, legend_dict : Dict[str, Any]={}, labelspacing : float=0.5, ncols : int=1, use_row_major : bool=False, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, savecsv : bool=False, max_y : float=0, show_sync : bool=True, show_desc : bool=True, figsize : Tuple[int, int]=(6, 4), show_legend : bool=True, show_disruptions : bool=False, plotargs : Dict[str, Any]={}) -> Axes:
+def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", format : str="pdf", file_name : str="latencies.pdf", title : str="Latency contributions (ms)", label_dict : Dict[str, Any]={}, tick_dict : Dict[str, Any]={}, legend_dict : Dict[str, Any]={}, labelspacing : float=0.5, ncols : int=1, use_row_major : bool=False, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, max_y : float=0, show_sync : bool=True, show_desc : bool=True, figsize : Tuple[int, int]=(6, 4), show_legend : bool=True, show_disruptions : bool=False, plotargs : Dict[str, Any]={}) -> Axes:
     """
     Plot latency contributions over time.
 
@@ -328,8 +312,6 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
     :type showplot: bool
     :param saveplot: If true also save the plot
     :type saveplot: bool
-    :param savecsv: If true also save the CSV file
-    :type savecsv: bool
     :param max_y: If specified: gives maximum y. Default is to compute a reasonable value.
     :type max_y: float
     :param show_desc: Don't remember
@@ -481,26 +463,6 @@ def plot_latencies(ds : DataStore, dpi : float|Literal["figure"]="figure", forma
     if showplot:
         pyplot.show() # type: ignore
         
-    #
-    # Save to csv file, in raw form
-    #
-    if savecsv:
-        assert dirname
-        predicate=f'".pc." in component_role or component_role == "{receiver}.voice.renderer"'
-        fields=[
-            'sessiontime',
-            'component_role.=downsample_ms',
-            'component_role.=encoder_queue_ms',
-            'component_role.=encoder_ms',
-            'component_role.=transmitter_queue_ms',
-            'component_role.=receive_ms',
-            'component_role.=decoder_queue_ms',
-            'component_role.=decoder_ms',
-            'component_role.=renderer_queue_ms',
-            'component_role.=latency_ms'
-            ]
-        dataframe_end2end_latencies = ds.get_dataframe(predicate=predicate, fields=fields)
-        dataframe_end2end_latencies.to_csv(os.path.join(dirname, "latencies.csv"))
     return ax
 
 def plot_framerates(ds : DataStore, plotargs : Dict[str, Any]={}) -> Axes:
@@ -561,7 +523,7 @@ def plot_framerates_dropped(ds : DataStore, plotargs : Dict[str, Any]={}) -> Axe
         )
     return ax2
 
-def plot_framerates_and_dropped(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot: bool=False, savecsv : bool=False, plotargs : Dict[str, Any]={}) -> Tuple[Axes, Axes]:
+def plot_framerates_and_dropped(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot: bool=False, plotargs : Dict[str, Any]={}) -> Tuple[Axes, Axes]:
     ax1 = plot_framerates(ds, plotargs=plotargs)
     ax2 = plot_framerates_dropped(ds, plotargs=plotargs)
 
@@ -570,18 +532,9 @@ def plot_framerates_and_dropped(ds : DataStore, dirname : Optional[str]=None, sh
         _save_multi_plot(os.path.join(dirname, "framerates.pdf"))
     if showplot:
         pyplot.show() # type: ignore
-    #
-    # Save to csv file, without combining
-    #
-    if savecsv:
-        assert dirname
-        predicate='component_role and "fps" in record'
-        fields=['sessiontime', 'component_role.=fps', 'component_role.=fps_dropped']
-        df = ds.get_dataframe(predicate=predicate, fields=fields)
-        df.to_csv(os.path.join(dirname, "framerates.csv"))    
     return ax1, ax2
     
-def plot_progress(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, savecsv : bool=False, plotargs : Dict[str, Any]={}) -> Axes:
+def plot_progress(ds : DataStore, dirname : Optional[str]=None, showplot : bool=True, saveplot : bool=False, plotargs : Dict[str, Any]={}) -> Axes:
     engine.ensure(ds, "latency")
     sender = ds.applied_annotations["latency"]["sender"]
     nTiles = ds.applied_annotations["latency"].get("nTiles", 1)

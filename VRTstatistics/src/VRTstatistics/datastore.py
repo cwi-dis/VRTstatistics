@@ -63,7 +63,7 @@ class DataStore:
         """
         Create a DataStore, does not load anything yet.
 
-        :param filename: The filename to load from (and save to). Can be json, csv or stats-style log.
+        :param filename: The filename to load from (and save to). Can be json or stats-style log.
         :type filename: Optional[str]
         :param filename2: Optional second file to load, for some filetypes.
         :type filename2: Optional[str]
@@ -85,8 +85,6 @@ class DataStore:
             self._load_json()
         elif self.filename.endswith(".log"):
             self._load_log()
-        elif self.filename.endswith(".csv"):
-            self._load_csv()
         else:
             raise DataStoreError(f"Don't know how to load {self.filename}")
 
@@ -162,12 +160,6 @@ class DataStore:
         if not nocheck:
             parser.check()
 
-    def _load_csv(self) -> None:
-        assert self.filename
-        assert not self.filename2
-        dataframe : pandas.DataFrame = pandas.read_csv(self.filename) # type: ignore
-        self.load_data(dataframe)
-        
     def load_data(self, data : List[DataStoreRecord] | pandas.DataFrame) -> None:
         """
         Load data from a list of DataStoreRecords or a pandas DataFrame
@@ -199,29 +191,6 @@ class DataStore:
         else:
             data = self.data
         rv = pandas.DataFrame(data)
-        return rv
-
-    def filter(
-        self, predicate: Optional[Predicate] = None, fields: Optional[List[FieldSpecifier]] = None
-    ) -> DataStore:
-        """
-        Return a copy of the DataStore, possibly after filtering.
-        
-        :param predicate: A boolean predicate function. Only records that match this predicate are included in the output. If no predicate is specified all records are returned.
-        :type predicate: Predicate
-        :param fields: A list of fields wanted in the returned DataStore records. If not specified all fields are included.
-        :type fields: Optional[List[FieldSpecifier]]
-        :return: The resultant DataStore
-        :rtype: DataStore
-        """
-        if not self.data:
-            raise DataStoreError("DataStore is empty")
-        if predicate or fields:
-            data = self._filter_data(predicate, fields)
-        else:
-            data = self.data
-        rv = DataStore()
-        rv.load_data(data)
         return rv
 
     def _filter_data(self, predicate: Any, fields: Optional[List[str]]) -> List[DataStoreRecord]:
@@ -272,17 +241,13 @@ class DataStore:
 
     def save(self) -> None:
         """
-        Save the DataStore.
-
-        Only works for .json and .csv filenames, stats-style .log format is readonly.
+        Save the DataStore to its JSON filename.
         """
         if not self.data:
             raise DataStoreError("DataStore is empty")
         assert self.filename
         if self.filename.endswith(".json"):
             self._save_json()
-        elif self.filename.endswith(".csv"):
-            self._save_csv()
         else:
             raise DataStoreError(f"Don't know how to save {self.filename}")
 
@@ -296,10 +261,6 @@ class DataStore:
         out["data"] = self.data
         assert self.filename
         json.dump(out, open(self.filename, "w"), indent="\t")
-
-    def _save_csv(self) -> None:
-        pd = self.get_dataframe()
-        pd.to_csv(self.filename, index=False)
 
     def find_first_record(self, predicate : Predicate, descr : str) -> DataStoreRecord:
         """

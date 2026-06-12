@@ -7,21 +7,21 @@ from ..datastore import DataStore
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Filter datastore or CSV file")
+    parser = argparse.ArgumentParser(description="Export selected fields from a datastore to CSV")
     parser.add_argument("--version", action="version", version=f"%(prog)s {_pkg_version('VRTstatistics')}")
-    parser.add_argument("-d", "--datastore", required=True, help="datastore or CSV datafile to filter")
+    parser.add_argument("-d", "--datastore", required=True, help="datastore file to export from")
     parser.add_argument(
-        "-o", "--output", metavar="FILE", help="Output datastore or CSV file"
+        "-o", "--output", metavar="FILE", required=True, help="Output CSV file"
     )
     parser.add_argument(
         "-p",
         "--predicate",
         metavar="EXPR",
         default=None,
-        help="If specified plot only data that matches EXPR predicate"
+        help="If specified export only data that matches EXPR predicate"
     )
     parser.add_argument(
-        "fields", default=None, nargs="*", metavar="FIELD", help="Field mappings to plot (default: all)"
+        "fields", default=None, nargs="*", metavar="FIELD", help="Field mappings to export (default: all)"
     )
     parser.add_argument("--pausefordebug", action="store_true", help="Wait for a newline after start (so you can attach a debugger)")
     args = parser.parse_args()
@@ -30,24 +30,12 @@ def main():
         sys.stderr.flush()
         sys.stdin.readline()
 
-    if len(sys.argv) < 4:
-        print(
-            f"Usage: {sys.argv[0]} datastore output-json-or-csv predicate [field [...]]"
-        )
-
-        sys.exit(1)
-
     datastore = DataStore(args.datastore)
     datastore.load()
 
-    fields = None
-
-    if args.fields:
-        fields = args.fields
-
-    output = datastore.filter(args.predicate, fields)
-    output.filename = args.output
-    output.save()
+    fields = args.fields if args.fields else None
+    df = datastore.get_dataframe(args.predicate, fields)
+    df.to_csv(args.output, index=False)
 
     sys.exit(0)
 
