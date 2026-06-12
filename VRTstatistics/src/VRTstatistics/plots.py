@@ -179,39 +179,42 @@ def extract_legend(axes: List[Axes], **legend_kwargs) -> List[Axes]:
 # Pure plot creation: always renders everything (legend, description box, etc.).
 # No output control — use publish_plots() for saving/showing.
 
-def render_resource_cpu(view: ResourceView) -> List[Axes]:
+def render_resource_cpu(view: ResourceView, title: str="CPU usage", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render CPU usage from a ResourceView."""
     cpu_cols = [c for c in view.resources.columns if c != 'sessiontime' and c.endswith('.cpu')]
-    ax = _plot_dataframe(view.resources, noshow=True, title="CPU usage", x="sessiontime", fields=cpu_cols, descr=view.description)
+    actual_plotargs = ({} if figsize is None else {"figsize": figsize}) | plotargs
+    ax = _plot_dataframe(view.resources, noshow=True, title=title, x="sessiontime", fields=cpu_cols, descr=view.description, plotargs=actual_plotargs)
     _, top = ax.get_ylim()
     ax.set_ylim(0, top * 1.5)
     return [ax]
 
 
-def render_resource_mem(view: ResourceView) -> List[Axes]:
+def render_resource_mem(view: ResourceView, title: str="Memory usage", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render memory usage from a ResourceView."""
     mem_cols = [c for c in view.resources.columns if c != 'sessiontime' and c.endswith('.mem')]
-    ax = _plot_dataframe(view.resources, noshow=True, title="Memory usage", x="sessiontime", fields=mem_cols, descr=view.description)
+    actual_plotargs = ({} if figsize is None else {"figsize": figsize}) | plotargs
+    ax = _plot_dataframe(view.resources, noshow=True, title=title, x="sessiontime", fields=mem_cols, descr=view.description, plotargs=actual_plotargs)
     _, top = ax.get_ylim()
     ax.set_ylim(0, top * 1.5)
     return [ax]
 
 
-def render_resource_bandwidth(view: ResourceView) -> List[Axes]:
+def render_resource_bandwidth(view: ResourceView, title: str="Bandwidth usage", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render bandwidth usage from a ResourceView."""
     bw_cols = [c for c in view.resources.columns if c != 'sessiontime' and (c.endswith('.recv_bandwidth') or c.endswith('.sent_bandwidth'))]
-    ax = _plot_dataframe(view.resources, noshow=True, title="Bandwidth usage", x="sessiontime", fields=bw_cols, descr=view.description)
+    actual_plotargs = ({} if figsize is None else {"figsize": figsize}) | plotargs
+    ax = _plot_dataframe(view.resources, noshow=True, title=title, x="sessiontime", fields=bw_cols, descr=view.description, plotargs=actual_plotargs)
     _, top = ax.get_ylim()
     ax.set_ylim(0, top * 1.5)
     return [ax]
 
 
-def render_resources(view: ResourceView) -> List[Axes]:
+def render_resources(view: ResourceView, figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render CPU, memory, and bandwidth subplots from a ResourceView."""
-    return render_resource_cpu(view) + render_resource_mem(view) + render_resource_bandwidth(view)
+    return render_resource_cpu(view, figsize=figsize, plotargs=plotargs) + render_resource_mem(view, figsize=figsize, plotargs=plotargs) + render_resource_bandwidth(view, figsize=figsize, plotargs=plotargs)
 
 
-def _plot_latencies_for_tile(df: pd.DataFrame, tilenum: int, ax: Axes, sender: str="sender", receiver: str="receiver") -> Axes:
+def _plot_latencies_for_tile(df: pd.DataFrame, tilenum: int, ax: Axes, sender: str="sender", receiver: str="receiver", plotargs: Dict[str, Any]={}) -> Axes:
     fields = [
         f"{sender}.pc.grabber.downsample_ms",
         f"{sender}.pc.grabber.encoder_queue_ms",
@@ -238,20 +241,23 @@ def _plot_latencies_for_tile(df: pd.DataFrame, tilenum: int, ax: Axes, sender: s
         f"{receiver}.pc.renderer.{tilenum}.latency_ms",
         f"{receiver}.pc.renderer.{tilenum}.latency_max_ms",
     ]
-    ax = df.ffill().plot(x="sessiontime", y=fields, kind="area", colormap="Paired", ax=ax, legend=False)
+    ax = df.ffill().plot(x="sessiontime", y=fields, kind="area", colormap="Paired", ax=ax, legend=False, **plotargs)
     df.ffill().plot(x="sessiontime", y=latency_fields, ax=ax, color=["blue", "red", "yellow"], legend=False)
     ax.set_title(f"Per-tile Latency contributions, tile={tilenum}")  # type: ignore
     return ax
 
 
-def render_latencies_per_tile(view: LatencyPerTileView) -> List[Axes]:
+def render_latencies_per_tile(view: LatencyPerTileView, figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render per-tile latency subplots from a LatencyPerTileView."""
     fig: Figure
     fig, axs = pyplot.subplots(view.nTiles, 1, sharex=True, sharey=True)  # type: ignore
-    fig.set_figheight(fig.get_figheight() * (view.nTiles - 1))
-    fig.set_figwidth(fig.get_figwidth() * 1.5)
+    if figsize is not None:
+        fig.set_size_inches(figsize)
+    else:
+        fig.set_figheight(fig.get_figheight() * (view.nTiles - 1))
+        fig.set_figwidth(fig.get_figwidth() * 1.5)
     for i in range(view.nTiles):
-        _plot_latencies_for_tile(view.per_tile, i, axs[i], sender=view.sender, receiver=view.receiver)
+        _plot_latencies_for_tile(view.per_tile, i, axs[i], sender=view.sender, receiver=view.receiver, plotargs=plotargs)
     handles, labels = axs[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc='center right')  # type: ignore
     pyplot.subplots_adjust(right=0.66)
@@ -317,30 +323,33 @@ def render_latencies(view: LatencyView, title: str="Latency contributions (ms)",
     return [ax]
 
 
-def render_framerates(view: FramerateView, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_framerates(view: FramerateView, title: str="Frames per second", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render frames-per-second from a FramerateView."""
-    return [_plot_dataframe(view.fps, noshow=True, title="Frames per second", x="sessiontime", descr=view.description, plotargs=plotargs)]
+    actual_plotargs = ({} if figsize is None else {"figsize": figsize}) | plotargs
+    return [_plot_dataframe(view.fps, noshow=True, title=title, x="sessiontime", descr=view.description, plotargs=actual_plotargs)]
 
 
-def render_framerates_dropped(view: FramerateView, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_framerates_dropped(view: FramerateView, title: str="FPS dropped", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render dropped-frames-per-second from a FramerateView."""
-    return [_plot_dataframe(view.fps_dropped, noshow=True, title="FPS dropped", x="sessiontime", descr=view.description, plotargs=plotargs)]
+    actual_plotargs = ({} if figsize is None else {"figsize": figsize}) | plotargs
+    return [_plot_dataframe(view.fps_dropped, noshow=True, title=title, x="sessiontime", descr=view.description, plotargs=actual_plotargs)]
 
 
-def render_framerates_and_dropped(view: FramerateView, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_framerates_and_dropped(view: FramerateView, figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render fps and dropped-fps subplots from a FramerateView."""
-    return render_framerates(view, plotargs=plotargs) + render_framerates_dropped(view, plotargs=plotargs)
+    return render_framerates(view, figsize=figsize, plotargs=plotargs) + render_framerates_dropped(view, figsize=figsize, plotargs=plotargs)
 
 
-def render_pointcounts(view: PointcountView) -> List[Axes]:
+def render_pointcounts(view: PointcountView, title: str="Receiver point counts", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render receiver point counts from a PointcountView."""
-    ax = _plot_dataframe(view.pointcounts, noshow=True, title="Receiver point counts", x="sessiontime", descr=view.description)
+    actual_plotargs = ({} if figsize is None else {"figsize": figsize}) | plotargs
+    ax = _plot_dataframe(view.pointcounts, noshow=True, title=title, x="sessiontime", descr=view.description, plotargs=actual_plotargs)
     _, top = ax.get_ylim()
     ax.set_ylim(0, top * 1.5)
     return [ax]
 
 
-def render_progress(view: ProgressView, plotargs: Dict[str, Any]={}) -> List[Axes]:
+def render_progress(view: ProgressView, title: str="Pointcloud Progress", figsize: Optional[Tuple[int,int]]=None, plotargs: Dict[str, Any]={}) -> List[Axes]:
     """Render point cloud pipeline progress from a ProgressView."""
     df = view.progress
     columns = [c for c in df.columns if c != 'sessiontime']
@@ -380,10 +389,12 @@ def render_progress(view: ProgressView, plotargs: Dict[str, Any]={}) -> List[Axe
         series = df.loc[:, ["sessiontime", y]]
         ax = series.ffill().plot(x="sessiontime", marker=marker, markevery=(markoffset, markevery), color=color, alpha=0.5, ax=ax, **plotargs)
     assert ax
+    if figsize is not None:
+        ax.get_figure().set_size_inches(figsize)  # type: ignore
     ax.legend(loc='upper left', fontsize='small')  # type: ignore
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
     ax.text(0.98, 0.98, view.description, transform=ax.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props)  # type: ignore
-    ax.set_title("Pointcloud Progress")  # type: ignore
+    ax.set_title(title)  # type: ignore
     return [ax]
 
 
