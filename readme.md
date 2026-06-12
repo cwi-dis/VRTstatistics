@@ -66,7 +66,28 @@ Each run lands in `tiled_octree9_fps15/run-YYYYMMDD-HHMM/combined.json`. Prefix 
 
 This is what the `prerecorded` variant in the VR2Gather `RepresentationPointcloudConfig` is for. The `synthetic` variant used in the `examples/` configs is a self-contained substitute that works without data files, but is not suitable for publication-quality measurements.
 
-**Plotting:** For now, write a small `create_plots.py` driver script in your experiment directory that calls `VRTstatistics.plots` functions (`plot_latencies`, `plot_framerates_and_dropped`, `plot_resources`, etc.) on each `combined.json` and saves the output alongside it. See `2024-spirit-lldash/experiments/scripts/create_plots.py` for a working example. A proper `VRTstatistics-plot` command that handles the standard cases is planned (see [issue #21](https://github.com/cwi-dis/VRTstatistics/issues/21)).
+**Plotting:** Three levels of use, from quick to fully customised:
+
+- **Quick look** — `VRTstatistics-plot --type latencies run-dir/combined.json` produces a standard plot interactively. Run `VRTstatistics-plot --list-types` to see all available types. Annotation is applied automatically if needed.
+
+- **Experiment script** — the preferred approach for production output. Create a `create_plots.py` in your experiment directory using the extract / render / publish pipeline:
+
+  ```python
+  from VRTstatistics.datastore import DataStore
+  from VRTstatistics.plots import PlotStyle, render_latencies, render_resources, render_framerates_and_dropped, publish_plots
+  from VRTstatistics.views import extract_latencies, extract_resources, extract_framerates
+
+  style = PlotStyle(figsize=(6.4, 3.5), legend_kwargs=dict(ncols=2, labelspacing=0.2))
+  for run_dir in sorted(glob("variant/run-*")):
+      ds = DataStore(f"{run_dir}/combined.json")
+      ds.load()
+      axes = render_latencies(extract_latencies(ds), style=style)
+      publish_plots(axes, dirname=run_dir, file_name="latencies.pdf", saveplot=True, showplot=False)
+  ```
+
+  One `PlotStyle` instance is reused across all plots and all runs, keeping output visually consistent. The older `plot_latencies(ds, ...)` convenience wrappers still work but are no longer recommended.
+
+- **Custom plot types** — define a `View` subclass with `name`, `default_filename`, and a docstring, plus standalone `extract_*` and `render_*` functions, then call `MyView.register_extractor(...)` and `MyView.register_renderer(...)`. After `import my_module` the new type appears in `--list-types` and is usable via `view_cls.extract(ds).render()`. See issue #31 for planned examples.
 
 ## Preparing the VR2Gather experience to run
 
@@ -132,19 +153,24 @@ This is what the `prerecorded` variant in the VR2Gather `RepresentationPointclou
 
 See [testing.md](testing.md) for a full end-to-end walkthrough including ingesting logs and producing plots.
 
-Quick summary: after a run, use `VRTstatistics-ingest -a latency` (or `--norun <dir>` to re-ingest an existing run). Results land in `run-YYYYMMDD-HHMM/combined.json`. Plot with:
+Quick summary: after a run, use `VRTstatistics-ingest -a latency` (or `--norun <dir>` to re-ingest an existing run). Results land in `run-YYYYMMDD-HHMM/combined.json`.
+
+For a quick interactive plot: `VRTstatistics-plot --type latencies run-YYYYMMDD-HHMM/combined.json`
+
+For exploratory analysis in Jupyter:
 
 ```python
 from VRTstatistics.datastore import DataStore
-from VRTstatistics.plots import plot_latencies
-import matplotlib.pyplot as plt
+from VRTstatistics.views import LatencyView, ResourceView
+from VRTstatistics.plots import PlotStyle, render_latencies, render_resources, publish_plots
+
 ds = DataStore("run-YYYYMMDD-HHMM/combined.json")
 ds.load()
-plot_latencies(ds)
-plt.show()
+view = LatencyView.extract(ds)
+axes = view.render()                         # uses registered renderer with default style
 ```
 
-For exploratory analysis, load `combined.json` into Jupyter and use the `DataStore` API directly — `get_dataframe(predicate, fields)` gives you a pandas DataFrame you can manipulate freely.
+Or use `View._registry` to enumerate all available plot types and render them uniformly. The `DataStore` API (`get_dataframe(predicate, fields)`) gives you a pandas DataFrame for free-form analysis.
 
 To export selected fields to CSV for external tools, use `VRTstatistics-filter`:
 

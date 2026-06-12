@@ -9,6 +9,12 @@ combined.json format version scheme).
 
 ## [Unreleased] — targeting 1.4.0
 
+- Plot refactor (closes #21): extract / render / publish three-step pipeline
+- Introduce `PlotStyle` dataclass: `figsize`, `ylim_top`, `plot_kwargs`, `label_kwargs`, `tick_kwargs`, `legend_kwargs`, `legend_row_major` — construct once, reuse across all plots in an experiment
+- All `render_*` functions now take `style: PlotStyle`; `plot_*` wrappers remain backward-compatible
+- View registry: `View` subclasses self-register via `__init_subclass__`; `register_extractor` / `register_renderer` wire in functions (both overridable at runtime)
+- `VRTstatistics-plot --type NAME` produces a standard plot; `--list-types` enumerates registered types; `--import MODULE` loads external View subclasses
+- `extract_latencies` gains `show_framedrops` / `show_tileswitches` flags (replaces `show_disruptions` on `render_latencies`)
 - Add voice latency to `plot_latencies`; fix x-axis auto-scaling; role names in description
 - Parser: fail fast on malformed stats lines (locale-induced comma decimal separators, cwi-dis/VR2Gather#318)
 - Add `examples/latency-tiled-voice`; update `examples/latency` config
