@@ -1,13 +1,13 @@
 import sys
 import os
 import argparse
-import importlib
 import re
 from importlib.metadata import version as _pkg_version
 from typing import Dict, List, Tuple, Any
 
 from ..datastore import DataStore
 from ..annotation import engine
+from ._modimport import import_external_module
 
 
 def _parse_annotation_arg(arg: str) -> Tuple[str, Dict[str, Any]]:
@@ -55,7 +55,7 @@ def main() -> None:
         action="append",
         dest="modules",
         default=[],
-        help="Import MODULE before running (allows external steps to register themselves).",
+        help="Import MODULE before running (allows external steps to register themselves). If MODULE isn't importable as-is, searches upward from the current directory for a matching MODULE.py or MODULE/ package.",
     )
     parser.add_argument(
         "--pausefordebug",
@@ -87,7 +87,7 @@ def main() -> None:
         sys.stdin.readline()
 
     for mod_name in args.modules:
-        importlib.import_module(mod_name)
+        import_external_module(mod_name)
 
     if args.list:
         print(engine.list_steps())

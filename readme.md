@@ -89,6 +89,10 @@ This is what the `prerecorded` variant in the VR2Gather `RepresentationPointclou
 
 - **Custom plot types** — define a `View` subclass with `name`, `default_filename`, and a docstring, plus standalone `extract_*` and `render_*` functions, then call `MyView.register_extractor(...)` and `MyView.register_renderer(...)`. After `import my_module` the new type appears in `--list-types` and is usable via `view_cls.extract(ds).render()`. See issue #31 for planned examples.
 
+  > TODO: this whole area (annotation steps, `--module`/`--import`, the View registry) needs a proper documentation pass. The emerging pattern for a per-experiment analysis module: define a `vrts_<experiment>.py` at the root of the experiment's own repo, with custom `View` subclasses (as above) *and* `AnnotationStep` subclasses (see `annotation.py`) registered with the shared `engine`. Apply with `VRTstatistics-ingest -a <name> --module vrts_<experiment>` (`VRTstatistics-annotate` has the same `--module`). Both search upward from the current directory if the module isn't otherwise importable, so this works from a session subdirectory with no packaging/install step. Working example: `TrolleyExperiment`'s `vrts_trolley.py` (`TrolleyAnnotation` + `VoiceView`/`GazeView`/`PositionView`).
+  >
+  > Inconsistency to reconcile: `VRTstatistics-plot` uses a differently-named `--import MODULE` for the same purpose, and it's a plain `importlib.import_module` with no upward-search fallback — should probably become `--module` with the same behavior as the other two, for one consistent story across all three CLIs.
+
 ## Preparing the VR2Gather experience to run
 
 - Build the Player for the experience you want to run, in the Unity Editor

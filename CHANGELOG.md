@@ -7,6 +7,13 @@ fixes and improvements within a VR2Gather release cycle. Versions are derived fr
 git tags (see `FILEVERSION` / `OLDEST_COMPATIBLE_VERSION` in `datastore.py` for the
 combined.json format version scheme).
 
+## [1.4.1] — 2026-07-07
+
+- `VRTstatistics-ingest` gains `--module MODULE` (previously only on `VRTstatistics-annotate`), so ingest-time annotation steps defined outside VRTstatistics can register themselves in one step: `VRTstatistics-ingest -a <name> --module <module>`
+- `--module` (both `ingest` and `annotate`) now falls back to searching upward from the current directory for a matching `<module>.py`/`<module>/` package when a plain import fails — lets a per-experiment analysis module (e.g. `vrts_trolley.py`) live at an experiment repo's root and still be importable from a session subdirectory several levels below, with no packaging/install step
+- New internal `scripts/_modimport.py` shared by `ingest.py` and `annotate.py`
+- readme: document the emerging per-experiment `vrts_<experiment>.py` pattern (custom `View`s + `AnnotationStep`s + `--module`); flag `VRTstatistics-plot`'s `--import` as inconsistent with the other two and due for unification later
+
 ## [1.4.0] — 2026-06-14
 
 - Plot refactor (closes #21): extract / render / publish three-step pipeline
