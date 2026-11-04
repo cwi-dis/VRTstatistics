@@ -15,6 +15,14 @@
         "autoStopAfterLeave": true,
         "autoDelay": 1.0
     },
+    "PointCloudTransmissionConfig": {
+        "tiled": false,
+        "EncoderConfigs": [
+            {
+                "octreeBits": 9
+            }
+        ]
+    },
     "RepresentationConfig": {
         "microphoneName": "Muted",
         "representation_str": "SimpleAvatar"
