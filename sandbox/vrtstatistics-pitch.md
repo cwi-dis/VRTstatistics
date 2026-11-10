@@ -10,7 +10,7 @@ The first part is the slide material. The "Background material" part is for the 
 - Very low complexity and runtime impact
 - Rich end-to-end results, down to individual events when needed
 
-## Data Recording
+## Recording: Format
 
 - Lines of the form
   
@@ -19,14 +19,21 @@ The first part is the slide material. The "Background material" part is for the 
 	stats: seq=114, ts=57397.075, component=VoicePipelineOther#1, encoded=True, reader=AsyncSocketIOReader, decoder=AsyncVoiceDecoder, preparer=AsyncVoicePreparer#0, synchronizer=none
 	stats: seq=237, ts=57398.367, component=AsyncVoicePreparer#0, fps=62.69, fps_dropped=0.00, fps_nodata=24.11, samples_per_frame=960
 	```
+
 - Recorded locally
-- Granularity set by the experimenter, per experiment
-  - Aggregated (e.g. every 10 s): overall statistics, negligible runtime impact
-  - Per event: every frame or voice packet, so you can see where each one spent its time
-- Records clock relationship to other clocks in the whole system
-- Records relationship between components
 - Records can be extracted from a general log
   - Because of `stats:` marker and `key=value,` fixed format
+
+## Recording: Contents
+
+(Same example lines as the previous slide.)
+
+- Records clock relationship to other clocks in the whole system (first line)
+- Records relationship between components (second line)
+- Records measurements (third line)
+  - Granularity set by the experimenter, per experiment
+    - Aggregated (e.g. every 10 s): overall statistics, negligible runtime impact
+    - Per event: every frame or voice packet, so you can see where each one spent its time
 
 ## Data Gathering
 
@@ -54,7 +61,8 @@ The first part is the slide material. The "Background material" part is for the 
 
 ## Track record
 
-- System experiments (latency, framerate, bandwidth) since the VR2Gather paper (Viola et al., IEEE MultiMedia 2023); later also user studies (gaze, speech, questionnaires).
+- System experiments (latency, framerate, bandwidth) since the VR2Gather paper (Viola et al., IEEE MultiMedia 2023)
+- User studies (gaze, speech, questionnaires), unpublished so far
 - Used for a new transport by a partner: WebRTC SFU benchmarking with Ghent University (De Fré et al., NOSSDAV 2026).
 
 # Background material
