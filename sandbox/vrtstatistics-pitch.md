@@ -69,6 +69,8 @@ The first part is the slide material. The "Background material" part is for the 
 
 Not for the slides. Collected for the paper, and for questions at the meeting.
 
+I realise now that a lot here is orthogonal to the previous bits: it is about running experiments in a controlled and reproducable fashion (and the tools for that) and about organizing your experiment and their results.
+
 ## Current implementation
 
 - Three Python packages, open source (github.com/cwi-dis/VRTstatistics):
