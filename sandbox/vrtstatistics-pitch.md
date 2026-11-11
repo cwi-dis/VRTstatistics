@@ -4,15 +4,24 @@ Status: draft, 2026-11-10. Points for a few slides at the Amplify project meetin
 
 The first part is the slide material. The "Background material" part is for the paper later, and for answering questions; it isn't meant for the slides.
 
+## Opening slide
+
+VRTstatistics
+
+- Not limited to VR2Gather!
+
 ## Goals
 
 - Measurements of multi-user multi-machine XR experiences
-- Very low complexity and runtime impact
+- Very low complexity, easy to implement
+- Low runtime impact
 - Rich end-to-end results, down to individual events when needed
 
 ## Recording: Format
 
-- Lines of the form
+- Lines of the form shown below, output by application under test
+  - Simple to implement: print statement
+  - No dependency on anything
   
 	```
 	stats: seq=23, ts=57386.256, component=OrchestratorController, orchestrator_ntptime_ms=1783605386227, localtime_behind_ms=-28, uncertainty_interval_ms=23
@@ -20,7 +29,7 @@ The first part is the slide material. The "Background material" part is for the 
 	stats: seq=237, ts=57398.367, component=AsyncVoicePreparer#0, fps=62.69, fps_dropped=0.00, fps_nodata=24.11, samples_per_frame=960
 	```
 
-- Recorded locally
+- Can be recorded locally, on machine-under-test
 - Records can be extracted from a general log
   - Because of `stats:` marker and `key=value,` fixed format
 
@@ -31,9 +40,9 @@ The first part is the slide material. The "Background material" part is for the 
 - Records clock relationship to other clocks in the whole system (first line)
 - Records relationship between components (second line)
 - Records measurements (third line)
-  - Granularity set by the experimenter, per experiment
-    - Aggregated (e.g. every 10 s): overall statistics, negligible runtime impact
-    - Per event: every frame or voice packet, so you can see where each one spent its time
+- Granularity set by the experimenter, per experiment
+  - Aggregated (e.g. every 10 s): overall statistics, negligible runtime impact
+  - Per event: every frame or voice packet, so you can see where each one spent its time
 
 ## Data Gathering
 
@@ -63,7 +72,7 @@ The first part is the slide material. The "Background material" part is for the 
 
 - System experiments (latency, framerate, bandwidth) since the VR2Gather paper (Viola et al., IEEE MultiMedia 2023)
 - User studies (gaze, speech, questionnaires), unpublished so far
-- Used for a new transport by a partner: WebRTC SFU benchmarking with Ghent University (De Fré et al., NOSSDAV 2026).
+- Used for a new transport by a partner: WebRTC SFU benchmarking with Ghent University (De Fré et al., NOSSDAV 2026)
 
 # Background material
 
