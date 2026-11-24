@@ -1,9 +1,9 @@
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import Any, Callable, ClassVar, Dict, Optional, Type
+from dataclasses import dataclass, field
+from typing import Any, Callable, ClassVar, Dict, List, Optional, Type
 import pandas as pd
 
-from .datastore import DataStore
+from .datastore import DataStore, DataStoreError
 from .annotation import engine
 from .analyze import TileCombiner, SessionTimeFilter
 
@@ -28,15 +28,32 @@ __all__ = [
 class View:
     """Base class for extracted plot data. Carries named DataFrames ready for rendering or CSV export."""
     _registry: ClassVar[Dict[str, Type[View]]] = {}
+    _aliases: ClassVar[Dict[str, str]] = {"latencies": "latency-contributions", "latencies-per-tile": "latency-contributions-per-tile"}
     name: ClassVar[str] = ""
     default_filename: ClassVar[str] = ""
     required_annotation: ClassVar[Optional[str]] = None
     description: str
+    # kw_only so that subclasses can declare fields without defaults.
+    scenes: Optional[pd.DataFrame] = field(default=None, kw_only=True)
 
-    def __init_subclass__(cls, **kwargs: Any) -> None:
+    def __init_subclass__(cls, replace: bool = False, **kwargs: Any) -> None:
+        """Register a View type under its name. Taking over a name from another type needs replace=True."""
         super().__init_subclass__(**kwargs)
-        if cls.name:
-            View._registry[cls.name] = cls
+        if not cls.__dict__.get("name"):
+            return
+        existing = View._registry.get(cls.name)
+        # The same class being defined again is a notebook cell being re-run or a module being reloaded.
+        if existing and not replace and (existing.__module__, existing.__qualname__) != (cls.__module__, cls.__qualname__):
+            raise DataStoreError(
+                f"View name {cls.name!r} is already used by {existing.__module__}.{existing.__qualname__}. "
+                f"To replace it in {cls.__module__}.{cls.__qualname__}, declare the class with replace=True."
+            )
+        View._registry[cls.name] = cls
+
+    @classmethod
+    def find(cls, name: str) -> Optional[Type[View]]:
+        """Return the View type registered under `name` or an old name for it, or None."""
+        return View._registry.get(View._aliases.get(name, name))
 
     @classmethod
     def register_extractor(cls, extractor: Callable) -> None:
@@ -67,9 +84,9 @@ class View:
 @dataclass
 class LatencyView(View):
     """Latency contributions: pipeline stage durations and end-to-end latency."""
-    name: ClassVar[str] = "latencies"
-    default_filename: ClassVar[str] = "latencies.pdf"
-    required_annotation: ClassVar[str] = "latency"
+    name: ClassVar[str] = "latency-contributions"
+    default_filename: ClassVar[str] = "latency-contributions.pdf"
+    required_annotation: ClassVar[str] = "media_path"
     area: pd.DataFrame
     end2end: pd.DataFrame
     framedrops: Optional[pd.DataFrame] = None
@@ -79,9 +96,9 @@ class LatencyView(View):
 @dataclass
 class LatencyPerTileView(View):
     """Per-tile latency breakdown for multi-tile sessions."""
-    name: ClassVar[str] = "latencies-per-tile"
-    default_filename: ClassVar[str] = "latencies-per-tile.pdf"
-    required_annotation: ClassVar[str] = "latency"
+    name: ClassVar[str] = "latency-contributions-per-tile"
+    default_filename: ClassVar[str] = "latency-contributions-per-tile.pdf"
+    required_annotation: ClassVar[str] = "media_path"
     per_tile: pd.DataFrame
     nTiles: int
     sender: str
@@ -101,7 +118,7 @@ class FramerateView(View):
     """Frame rates and dropped frames per pipeline stage."""
     name: ClassVar[str] = "framerates"
     default_filename: ClassVar[str] = "framerates.pdf"
-    required_annotation: ClassVar[str] = "latency"
+    required_annotation: ClassVar[str] = "media_path"
     fps: pd.DataFrame
     fps_dropped: pd.DataFrame
 
@@ -111,7 +128,7 @@ class PointcountView(View):
     """Receiver point counts over session time."""
     name: ClassVar[str] = "pointcounts"
     default_filename: ClassVar[str] = "pointcounts.pdf"
-    required_annotation: ClassVar[str] = "latency"
+    required_annotation: ClassVar[str] = "media_path"
     pointcounts: pd.DataFrame
 
 
@@ -120,15 +137,15 @@ class ProgressView(View):
     """Point cloud pipeline progress: aggregate packet sequence numbers per stage."""
     name: ClassVar[str] = "progress"
     default_filename: ClassVar[str] = "progress.pdf"
-    required_annotation: ClassVar[str] = "latency"
+    required_annotation: ClassVar[str] = "media_path"
     progress: pd.DataFrame
 
 
 def extract_latencies(ds: DataStore, *, show_framedrops: bool = False, show_tileswitches: bool = False) -> LatencyView:
     """Extract latency contribution data from a DataStore."""
-    engine.ensure(ds, "latency")
-    sender = ds.applied_annotations["latency"]["sender"]
-    receiver = ds.applied_annotations["latency"]["receiver"]
+    media_path = engine.ensure(ds, "media_path")
+    sender = media_path["sender"]
+    receiver = media_path["receiver"]
 
     area_filter = (
         TileCombiner(f"{sender}.pc.grabber.encoder_queue_ms", "encoder queue", "mean", combined=True) +
@@ -189,7 +206,7 @@ def extract_latencies(ds: DataStore, *, show_framedrops: bool = False, show_tile
             tileswitches = tileswitches_df
 
     return LatencyView(
-        description=ds.describe(),
+        description=ds.describe(), scenes=ds.scenes(),
         area=area,
         end2end=end2end,
         framedrops=framedrops,
@@ -199,11 +216,12 @@ def extract_latencies(ds: DataStore, *, show_framedrops: bool = False, show_tile
 
 def extract_latencies_per_tile(ds: DataStore) -> LatencyPerTileView:
     """Extract per-tile latency data from a DataStore. Requires nTiles > 1."""
-    engine.ensure(ds, "latency")
-    sender = ds.applied_annotations["latency"]["sender"]
-    receiver = ds.applied_annotations["latency"]["receiver"]
-    nTiles = ds.applied_annotations["latency"].get("nTiles", 1)
-    assert nTiles > 1
+    media_path = engine.ensure(ds, "media_path")
+    sender = media_path["sender"]
+    receiver = media_path["receiver"]
+    nTiles = media_path.get("nTiles", 1)
+    if nTiles <= 1:
+        raise DataStoreError(f"per-tile latency contributions need more than one tile, this session has {nTiles}")
     per_tile = ds.get_dataframe(
         predicate=f'".pc." in component_role or component_role == "{receiver}.voice.renderer" or component_role == "{receiver}.synchronizer"',
         fields=[
@@ -221,7 +239,7 @@ def extract_latencies_per_tile(ds: DataStore) -> LatencyPerTileView:
         ]
     )
     return LatencyPerTileView(
-        description=ds.describe(),
+        description=ds.describe(), scenes=ds.scenes(),
         per_tile=per_tile,
         nTiles=nTiles,
         sender=sender,
@@ -237,14 +255,14 @@ def extract_resources(ds: DataStore) -> ResourceView:
         fields=['sessiontime', 'role.=cpu', 'role.=mem', 'role.=recv_bandwidth', 'role.=sent_bandwidth']
     )
     resources = dataFilter(resources)
-    return ResourceView(description=ds.describe(), resources=resources)
+    return ResourceView(description=ds.describe(), scenes=ds.scenes(), resources=resources)
 
 
 def extract_framerates(ds: DataStore) -> FramerateView:
     """Extract framerate data (fps and dropped frames per pipeline stage) from a DataStore."""
-    engine.ensure(ds, "latency")
-    sender = ds.applied_annotations["latency"]["sender"]
-    receiver = ds.applied_annotations["latency"]["receiver"]
+    media_path = engine.ensure(ds, "media_path")
+    sender = media_path["sender"]
+    receiver = media_path["receiver"]
 
     fps_filter = (
         TileCombiner(f"{sender}.voice.grabber.fps", "voice capturer", "min", combined=True, optional=True) +
@@ -284,28 +302,28 @@ def extract_framerates(ds: DataStore) -> FramerateView:
     )
     fps_dropped = fps_dropped_filter(fps_dropped)
 
-    return FramerateView(description=ds.describe(), fps=fps, fps_dropped=fps_dropped)
+    return FramerateView(description=ds.describe(), scenes=ds.scenes(), fps=fps, fps_dropped=fps_dropped)
 
 
 def extract_pointcounts(ds: DataStore) -> PointcountView:
     """Extract receiver point count data from a DataStore."""
-    engine.ensure(ds, "latency")
-    receiver = ds.applied_annotations["latency"]["receiver"]
+    media_path = engine.ensure(ds, "media_path")
+    receiver = media_path["receiver"]
     dataFilter = TileCombiner(f"{receiver}.pc.renderer.*.points_per_cloud", "points per cloud", "sum", combined=True, keep=True)
     pointcounts = ds.get_dataframe(
         predicate=f'"{receiver}.pc.renderer" in component_role',
         fields=['sessiontime', 'component_role.=points_per_cloud']
     )
     pointcounts = dataFilter(pointcounts)
-    return PointcountView(description=ds.describe(), pointcounts=pointcounts)
+    return PointcountView(description=ds.describe(), scenes=ds.scenes(), pointcounts=pointcounts)
 
 
 def extract_progress(ds: DataStore) -> ProgressView:
     """Extract point cloud pipeline progress data from a DataStore."""
-    engine.ensure(ds, "latency")
-    sender = ds.applied_annotations["latency"]["sender"]
-    nTiles = ds.applied_annotations["latency"].get("nTiles", 1)
-    nQualities = ds.applied_annotations["latency"].get("nQualities", 1)
+    media_path = engine.ensure(ds, "media_path")
+    sender = media_path["sender"]
+    nTiles = media_path.get("nTiles", 1)
+    nQualities = media_path.get("nQualities", 1)
 
     df = ds.get_dataframe(
         predicate='"aggregate_packets" in record and component_role',
@@ -324,7 +342,153 @@ def extract_progress(ds: DataStore) -> ProgressView:
             elif col == f"{sender}.pc.encoder":
                 df[col] = df[col] / (nTiles * nQualities)
 
-    return ProgressView(description=ds.describe(), progress=df)
+    return ProgressView(description=ds.describe(), scenes=ds.scenes(), progress=df)
+
+
+@dataclass
+class VoiceView(View):
+    """Voice activity: per-role voice level over session time."""
+    name: ClassVar[str] = "voice-activity"
+    default_filename: ClassVar[str] = "voice-activity.pdf"
+    voice_levels: pd.DataFrame  # sessiontime + one column per role (role.level)
+    labels: Dict[str, str]
+    role_colors: Dict[str, str]
+
+
+def extract_voice(ds: DataStore, *, label_source: str = "role") -> VoiceView:
+    """Extract voice levels from AsyncVoiceReader records. See DataStore.role_labels() for label_source."""
+    voice_levels = ds.get_dataframe(
+        predicate='component == "AsyncVoiceReader" and "level" in record',
+        fields=['sessiontime', 'role.=level'],
+    )
+    return VoiceView(
+        description=ds.describe(), scenes=ds.scenes(),
+        voice_levels=voice_levels,
+        labels=ds.role_labels(source=label_source),
+        role_colors={role: ds.role_color(role) for role in ds.roles()},
+    )
+
+
+@dataclass
+class GazeView(View):
+    """Gaze timeline: which GazeTarget each role is looking at over session time."""
+    name: ClassVar[str] = "gaze"
+    default_filename: ClassVar[str] = "gaze.pdf"
+    segments: pd.DataFrame  # role, target, t_start, t_end
+    roles: List[str]
+    labels: Dict[str, str]
+    role_colors: Dict[str, str]
+
+
+def extract_gaze(ds: DataStore, *, label_source: str = "role") -> GazeView:
+    """Extract gaze segments from GazeTarget records. See DataStore.role_labels() for label_source."""
+    try:
+        gaze_records = ds.find_all_records('component == "GazeTarget"', "gaze events")
+    except DataStoreError:
+        gaze_records = []
+
+    # Pair gazing=1 / gazing=0 events into segments.
+    # Ignore initial gazing=0 emitted by GazeTarget.Start() (no open segment to close).
+    open_segs: Dict[Any, float] = {}
+    rows = []
+    for r in sorted(gaze_records, key=lambda r: r['sessiontime']):
+        key = (r['role'], r.get('target', ''))
+        if r.get('gazing') == 1:
+            open_segs[key] = r['sessiontime']
+        elif r.get('gazing') == 0 and key in open_segs:
+            rows.append({'role': key[0], 'target': key[1], 't_start': open_segs.pop(key), 't_end': r['sessiontime']})
+
+    return GazeView(
+        description=ds.describe(), scenes=ds.scenes(),
+        segments=pd.DataFrame(rows, columns=['role', 'target', 't_start', 't_end']),
+        roles=ds.roles(),
+        labels=ds.role_labels(source=label_source),
+        role_colors={role: ds.role_color(role) for role in ds.roles()},
+    )
+
+
+@dataclass
+class EndToEndTemporalQualityView(View):
+    """End-to-end temporal quality: how media reaches the user in time, per sender and receiver."""
+    name: ClassVar[str] = "end-to-end-temporal-quality"
+    default_filename: ClassVar[str] = "end-to-end-temporal-quality.pdf"
+    latency: pd.DataFrame  # sessiontime, sender, receiver, medium, value
+    continuity: pd.DataFrame  # sessiontime, sender, receiver, medium, value
+    labels: Dict[str, str]
+    role_colors: Dict[str, str]
+    clock_desync: Optional[str]  # Goes into both directions' latency with opposite signs
+
+
+# What each medium measures at its last stage. Voice latency_ms is a mean over the stats
+# interval, and point cloud latency_max_ms a highest, so the two aren't comparable yet
+# (cwi-dis/VR2Gather#382, cwi-dis/cwipc_unity#57).
+LATENCY_STATISTICS = {"voice": "mean", "point cloud": "max"}
+CONTINUITY_MEASURES = {"voice": "Voice dropped (%)", "point cloud": "Point cloud fps"}
+
+
+def _worst_across_tiles(records: List[Dict[str, Any]], field_name: str, worst: str) -> pd.DataFrame:
+    """Per time, the worst value of a field across tiles, using each tile's latest value."""
+    per_tile = pd.DataFrame(records).pivot_table(index="sessiontime", columns="component_role", values=field_name, aggfunc="last")
+    return getattr(per_tile.ffill(), worst)(axis=1).rename("value").reset_index()
+
+
+def extract_end_to_end_temporal_quality(ds: DataStore, *, label_source: str = "role") -> EndToEndTemporalQualityView:
+    """
+    Extract what reaches the user, from the last stage of voice and point clouds.
+    See DataStore.role_labels() for label_source.
+
+    Only for two roles: voice records don't say whose voice they carry
+    (cwi-dis/VR2Gather#381), so the sender is the other role. Point cloud latency
+    is the highest and fps the lowest across tiles (#44).
+
+    :raises DataStoreError: if there aren't exactly two roles, or neither medium has data.
+    """
+    roles = ds.roles()
+    if len(roles) != 2:
+        raise DataStoreError(f"end-to-end temporal quality requires exactly two roles, found {roles}")
+    engine.ensure(ds, "component_role")
+    latency = []
+    continuity = []
+    for sender, receiver in (roles, roles[::-1]):
+        def add(table: List[pd.DataFrame], medium: str, values: pd.DataFrame) -> None:
+            table.append(values.assign(sender=sender, receiver=receiver, medium=medium))
+
+        records = [r for r in ds.data if r["role"] == receiver]
+        voice = [
+            r for r in records
+            if str(r.get("component")).startswith("VoicePipelineOther") and "latency_ms" in r
+        ]
+        if voice:
+            voice_table = pd.DataFrame(voice)[["sessiontime", "latency_ms", "zero_inserted_percentage"]]
+            add(latency, "voice", voice_table.rename(columns={"latency_ms": "value"})[["sessiontime", "value"]])
+            add(continuity, "voice", voice_table.rename(columns={"zero_inserted_percentage": "value"})[["sessiontime", "value"]])
+        point_clouds = [
+            r for r in records
+            if r["component_role"].startswith(f"{receiver}.pc.renderer.") and "latency_max_ms" in r
+        ]
+        if point_clouds:
+            add(latency, "point cloud", _worst_across_tiles(point_clouds, "latency_max_ms", "max"))
+            add(continuity, "point cloud", _worst_across_tiles(point_clouds, "fps", "min"))
+    if not latency:
+        raise DataStoreError(f"{ds.filename}: no voice or point cloud records for end-to-end temporal quality")
+
+    labels = ds.role_labels(source=label_source)
+    desyncs = ds.session_metadata.get("desyncs", {})
+    clock_desync = None
+    # With a media path, describe() already shows it.
+    if all(role in desyncs for role in roles) and not engine.instances(ds, "media_path"):
+        uncertainties = ds.session_metadata.get("desync_uncertainties", {})
+        uncertainty = max(uncertainties.get(role, 0) for role in roles) / 2
+        difference = desyncs[roles[0]] - desyncs[roles[1]]
+        clock_desync = f"clock desync {labels[roles[0]]} - {labels[roles[1]]}: {difference * 1000:.0f} ms ± {uncertainty * 1000:.0f}"
+    return EndToEndTemporalQualityView(
+        description=ds.describe(), scenes=ds.scenes(),
+        latency=pd.concat(latency, ignore_index=True),
+        continuity=pd.concat(continuity, ignore_index=True),
+        labels=labels,
+        role_colors={role: ds.role_color(role) for role in roles},
+        clock_desync=clock_desync,
+    )
 
 
 # ── Register extractors ────────────────────────────────────────────────────────
@@ -335,3 +499,6 @@ ResourceView.register_extractor(extract_resources)
 FramerateView.register_extractor(extract_framerates)
 PointcountView.register_extractor(extract_pointcounts)
 ProgressView.register_extractor(extract_progress)
+VoiceView.register_extractor(extract_voice)
+GazeView.register_extractor(extract_gaze)
+EndToEndTemporalQualityView.register_extractor(extract_end_to_end_temporal_quality)

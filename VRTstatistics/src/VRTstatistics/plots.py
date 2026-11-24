@@ -1,10 +1,11 @@
 import os
 import warnings
 from dataclasses import dataclass, field
-from typing import Tuple, Optional, List, Dict, Any, cast, Literal
+from typing import Callable, Tuple, Optional, List, Dict, Any, cast, Literal
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 import matplotlib.colors as mcolors
+import matplotlib.patches as mpatches
 import pandas as pd
 import matplotlib.pyplot as pyplot
 from matplotlib.backends.backend_pdf import PdfPages
@@ -13,9 +14,11 @@ from .datastore import DataStore, DataStoreError, Predicate
 from .analyze import DataFrameFilter, TileCombiner, SessionTimeFilter
 from .annotation import engine
 from .views import (
-    LatencyView, LatencyPerTileView, ResourceView, FramerateView, PointcountView, ProgressView,
+    LatencyView, LatencyPerTileView, ResourceView, FramerateView, PointcountView, ProgressView, VoiceView, GazeView,
+    EndToEndTemporalQualityView, CONTINUITY_MEASURES, LATENCY_STATISTICS,
     extract_latencies, extract_latencies_per_tile, extract_resources,
     extract_framerates, extract_pointcounts, extract_progress,
+    extract_voice, extract_gaze,
 )
 
 
@@ -44,6 +47,31 @@ __all__ = [
     "render_pointcounts", "render_progress",
     "publish_plots", "extract_legend",
 ]
+
+
+_SCENE_SHADES = ['#f0f0f0', '#ffffff']
+
+
+def apply_scene_shading(ax: Axes, scenes: Optional[pd.DataFrame], labels: Optional[Callable[[str], str]] = None) -> None:
+    """
+    Add alternating background shading and scene names to an axes whose x axis is session time.
+
+    :param scenes: A table from DataStore.scenes(). Nothing happens if it is None or empty.
+    :param labels: Optionally, a function from scene name to the label to show.
+    """
+    if scenes is None:
+        return
+    shade_idx = 0
+    for _, row in scenes.iterrows():
+        if pd.isna(row['t_end']):
+            continue
+        ax.axvspan(row['t_start'], row['t_end'], color=_SCENE_SHADES[shade_idx % 2], zorder=0)
+        shade_idx += 1
+        ax.text(
+            (row['t_start'] + row['t_end']) / 2, 0.98, labels(row['name']) if labels else row['name'],
+            ha='center', va='top', fontsize=7, color='#888888',
+            transform=ax.get_xaxis_transform(),
+        )
 
 
 def plot_simple(datastore: DataStore, *, predicate: Optional[Predicate]=None, title: Optional[str]=None, noshow: bool=False, x: str="sessiontime", fields: List[str]=[], datafilter: Optional[DataFrameFilter]=None, plotargs: Dict[str, Any]={}, show_desc: bool=True) -> Axes:
@@ -233,6 +261,7 @@ def render_resource_cpu(view: ResourceView, *, title: str="CPU usage", style: Pl
     _, top = ax.get_ylim()
     ax.set_ylim(0, top * 1.5)
     _apply_style(ax, style)
+    apply_scene_shading(ax, view.scenes)
     return [ax]
 
 
@@ -244,6 +273,7 @@ def render_resource_mem(view: ResourceView, *, title: str="Memory usage", style:
     _, top = ax.get_ylim()
     ax.set_ylim(0, top * 1.5)
     _apply_style(ax, style)
+    apply_scene_shading(ax, view.scenes)
     return [ax]
 
 
@@ -255,6 +285,7 @@ def render_resource_bandwidth(view: ResourceView, *, title: str="Bandwidth usage
     _, top = ax.get_ylim()
     ax.set_ylim(0, top * 1.5)
     _apply_style(ax, style)
+    apply_scene_shading(ax, view.scenes)
     return [ax]
 
 
@@ -312,6 +343,8 @@ def render_latencies_per_tile(view: LatencyPerTileView, *, style: PlotStyle=Plot
     handles, labels = axs[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc='center right')  # type: ignore
     pyplot.subplots_adjust(right=0.66)
+    for ax in axs:
+        apply_scene_shading(ax, view.scenes)
     return list(axs)
 
 
@@ -353,6 +386,7 @@ def render_latencies(view: LatencyView, *, title: str="Latency contributions (ms
     pyplot.xlabel("Session time (s)")
     pyplot.ylabel("Latency (ms)")
     _apply_style(ax, style, reverse_legend=True, capitalize_labels=True)
+    apply_scene_shading(ax, view.scenes)
     return [ax]
 
 
@@ -361,6 +395,7 @@ def render_framerates(view: FramerateView, *, title: str="Frames per second", st
     actual_plotargs = ({} if style.figsize is None else {"figsize": style.figsize}) | style.plot_kwargs
     ax = _plot_dataframe(view.fps, noshow=True, title=title, x="sessiontime", descr=view.description, plotargs=actual_plotargs)
     _apply_style(ax, style)
+    apply_scene_shading(ax, view.scenes)
     return [ax]
 
 
@@ -369,6 +404,7 @@ def render_framerates_dropped(view: FramerateView, *, title: str="FPS dropped", 
     actual_plotargs = ({} if style.figsize is None else {"figsize": style.figsize}) | style.plot_kwargs
     ax = _plot_dataframe(view.fps_dropped, noshow=True, title=title, x="sessiontime", descr=view.description, plotargs=actual_plotargs)
     _apply_style(ax, style)
+    apply_scene_shading(ax, view.scenes)
     return [ax]
 
 
@@ -384,6 +420,7 @@ def render_pointcounts(view: PointcountView, *, title: str="Receiver point count
     _, top = ax.get_ylim()
     ax.set_ylim(0, top * 1.5)
     _apply_style(ax, style)
+    apply_scene_shading(ax, view.scenes)
     return [ax]
 
 
@@ -433,6 +470,7 @@ def render_progress(view: ProgressView, *, title: str="Pointcloud Progress", sty
     ax.text(0.98, 0.98, view.description, transform=ax.transAxes, verticalalignment='top', horizontalalignment='right', fontsize='x-small', bbox=props)  # type: ignore
     ax.set_title(title)  # type: ignore
     _apply_style(ax, style)
+    apply_scene_shading(ax, view.scenes)
     return [ax]
 
 
@@ -500,9 +538,103 @@ def plot_progress(ds: DataStore, dirname: Optional[str]=None, showplot: bool=Tru
 
 # ── Register renderers ─────────────────────────────────────────────────────────
 
+def render_voice(view: VoiceView, *, title: str="Voice activity", style: PlotStyle=PlotStyle()) -> List[Axes]:
+    """Render voice levels per role from a VoiceView."""
+    figsize = style.figsize or (14, 4)
+    fig, ax = pyplot.subplots(figsize=figsize)
+
+    apply_scene_shading(ax, view.scenes)
+
+    level_cols = [c for c in view.voice_levels.columns if c != 'sessiontime']
+    for col in level_cols:
+        role = col.removesuffix('.level')
+        sub = view.voice_levels[['sessiontime', col]].dropna()
+        ax.plot(sub['sessiontime'], sub[col],
+                color=view.role_colors[role], linewidth=0.8, label=view.labels[role])
+
+    ax.set_xlabel("Session time (s)")
+    ax.set_ylabel("Voice level")
+    ax.set_ylim(0, 1)
+    ax.set_title(f"{title} — {view.description}")
+    if len(level_cols) > 1:
+        ax.legend()
+    return [ax]
+
+
+def render_gaze(view: GazeView, *, title: str="Gaze activity", style: PlotStyle=PlotStyle()) -> List[Axes]:
+    """Render a timeline of gaze segments per target from a GazeView."""
+    all_targets = sorted(view.segments['target'].unique()) if not view.segments.empty else []
+    target_idx = {t: i for i, t in enumerate(all_targets)}
+    n_targets = len(all_targets)
+    n_roles = len(view.roles)
+
+    bar_height = 0.8 / max(n_roles, 1)
+    offsets = [i * bar_height - (n_roles - 1) * bar_height / 2 for i in range(n_roles)]
+
+    figsize = style.figsize or (14, max(3, n_targets * 0.6 + 1))
+    fig, ax = pyplot.subplots(figsize=figsize)
+
+    apply_scene_shading(ax, view.scenes)
+
+    for _, seg in view.segments.iterrows():
+        y = target_idx[seg['target']] + offsets[view.roles.index(seg['role'])]
+        ax.barh(y, seg['t_end'] - seg['t_start'], left=seg['t_start'],
+                height=bar_height * 0.85,
+                color=view.role_colors[seg['role']], align='center', zorder=2)
+
+    ax.set_yticks(range(n_targets))
+    ax.set_yticklabels([t.replace('GazeTarget_', '') for t in all_targets], fontsize=8)
+    ax.set_xlabel("Session time (s)")
+    ax.set_ylim(-0.5, n_targets - 0.5)
+    ax.set_title(f"{title} — {view.description}")
+
+    if n_roles > 1:
+        legend_patches = [mpatches.Patch(color=view.role_colors[r], label=view.labels[r]) for r in view.roles]
+        ax.legend(handles=legend_patches, loc='lower right')
+
+    return [ax]
+
+
+def render_end_to_end_temporal_quality(view: EndToEndTemporalQualityView, *, title: str="End-to-end temporal quality", style: PlotStyle=PlotStyle()) -> List[Axes]:
+    """Render one latency panel and one continuity panel per medium from an EndToEndTemporalQualityView."""
+    media = [m for m in CONTINUITY_MEASURES if m in set(view.continuity["medium"])]
+    n_panels = 1 + len(media)
+    figsize = style.figsize or (14, 3 * n_panels)
+    fig, axes = pyplot.subplots(n_panels, 1, figsize=figsize, sharex=True)
+    axes = list(axes)
+    linestyles = {"voice": "-", "point cloud": "--"}
+
+    for ax in axes:
+        apply_scene_shading(ax, view.scenes)
+
+    def plot_lines(ax: Axes, table: pd.DataFrame, with_medium: bool) -> None:
+        for (sender, receiver, medium), line in table.groupby(["sender", "receiver", "medium"], sort=False):
+            label = f"{view.labels[sender]} → {view.labels[receiver]}"
+            if with_medium:
+                label += f" {medium} ({LATENCY_STATISTICS[medium]})"
+            ax.plot(line["sessiontime"], line["value"], color=view.role_colors[sender],
+                    linestyle=linestyles[medium], linewidth=0.8, label=label)
+        ax.legend()
+
+    plot_lines(axes[0], view.latency, True)
+    axes[0].set_ylabel("End-to-end latency (ms)")
+    heading = f"{title} — {view.description}"
+    if view.clock_desync:
+        heading += f"\n{view.clock_desync}"
+    axes[0].set_title(heading)
+    for ax, medium in zip(axes[1:], media):
+        plot_lines(ax, view.continuity[view.continuity["medium"] == medium], False)
+        ax.set_ylabel(CONTINUITY_MEASURES[medium])
+    axes[-1].set_xlabel("Session time (s)")
+    return axes
+
+
 LatencyView.register_renderer(render_latencies)
 LatencyPerTileView.register_renderer(render_latencies_per_tile)
 ResourceView.register_renderer(render_resources)
 FramerateView.register_renderer(render_framerates_and_dropped)
 PointcountView.register_renderer(render_pointcounts)
 ProgressView.register_renderer(render_progress)
+VoiceView.register_renderer(render_voice)
+GazeView.register_renderer(render_gaze)
+EndToEndTemporalQualityView.register_renderer(render_end_to_end_temporal_quality)

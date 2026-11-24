@@ -1,4 +1,6 @@
 from __future__ import annotations
+import ntpath
+import os
 import sys
 import json
 from typing import Optional, List, Any, cast, Dict, Union
@@ -6,7 +8,7 @@ from types import CodeType
 from .parser import StatsFileParser
 import pandas
 
-__all__ = ["DataStoreRecord", "DataStore", "DataStoreError"]
+__all__ = ["DataStoreRecord", "DataStore", "DataStoreError", "scene_predicate"]
 
 # Combined-JSON file versioning.
 # FILEVERSION is written into every saved file.
@@ -15,8 +17,28 @@ __all__ = ["DataStoreRecord", "DataStore", "DataStoreError"]
 # whenever the on-disk schema changes. Use the date of the change as an integer
 # (YYYYMMDD). If two incompatible changes happen on the same day, use YYYYMMDD+1
 # for the second one.
-FILEVERSION = 20260531
+FILEVERSION = 20261030
 OLDEST_COMPATIBLE_VERSION = 20260531
+
+def scene_predicate(scene: Any) -> str:
+    """
+    Return a predicate for the records within a scene, a row of DataStore.scenes().
+    A row rather than a name, because a session can have several scenes with the same name.
+
+    Components can log a few ms after the scene's end while they are being destroyed
+    (e.g. a GazeTarget's final gazing=0), so such records fall outside the scene.
+    """
+    t_start = float(scene["t_start"])
+    if pandas.isna(scene["t_end"]):
+        return f"sessiontime >= {t_start}"
+    return f"{t_start} <= sessiontime <= {float(scene['t_end'])}"
+
+
+# Fields of the VRTConfig stats record that VR2Gather logs at startup.
+VERSION_FIELDS = ("app", "app_version", "vr2gather", "cwipc_unity", "unity", "platform")
+
+_ROLE_COLORS = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red']
+
 
 class DataStoreError(RuntimeError):
     pass
@@ -326,6 +348,113 @@ class DataStore:
         if not roles:
             raise DataStoreError(f"{self.filename}: no roles found in session metadata or records")
         return roles
+
+    def versions(self, role: str) -> Dict[str, str]:
+        """
+        Return what a role's application was built from: app, app_version, vr2gather,
+        cwipc_unity, unity and platform. Each is "unknown" if the log doesn't say, as in
+        logs from before these were logged (cwi-dis/VR2Gather#373).
+        """
+        known = self.session_metadata.get("versions", {}).get(role, {})
+        return {field: known.get(field, "unknown") for field in VERSION_FIELDS}
+
+    def role_labels(self, source: str = "role") -> Dict[str, str]:
+        """
+        Return the label to show for each role. Which label is meaningful differs per
+        experiment, so the experiment says which it wants.
+
+        :param source: ``"role"``, ``"user_name"`` or ``"participant_number"``. The latter
+            comes from ``session_metadata["participant_numbers"]``, which the experiment fills in.
+        :raises DataStoreError: if the source is unknown, or doesn't have a label for every role.
+        """
+        roles = self.roles()
+        if source == "role":
+            return {role: role for role in roles}
+        if source == "user_name":
+            values = self.session_metadata.get("user_names", {})
+        elif source == "participant_number":
+            values = self.session_metadata.get("participant_numbers", {})
+        else:
+            raise DataStoreError(f"Unknown source for role labels: {source}")
+        missing = [role for role in roles if not values.get(role)]
+        if missing:
+            raise DataStoreError(f"{self.filename}: no {source} for roles {missing}")
+        return {role: values[role] for role in roles}
+
+    def role_color(self, role: str) -> str:
+        """Return the colour for a role, which is the same in every view of this session."""
+        return _ROLE_COLORS[self.roles().index(role) % len(_ROLE_COLORS)]
+
+    def master_role(self) -> str:
+        """
+        Return the role that created the orchestrator session, from its
+        ``OrchestratorController`` record with ``isMaster=1``.
+
+        :raises DataStoreError: if there is no such record, or if more than one role claims to be master.
+        """
+        masters = {
+            r["role"] for r in self.data
+            if r.get("component") == "OrchestratorController" and r.get("isMaster") and r.get("role")
+        }
+        if len(masters) != 1:
+            raise DataStoreError(f"{self.filename}: expected exactly one master role, found {sorted(masters)}")
+        return masters.pop()
+
+    def orchtime_to_sessiontime(self, orchtime: float) -> float:
+        """
+        Convert an orchestrator-clock time to session time, for timestamps that
+        a record carries in a field of its own. Both are in seconds.
+
+        :raises DataStoreError: if the session start time is not known.
+        """
+        session_start_time = self.session_metadata.get("session_start_time")
+        if not session_start_time:
+            raise DataStoreError(f"{self.filename}: no session start time in session metadata")
+        return orchtime - session_start_time
+
+    def resolve_file(self, record: DataStoreRecord, field: str) -> str:
+        """
+        Return the local path of a file that a stats record refers to, such as a
+        voice recording. VRTrun collects these into ``<run>/<role>/``, next to
+        ``stats.log``. The record has the name the file had on the machine that
+        wrote it, possibly a full path with Windows separators, so only the last
+        part of it is used.
+
+        :param record: The record, which must have a ``role``.
+        :param field: The field of the record that holds the filename.
+        :raises DataStoreError: if the record or this DataStore lacks what is needed, or the file doesn't exist.
+        """
+        if not self.filename or self.filename == "-":
+            raise DataStoreError(f"Can't resolve {field}: this DataStore wasn't loaded from a file")
+        if field not in record or "role" not in record:
+            raise DataStoreError(f"{self.filename}: can't resolve {field}: record lacks {field} or role: {record}")
+        run_dir = os.path.dirname(os.path.abspath(self.filename))
+        path = os.path.join(run_dir, record["role"], ntpath.basename(record[field]))
+        if not os.path.exists(path):
+            raise DataStoreError(f"{self.filename}: file referred to by {field} not found: {path}")
+        return path
+
+    def scenes(self, role: Optional[str] = None) -> pandas.DataFrame:
+        """
+        Return the scenes of the session in order, from the ``started`` and ``stopped``
+        records of VR2Gather's pilot controllers. There can be several scenes with the
+        same name. A scene that was never stopped has no ``t_end``.
+
+        :param role: Whose times to use, because scenes change at slightly different
+            times per role. The default is the first role.
+        :return: A DataFrame with columns ``name``, ``t_start``, ``t_end``, empty if the log has no scenes.
+        """
+        if role is None:
+            role = self.roles()[0]
+        rows: List[Dict[str, Any]] = []
+        for record in self.data:
+            if record.get("role") != role or "Pilot" not in str(record.get("component")) or "scene" not in record:
+                continue
+            if "started" in record:
+                rows.append({"name": record["scene"], "t_start": record["sessiontime"], "t_end": None})
+            elif "stopped" in record and rows and rows[-1]["name"] == record["scene"]:
+                rows[-1]["t_end"] = record["sessiontime"]
+        return pandas.DataFrame(rows, columns=["name", "t_start", "t_end"]).astype({"t_end": float})
 
     def describe(self) -> str:
         """Return a short human-readable description of this session and its annotations."""

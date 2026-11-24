@@ -34,6 +34,8 @@ pip install -e VRTstatistics
 
 All three packages share the `.venv` at the repo root. Python ≥ 3.12 is required.
 
+When working on VRTstatistics together with an experiment, you can instead use that experiment repo's venv, with editable installs from the sibling checkout (`pip install -e ../VRTstatistics/VRTrun -e ../VRTstatistics/VRTstatistics`), so that changes on either side take effect immediately. Then you don't need a `.venv` here.
+
 VS Code: select the `.venv` interpreter with `Python: Select Interpreter`. A `launch.json` for debugpy attach is in `.vscode/`.
 
 Most tools accept `--debugpy` (waits for debugpy attach on port 5678) or `--pausefordebug` (waits for a keypress to attach by PID).
@@ -65,7 +67,7 @@ See `testing.md` for a full step-by-step walkthrough including current config fi
 `VRTstatistics-ingest` can both run the session and ingest:
 - Runs the session (unless `--norun <dir>` is passed to re-ingest an existing run).
 - Parses `stats.log` and (if present) `rusage.log` or `vq-brisque.log` from each role.
-- Applies an annotator (`-a latency` is the main one) to add `component_role`, align clocks, and merge.
+- Applies an annotator (`-a media_path` is the main one) to add `component_role`, align clocks, and merge.
 - Saves `combined.json` in the run directory.
 
 ## Key Concepts
@@ -125,9 +127,9 @@ The `Annotator` examines structure records early in each log to identify pipelin
 
 `annotation.py` contains the annotation system:
 - `AnnotationStep` — base class for a single annotation pass
-- `AnnotationEngine` — registry and driver; `engine.ensure(ds, "latency")` runs the named step if not already applied
+- `AnnotationEngine` — registry and driver; `engine.ensure(ds, "media_path")` runs the named step if not already applied
 - `ComponentRoleAnnotation` — adds `component_role` field; discovers protocol, nTiles, nQualities
-- `LatencyAnnotation` — aligns clocks, merges sender + receiver, records experiment metadata
+- `MediaPathAnnotation` (`media_path`, old name `latency`) — records the media path to look at (the route from one sender to one receiver) and its setup
 
 ### Plotting (plots.py)
 
@@ -170,6 +172,7 @@ VRTstatistics should detect data quality problems as early as possible and raise
 - **Strict parsing**: if a `stats:` line looks malformed, raise an error or emit a loud warning immediately at parse time, not silently at analysis time.
 - **No silent fallbacks**: do not invent default values or skip records to paper over format errors. Surface the problem so it can be fixed at the source.
 - **Validate early**: ingest should check basic sanity of the parsed data (e.g. expected fields present, numeric values in plausible ranges) before writing `combined.json`.
+- **Experiment-level checks** live in a per-experiment checker script, run right after ingest (e.g. TrolleyExperiment's `vrts_session_check.py`). It decides what to check, with which thresholds, and what counts as an error; common checks are in `VRTstatistics.checks`.
 
 The specific case that motivated this: VR2Gather on Windows with a European locale writes commas as decimal separators (e.g. `fps=109,22`). The parser silently split this into `fps=109` plus an orphaned key `22`, producing hundreds of spurious numeric fields. This went undetected until manual inspection of the output.
 
