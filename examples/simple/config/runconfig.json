@@ -1,10 +1,10 @@
 [
     {
         "role" : "sender",
-        "address" : "sap.local"
+        "address" : "topinambur.huiskamer.private"
     },
     {
         "role" : "receiver",
-        "address" : "beelzebub.local"
+        "address" : "fiddlehead.huiskamer.private"
     }
 ]

@@ -6,10 +6,10 @@
         "outputFileAppend": false
     },
     "AutoStartConfig": {
-        "autoCreateForUser": "sap",
+        "autoCreateForUser": "topinambur",
         "sessionName": "vrtrun-test",
         "sessionScenario": "Pilot 0",
-        "sessionTransportProtocol": "socketio",
+        "sessionTransportProtocol": "webrtc",
         "autoStartWith": 2,
         "autoLeaveAfter": 60.0,
         "autoStopAfterLeave": true,

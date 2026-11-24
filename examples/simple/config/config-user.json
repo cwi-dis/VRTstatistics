@@ -1,1 +1,1 @@
-{"userName": "", "microphoneName": "Muted"}
+{"userName": "", "microphoneName": "Muted", "representation": 0, "representation_str": "PointCloud", "RepresentationPointcloudConfig": {"variant": 0, "variant_str": "camera", "CameraConfig": {"configFilename": ""}}}
