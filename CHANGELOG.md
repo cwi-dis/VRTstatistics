@@ -2,27 +2,20 @@
 
 All notable changes to this project will be documented here.
 
-Version numbers follow VR2Gather major.minor, with an independent patch number for
-fixes and improvements within a VR2Gather release cycle. Versions are derived from
+Version numbers are kept roughly in step with VR2Gather releases (VRTstatistics 1.4.6
+goes with VR2Gather 1.4.6). Versions are derived from
 git tags (see `FILEVERSION` / `OLDEST_COMPATIBLE_VERSION` in `datastore.py` for the
 combined.json format version scheme).
 
 ## [unreleased]
 
-- `DataStore.roles()`: the session's roles, from session metadata or (failing that) the records; raises if there are none (#39)
-- `DataStore.master_role()`: the role that created the orchestrator session (#39)
-- `DataStore.orchtime_to_sessiontime()`: convert orchestrator-clock timestamps in record fields to session time (#39)
-- Several instances of an annotation (`latency`), each stored under its full name `name(key=value,...)`; `engine.ensure()` returns the metadata, and raises where it used to silently do nothing or the short name is ambiguous (#34)
-- Renamed `latency` annotation to `media_path` and `latencies` views to `latency-contributions`; the old names still work (#43)
-- `DataStore.resolve_file()`: local path of a file that a stats record refers to, raises if it's missing (#41)
-- `VRTstatistics-plot`: `--type` can be repeated, `--save-dir` saves under default filenames, `--import` is now `--module` with the same upward search as the other tools; the old name still works (#39)
-- `VRTstatistics.checks`: common checks for per-experiment checker scripts (clock desync, start times, session end, referenced files, required records, scenes) (#39)
-- Scenes as part of the session: `DataStore.scenes()`, `scene_predicate()`, a `scenes` field on `View`, background shading in all standard plots (#32)
-- `DataStore.role_labels(source)` and `role_color(role)`: labels chosen by the experiment, and a fixed colour per role across views (#35)
-- Registering a `View` or annotation step under a name another class already uses is now an error, unless declared with `replace=True` (#39)
-- `DataStore.versions(role)`: app and package versions of a run, "unknown" for older logs (cwi-dis/VR2Gather#373)
-- `component_role` now covers all scenes of a session, not only the first, after re-ingest (#45)
-- Generic views `voice-activity`, `gaze` and `end-to-end-temporal-quality`, from TrolleyExperiment (#39)
+## [1.4.6] — 2026-11-25
+
+- Generic analysis code from TrolleyExperiment is now part of VRTstatistics: views `voice-activity`, `gaze` and `end-to-end-temporal-quality`, `VRTstatistics.checks` for post-session checker scripts, `DataStore` helpers for roles, role labels and colours, scenes, referenced files, orchestrator time and app versions, and per-experiment analysis modules loaded with `--module` (#39, #41, #32, #35, cwi-dis/VR2Gather#373)
+- `latency` annotation renamed `media_path` and `latencies` views `latency-contributions`, old names still work; an annotation can have several instances (#43, #34)
+- `VRTstatistics-plot`: repeatable `--type`, `--save-dir`; registering a view or annotation under a name that's taken is an error unless `replace=True` (#39)
+- Readme: running experiments with released VR2Gather players, first launch of a new player, what to check before every set of runs (#50)
+- Various minor bugs fixed (#45)
 
 ## [1.4.1] — 2026-07-07
 
