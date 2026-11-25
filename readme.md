@@ -152,19 +152,32 @@ Run `VRTrun` from `my-demo/`. Each run's logs are collected into its own directo
 
 ## Preparing the VR2Gather experience to run
 
-- Build the Player for the experience you want to run, in the Unity Editor
-- Zip, copy to all end-user machines, unzip
-- On every end-user machine (Windows):
-	- Ensure a compatible version of Python is installed
-	- **Windows SmartScreen:** the app is not code-signed, so Windows will show a "Windows protected your PC" dialog on first launch. Click **More info**, then **Run anyway**.
-	- Run `VRTrunserver.ps1` with Powershell. This should install the VRTrunserver in a local (venv-based) Python. The _VRTrunserver_ is then started.
-	- The installation should happen only the first time. So after that running the powershell script will start VRTrunserver directly.
-	- This means that you can setup a Windows machine to auto-login after boot, and you can set `VRTrunserver.ps1` as a `Startup` program. This will prepare the machine for remote control automatically after booting.
-- On every end-user machine (Mac, for development only):
-	- Install the built VR2Gather as `VRTApp-Develop-built.app`.
-	- **macOS Gatekeeper:** the app is not code-signed, so macOS will block it on first launch. After attempting to open it and seeing "app can't be opened", go to **System Settings → Privacy & Security → Security**, click **Open Anyway** next to the blocked app, then click **Open Anyway** again in the security dialog.
-	- Run with `./VRTApp-Develop-built.app/Contents/MacOS/VRTrunservermac.sh`
-	- Note: you may have to add some symlinks here and there (specifically in the `.app` folder) to make the content work.
+### Getting the player
+
+- A released VR2Gather (and a VR2Gather-based app that releases the same way) has players built by CI on its GitHub release page; for Windows that is `VR2Gather-windows-x64.zip`. For your own experience: build the Player in the Unity Editor and zip it.
+- Unzip on every end-user machine. Use a folder per version (for example `VR2Gather-windows-x64-146` for 1.4.6), so that an older version stays usable. The player folder contains `VRTrunserver.ps1`.
+
+### First launch on each end-user machine (Windows)
+
+Do this once per machine for every new player version:
+
+1. Ensure a compatible version of Python is installed.
+2. Start the player by hand. **Windows SmartScreen:** the app is not code-signed, so Windows shows a "Windows protected your PC" dialog. Click **More info**, then **Run anyway**. If Windows asks for firewall access for `VR2Gather.exe`, allow it: direct TCP connections between players need it.
+3. In **Settings**, set the default self-representation and microphone to what your experiments need, and confirm in **Preview**. This is saved as `config-user.json` next to the executable. It is used for sessions started by hand, and for runs whose config directory has no `config-user.json` (a run reads `config.json` and `config-user.json` from its own folder `VRTrunserver-workdir\run-…\` first).
+4. Do a quick solo session (for example in the Technical Playground scenario) to see that the player works on this machine.
+5. **Cameras** (point cloud variant `camera`): the machine's own `cameraconfig.json` goes right next to `VR2Gather.exe`; with an empty `CameraConfig.configFilename` the player finds it there. Copy it into every new player folder.
+6. **Prerecorded point clouds** (variant `prerecorded`): the folder named in `PrerecordedConfig.folder` must exist on every machine that sends one, relative to the player folder. If it doesn't, VR2Gather falls back to an avatar without anything in `stats.log` showing it, only in `unity.log` ([VR2Gather #450](https://github.com/cwi-dis/VR2Gather/issues/450)).
+7. **WebRTC:** the WebRTC peer (`WebRTCSFU-peer.exe`) asks for firewall access the first time it runs, and the dialog can appear *behind* the player window. Until it is answered, WebRTC sessions get no connection. Run one WebRTC session by hand and allow it.
+8. Run `VRTrunserver.ps1` with PowerShell. The first time, this installs VRTrunserver in a local (venv-based) Python; after that it starts VRTrunserver directly. You can set up a Windows machine to auto-login after boot and set `VRTrunserver.ps1` as a `Startup` program, so that the machine is ready for remote control after booting. Otherwise, remember to start it again after a reboot or a new player version.
+9. **Firewall:** VRTrunserver listens on port 5002, which needs an inbound rule. Python's "allow access" dialog creates it if you click it; otherwise add it by hand.
+10. Check from the controlling computer: `curl http://HOSTNAME:5002/about` should answer `<p>Hello world!</p>`.
+
+### End-user machines (Mac, for development only)
+
+- Install the built VR2Gather as `VRTApp-Develop-built.app`.
+- **macOS Gatekeeper:** the app is not code-signed, so macOS will block it on first launch. After attempting to open it and seeing "app can't be opened", go to **System Settings → Privacy & Security → Security**, click **Open Anyway** next to the blocked app, then click **Open Anyway** again in the security dialog.
+- Run with `./VRTApp-Develop-built.app/Contents/MacOS/VRTrunservermac.sh`
+- Note: you may have to add some symlinks here and there (specifically in the `.app` folder) to make the content work.
 
 ## Preparing the controlling computer
 
@@ -197,12 +210,23 @@ Run `VRTrun` from `my-demo/`. Each run's logs are collected into its own directo
 
 ## Running an experiment
 
-- Ensure clocks are synchronized on all machines. Desync above ~30 ms (one frame time) will distort latency measurements and may cause plots to fail. Use **ChronyControl** on Mac and **NetTime** (also known as `timesynctool`) on Windows.
-- Ensure Windows machines use a **dot as the decimal separator**. VR2Gather's stats formatter is locale-sensitive; a comma decimal separator (common in European Windows locales) corrupts the stats log (see [VR2Gather #318](https://github.com/cwi-dis/VR2Gather/issues/318)). Until fixed: change this in Settings → Time & Language → Region → Additional settings.
+Before every set of runs:
+
+- **Synchronise the clocks** on all machines. Desync above ~30 ms (one frame time) distorts latency measurements and may cause plots to fail. On Windows, open the **NetTime** GUI (also known as `timesynctool`), look at the offset, and press **Update Now** if it is too large. On Mac use **ChronyControl**. Doing this automatically: [#51](https://github.com/cwi-dis/VRTstatistics/issues/51).
 - Ensure the correct _VRTrunserver_ is running on all end-user computers.
+- Players older than VR2Gather 1.4.2 need a **dot as the decimal separator** in Windows (Settings → Time & Language → Region → Additional settings); a comma corrupts the stats log ([VR2Gather #318](https://github.com/cwi-dis/VR2Gather/issues/318), fixed in 1.4.2).
+
+Things to get right in the config files:
+
+- `runconfig.json`: use DNS names or IP addresses. `.local` (mDNS) names can be slow to resolve, for example from a Mac.
+- `AutoStartConfig.autoCreateForUser` must name the user of the machine that creates the session. With an empty `userName`, the user name is the machine name in lower case.
+- `microphoneName`: use `"Muted"` for a session without voice. `"None"` makes the player show a popup.
+
+Then:
+
 - On the controlling computer, in the experiment directory:
 	- Activate the venv with `source .venv/bin/activate` (Mac/Linux) or `.venv\Scripts\activate` (Windows)
-	- Run `VRTrun`
+	- Run `VRTrun` (or `VRTstatistics-ingest`, which runs and then ingests). On a Mac, run it under `caffeinate -i`: it waits unattended for the whole session, and an idle sleep leaves the run incomplete.
 - The end-user computers should start their VR2Gather applications.
 - After the VR2Gather applications have all terminated the results will be collected.
 	- They will be in an output directory that has a timestamped name, such as `run-20250319-1230`.
