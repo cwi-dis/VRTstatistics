@@ -159,18 +159,20 @@ Run `VRTrun` from `my-demo/`. Each run's logs are collected into its own directo
 
 ### First launch on each end-user machine (Windows)
 
+For this you need physical access to the end-user machine, or a Microsoft Remote Desktop connection. Only `ssh` is not good enough.
+
 Do this once per machine for every new player version:
 
 1. Ensure a compatible version of Python is installed.
 2. Start the player by hand. **Windows SmartScreen:** the app is not code-signed, so Windows shows a "Windows protected your PC" dialog. Click **More info**, then **Run anyway**. If Windows asks for firewall access for `VR2Gather.exe`, allow it: direct TCP connections between players need it.
 3. In **Settings**, set the default self-representation and microphone to what your experiments need, and confirm in **Preview**. This is saved as `config-user.json` next to the executable. It is used for sessions started by hand, and for runs whose config directory has no `config-user.json` (a run reads `config.json` and `config-user.json` from its own folder `VRTrunserver-workdir\run-…\` first).
 4. Do a quick solo session (for example in the Technical Playground scenario) to see that the player works on this machine.
-5. **Cameras** (point cloud variant `camera`): the machine's own `cameraconfig.json` goes right next to `VR2Gather.exe`; with an empty `CameraConfig.configFilename` the player finds it there. Copy it into every new player folder.
-6. **Prerecorded point clouds** (variant `prerecorded`): the folder named in `PrerecordedConfig.folder` must exist on every machine that sends one, relative to the player folder. If it doesn't, VR2Gather falls back to an avatar without anything in `stats.log` showing it, only in `unity.log` ([VR2Gather #450](https://github.com/cwi-dis/VR2Gather/issues/450)).
-7. **WebRTC:** the WebRTC peer (`WebRTCSFU-peer.exe`) asks for firewall access the first time it runs, and the dialog can appear *behind* the player window. Until it is answered, WebRTC sessions get no connection. Run one WebRTC session by hand and allow it.
-8. Run `VRTrunserver.ps1` with PowerShell. The first time, this installs VRTrunserver in a local (venv-based) Python; after that it starts VRTrunserver directly. You can set up a Windows machine to auto-login after boot and set `VRTrunserver.ps1` as a `Startup` program, so that the machine is ready for remote control after booting. Otherwise, remember to start it again after a reboot or a new player version.
+5. **Cameras**, only for live capture (point cloud variant `camera`): the machine's own `cameraconfig.json` goes right next to `VR2Gather.exe`; with an empty `CameraConfig.configFilename` the player finds it there. Copy it into every new player folder.
+6. **Prerecorded point clouds**, only for playback of a recording (point cloud variant `prerecorded`): the folder named in `PrerecordedConfig.folder` must exist on every machine that sends one, relative to the player folder. If it doesn't, VR2Gather falls back to an avatar without anything in `stats.log` showing it, only in `unity.log` ([VR2Gather #450](https://github.com/cwi-dis/VR2Gather/issues/450)).
+7. **WebRTC**, only if your experiment uses the WebRTC transport: the WebRTC peer (`WebRTCSFU-peer.exe`) asks for firewall access the first time it runs, and the dialog can appear *behind* the player window. Until it is answered, WebRTC sessions get no connection. Run one WebRTC session by hand and allow it.
+8. Run `VRTrunserver.ps1` with PowerShell. The first time, this installs VRTrunserver in a local (venv-based) Python; after that it starts VRTrunserver directly. You can set up a Windows machine to auto-login after boot and set `VRTrunserver.ps1` as a `Startup` program, so that the machine is ready for remote control after booting. Otherwise, remember to start it again after a reboot or a new player version. VRTrunserver is installed from GitHub into `VR2Gather_Data\venv` in the player folder; to update it, delete that `venv` folder and run `VRTrunserver.ps1` again.
 9. **Firewall:** VRTrunserver listens on port 5002, which needs an inbound rule. Python's "allow access" dialog creates it if you click it; otherwise add it by hand.
-10. Check from the controlling computer: `curl http://HOSTNAME:5002/about` should answer `<p>Hello world!</p>`.
+10. Lastly, check that the end-user machines are reachable from the controlling computer: `curl http://HOSTNAME:5002/about` should answer `<p>Hello world!</p>`.
 
 ### End-user machines (Mac, for development only)
 
